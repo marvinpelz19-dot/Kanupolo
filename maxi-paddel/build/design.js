@@ -15,8 +15,8 @@ const HAND = { caveat: 'caveat-latin-700-normal', marker: 'permanent-marker-lati
 const FONT_CSS = Object.entries(HAND).map(([k, f]) => `@font-face{font-family:'hand-${k}';src:url(data:font/woff2;base64,${fs.readFileSync(path.join(OUT, 'assets/fonts', f + '.woff2')).toString('base64')}) format('woff2');}`).join('');
 // example names – the team signs the real paddle by hand
 const SIGS = {
-  R: [['Marvin', 'marker', 86, 920, 275, -6], ['Lara', 'caveat', 120, 1265, 300, 5], ['Nille', 'rock', 62, 850, 470, 4], ['Gabor', 'grace', 110, 1200, 500, -7], ['Henry', 'nothing', 80, 950, 655, -3]],
-  L: [['Lasse', 'caveat', 120, 930, 285, -5], ['Silas', 'marker', 84, 1270, 300, 6], ['Spjalle', 'grace', 108, 870, 480, 5], ['Jill', 'rock', 64, 1240, 500, -6], ['Amira', 'reenie', 130, 970, 660, -4]],
+  R: [['Marvin', 'marker', 86, 880, 275, -6], ['Lara', 'caveat', 120, 1225, 300, 5], ['Nille', 'rock', 62, 810, 470, 4], ['Gabor', 'grace', 110, 1160, 500, -7], ['Henry', 'nothing', 80, 910, 655, -3]],
+  L: [['Lasse', 'caveat', 120, 890, 285, -5], ['Silas', 'marker', 84, 1230, 300, 6], ['Spjalle', 'grace', 108, 830, 480, 5], ['Jill', 'rock', 64, 1200, 500, -6], ['Amira', 'reenie', 130, 930, 660, -4]],
 };
 
 // Blade outline, traced from the CPS Energy Spoon product photo.
@@ -59,7 +59,7 @@ function art(variant, side, face, X, sample = false) {
   // inner (power) face: original black CPS carbon, only a small white name / number
   if (face === 'front') {
     shapes = `<rect x="-300" y="-20" width="2600" height="900" fill="#17181b"/><rect x="-300" y="-20" width="2600" height="900" fill="url(#carbon)" opacity="0.55"/>`;
-    marks = txt(X(1080), 455, 120, WHITE, R ? 'MAXI' : '#2', { ls: 2 });
+    marks = txt(X(1080), 455, 120, WHITE, R ? '#2' : 'MAXI', { ls: 2 });
     return { shapes, marks };
   }
   const A = variant === 'A';
@@ -68,17 +68,20 @@ function art(variant, side, face, X, sample = false) {
   const neck = A ? WHITE : BLACK;
   shapes += `<rect x="-300" y="-20" width="2600" height="900" fill="url(#redG)"/>`;
   shapes += field(280, neck) + stripes(320, neck, 6, 58, 42, 6);
-  marks += crestAt(X(1700), 400, 370, WHITE);
-  marks += txt(X(1120), 128, 46, WHITE, 'ROTHE MÜHLE ESSEN', { ls: 9, w: 800 });
-  marks += `<rect x="${X(1120) - 280}" y="152" width="560" height="5" fill="${WHITE}" opacity="0.9"/>`;
+  shapes += `<path d="${slant(1480, 14)}" fill="${WHITE}"/>`;
+  marks += crestAt(X(1715), 255, 310, WHITE);
+  marks += R ? txt(X(1705), 560, 112, WHITE, 'MAXI', { ls: 1 }) : txt(X(1700), 570, 135, WHITE, '#2', { ls: -2 });
+  marks += txt(X(1090), 128, 46, WHITE, 'ROTHE MÜHLE ESSEN', { ls: 9, w: 800 });
+  marks += `<rect x="${X(1090) - 280}" y="152" width="560" height="5" fill="${WHITE}" opacity="0.9"/>`;
   if (sample) {
     for (const [name, font, size, u, v, rot] of SIGS[side]) {
       marks += `<text x="${X(u)}" y="${v}" font-family="hand-${font}" font-size="${size}" fill="#fff" fill-opacity="0.96" text-anchor="middle" transform="rotate(${rot} ${X(u)} ${v})">${name}</text>`;
     }
   } else {
-    marks += `<rect x="${X(1130) - 340}" y="200" width="680" height="500" rx="18" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="3" stroke-dasharray="14 12"/>`;
-    marks += txt(X(1130), 440, 26, WHITE, 'SIGNATURE AREA – KEEP FREE (PLAIN RED)', { italic: false, w: 700, ls: 3 });
-    marks += txt(X(1130), 485, 22, WHITE, 'guide only – do not print this frame', { italic: false, w: 500 });
+    marks += `<rect x="${X(1080) - 310}" y="200" width="620" height="480" rx="18" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="3" stroke-dasharray="14 12"/>`;
+    marks += txt(X(1080), 395, 30, WHITE, 'SIGNATURE AREA', { italic: false, w: 800, ls: 4 });
+    marks += txt(X(1080), 435, 22, WHITE, 'keep free – plain red, no print', { italic: false, w: 600 });
+    marks += txt(X(1080), 472, 20, WHITE, 'guide only – do not print this frame', { italic: false, w: 500 });
   }
   return { shapes, marks };
 }
@@ -150,9 +153,9 @@ function shaftSVG(variant) {
 function notes(x, y, variant) {
   const rows = [
     ['Paddle', 'CPS Energy Spoon blades (left + right) with CPS carbon shaft.'],
-    ['Back face (design side)', 'Print: black neck stripes on red, small white club crest at the tip, white text “ROTHE MÜHLE ESSEN” with line along the flat top edge. Same on both blades.'],
+    ['Back face (design side)', 'Print: black neck stripes on red, white divider line, small white club crest in the upper tip corner, below it “MAXI” (right blade) / “#2” (left blade), “ROTHE MÜHLE ESSEN” with line at the top edge.'],
     ['Signature area', 'The red area below “ROTHE MÜHLE ESSEN” must stay EMPTY (plain red). The team will sign there by hand. Hand-written names shown here are EXAMPLES – DO NOT PRINT.'],
-    ['Power face (inner side)', 'Original black CPS carbon finish. Small white print only: right blade “MAXI”, left blade “#2”. Nothing else.'],
+    ['Power face (inner side)', 'Original black CPS carbon finish. Small white print only: right blade “#2”, left blade “MAXI”. Nothing else.'],
     ['Shaft', variant === 'A' ? 'White shaft with red rings and red text.' : 'Standard black CPS carbon shaft. Red rings at both ends, white text “KSV ROTHE MÜHLE ESSEN”, mill-wheel icon, “MAXI #2”.'],
     ['Colours', 'Club red: HEX #E31E24 (RGB 227 / 30 / 36) – please match as closely as possible. Dark red in gradient: #B5121B. White: #FFFFFF. Black: #111214.'],
     ['Text (do not translate)', '“MAXI”, “#2”, “ROTHE MÜHLE ESSEN”, “KSV ROTHE MÜHLE ESSEN” (shaft), “1924” (part of the crest). Note the German letter “Ü”.'],
@@ -191,7 +194,7 @@ function boardSVG(variant) {
   ${label(60, 700, 'FULL PADDLE · POWER FACES', 'Inner side – original CPS black with small white name / number')}
   <g transform="translate(60 750) scale(${s})">${paddle(variant, 'front')}</g>
   ${tile('L', 'back', 60, 1130)}${tile('R', 'back', 1680, 1130)}
-  ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, i ? 'Power face – black, small white “MAXI”' : 'Power face – black, small white “#2”')).join('')}
+  ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, i ? 'Power face – black, small white “#2”' : 'Power face – black, small white “MAXI”')).join('')}
   ${label(60, 2330, 'SHAFT · CENTRE SECTION (ENLARGED)', 'Black CPS carbon shaft · white text · red rings at both ends')}
   <svg x="60" y="2400" width="3080" height="170" viewBox="${SL / 2 - 1340} -13 2680 148"><g filter="url(#sh)">${shaftGroup(variant)}</g></svg>
   ${notes(60, 2620, variant)}
