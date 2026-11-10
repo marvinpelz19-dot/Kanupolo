@@ -117,7 +117,7 @@ const keyTerm = new Table({
     ], kW[0], { shading: shade(INK), verticalAlign: VerticalAlign.CENTER }),
     cell([
       new Paragraph({ spacing: { after: 60 }, children: [t('The deal in one sentence', { bold: true, size: 20, color: 'FFFFFF' })] }),
-      new Paragraph({ spacing: { line: 280 }, children: [t('Connect Kayaks provides the Athlete with a canoe polo boat for one year. At the end of that year the Athlete may buy the boat for 50% of the original price shown on the invoice. Payment is due after one year, and Connect Kayaks will contact the Athlete when the time comes.', { size: 18, color: 'E8EEF1' })] }),
+      new Paragraph({ spacing: { line: 280 }, children: [t('Connect Kayaks provides the Athlete with a canoe polo boat for one year. At the end of that year the Athlete buys the boat for 50% of the original price shown on the invoice. Payment is due after one year, and Connect Kayaks will contact the Athlete when the time comes.', { size: 18, color: 'E8EEF1' })] }),
     ], kW[1], { shading: shade(NAVY), verticalAlign: VerticalAlign.CENTER }),
   ] })],
 });
@@ -164,7 +164,7 @@ const children = [
   new Paragraph({ spacing: { after: 100 }, children: [t('CANOE POLO  ·  ATHLETE PROGRAMME', { bold: true, size: 17, color: GREEN_BRIGHT, characterSpacing: 60 })] }),
   new Paragraph({ spacing: { after: 0, line: mm(14.5), lineRule: LineRuleType.EXACT }, children: [t('ATHLETE AFFILIATE', { bold: true, italics: true, size: 72, color: 'FFFFFF' })] }),
   new Paragraph({ spacing: { after: 100, line: mm(14.5), lineRule: LineRuleType.EXACT }, children: [t('AGREEMENT', { bold: true, italics: true, size: 72, color: 'FFFFFF' })] }),
-  new Paragraph({ spacing: { after: 0 }, children: [t('Boat partnership, athlete purchase option and brand collaboration', { size: 20, color: 'E8EEF1' })] }),
+  new Paragraph({ spacing: { after: 0 }, children: [t('Boat partnership, athlete boat purchase and brand collaboration', { size: 20, color: 'E8EEF1' })] }),
   spacer(27),
 
   body([t('This Athlete Affiliate Agreement (the “Agreement”) is entered into between the Athlete named below (the “Athlete”) and Connect Kayaks (the “Company”).')], { spacing: { after: 160, line: 290 } }),
@@ -180,15 +180,13 @@ const children = [
   clause('1.2', 'Boat on loan.', 'The Company provides the Athlete with a canoe polo boat on loan for a period of one (1) year, starting on the day the boat is handed over (the “Loan Year”).'),
   clause('1.3', 'Repairs and service.', 'Repairs or other services relating to bumpers / buoyancy or material damage are part of this Agreement and are covered by the Company.'),
 
-  section(2, 'Boat purchase and options after the Loan Year'),
+  section(2, 'Boat purchase after the Loan Year'),
   keyTerm,
   spacer(4),
-  clause('2.1', 'Options.', 'At the end of the Loan Year, the Athlete has the following options:'),
-  clause('(a)', 'Purchase:', 'the Athlete may purchase the boat for 50% of the original price (the “Athlete Price”); or', { indent: { left: mm(20), hanging: mm(9) }, tabStops: [{ type: TabStopType.LEFT, position: mm(20) }] }),
-  clause('(b)', 'Exchange:', 'the current boat is returned and the Athlete receives a new boat for another year.', { indent: { left: mm(20), hanging: mm(9) }, tabStops: [{ type: TabStopType.LEFT, position: mm(20) }] }),
+  clause('2.1', 'Purchase.', 'At the end of the Loan Year, the Athlete purchases the boat for 50% of the original price (the “Athlete Price”).'),
   clause('2.2', 'Athlete Price.', 'The Company sends the Athlete an invoice for the boat. The exact amount payable by the Athlete equals 50% of the original price stated on that invoice.'),
   clause('2.3', 'Payment due after one year.', 'The Athlete Price becomes due one (1) year after the boat has been handed over, i.e. at the end of the Loan Year. It is paid to Connect Kayaks using the payment details stated on the invoice.'),
-  clause('2.4', 'Reminder by the Company.', 'The Company will contact the Athlete in good time when the payment falls due, to confirm the Athlete’s choice under Section 2.1 and to arrange the payment.'),
+  clause('2.4', 'Reminder by the Company.', 'The Company will contact the Athlete in good time when the payment falls due, to arrange the payment.'),
   clause('2.5', 'Ownership.', 'The boat remains the property of the Company until the Athlete Price has been paid in full. Upon payment, the boat becomes the Athlete’s full property.'),
   clause('2.6', 'Special arrangements.', 'Individual, athlete-specific special arrangements (e.g. a complete, free transfer of the boat) remain unaffected by this standard rule and may be agreed separately.'),
   new Paragraph({ keepNext: true, spacing: { before: 160, after: 100 }, children: [small('BOAT AND INVOICE DETAILS')] }),
