@@ -180,7 +180,7 @@ function paddle(variant, face) {
   return `<g>${L}<g transform="translate(${xNeckL} ${yShaft})" filter="url(#sh)">${shaftGroup(variant, face)}</g><g transform="translate(${xNeckL + SL + 40 - OX} 0)">${Rb}</g></g>`;
 }
 function boardSVG(variant) {
-  const W = 3200, H = 2900, total = CW - OX + 40 + SL + 40 - OX + CW, s = (W - 120) / total;
+  const W = 3200, H = 3190, total = CW - OX + 40 + SL + 40 - OX + CW, s = (W - 120) / total;
   const tile = (side, face, x, y) => `<g transform="translate(${x} ${y}) scale(0.62)">${bladeGroup(variant, side, face)}</g>` + label(x + 40, y + 660, `${NAME[side]}`, NAME[face]);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs}
   <rect width="${W}" height="${H}" fill="url(#bgG)"/>
@@ -194,7 +194,9 @@ function boardSVG(variant) {
   <g transform="translate(60 750) scale(${s})">${paddle(variant, 'front')}</g>
   ${tile('L', 'back', 60, 1130)}${tile('R', 'back', 1680, 1130)}
   ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, 'Power face – original black')).join('')}
-  ${notes(60, 2330, variant)}
+  ${label(60, 2330, 'SHAFT · CENTRE SECTION (ENLARGED)', 'Black CPS carbon shaft · white text · red rings at both ends')}
+  <svg x="60" y="2400" width="3080" height="170" viewBox="${SL / 2 - 1340} -13 2680 148"><g filter="url(#sh)">${shaftGroup(variant)}</g></svg>
+  ${notes(60, 2620, variant)}
   </svg>`;
 }
 
@@ -219,6 +221,13 @@ function boardSVG(variant) {
     await page.setContent(`<html><body style="margin:0">${svg}</body></html>`);
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({ path: path.join(OUT, dir, name + '.png') });
+    if (name.startsWith('00')) {
+      const big = await browser.newPage({ deviceScaleFactor: 2, viewport: { width: +w, height: +h } });
+      await big.setContent(`<html><body style="margin:0">${svg}</body></html>`);
+      await big.evaluate(() => document.fonts.ready);
+      await big.screenshot({ path: path.join(OUT, dir, 'Maxi-Paddle-Design-Sheet-EN.png') });
+      await big.close();
+    }
   }
   await browser.close();
   console.log('rendered', jobs.length);
