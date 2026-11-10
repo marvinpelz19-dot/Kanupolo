@@ -113,7 +113,7 @@ function bladeGroup(variant, side, face) {
     </g></g>`;
 }
 const label = (x, y, a, b) => txt(x, y, 34, '#111', a, { anchor: 'start', italic: false, w: 800, ls: 2 }) + txt(x, y + 40, 26, '#5b6570', b, { anchor: 'start', italic: false, w: 500 });
-const NAME = { R: 'RECHTES BLATT', L: 'LINKES BLATT', back: 'Rückseite (Designseite)', front: 'Innenseite (Zugseite) – original CPS schwarz', A: 'Variante A · weißer Schaft', B: 'Variante B · schwarzer Schaft' };
+const NAME = { R: 'RIGHT BLADE', L: 'LEFT BLADE', back: 'Back face (design side)', front: 'Power face (inner side) – original CPS black, no print', A: 'white shaft', B: 'black shaft' };
 
 function bladeSVG(variant, side, face) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${CH + 110}" viewBox="0 0 ${CW} ${CH + 110}">${defs}
@@ -143,10 +143,32 @@ function shaftSVG(variant) {
   const zoom = 1.15;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs}
   <rect width="${W}" height="${H}" fill="url(#bgG)"/>
-  ${label(60, 70, `SCHAFT · ${variant === 'A' ? 'WEISS' : 'SCHWARZ (CARBON)'}`, `Maxi #2 · Rothe Mühle Essen · ${NAME[variant]} · oben: ganzer Schaft, unten: Ausschnitt Mitte (vergrößert)`)}
+  ${label(60, 70, `SHAFT · ${variant === 'A' ? 'WHITE' : 'BLACK (STANDARD CPS CARBON)'}`, `Maxi #2 · Rothe Mühle Essen · ${NAME[variant]} · top: full shaft, bottom: centre section (enlarged)`)}
   <g transform="translate(80 170) scale(${s})" filter="url(#sh)">${shaftGroup(variant)}</g>
   <svg x="80" y="300" width="${W - 160}" height="170" viewBox="${SL / 2 - (W - 160) / zoom / 2} ${-(170 / zoom - ST) / 2 - 4} ${(W - 160) / zoom} ${170 / zoom}"><g filter="url(#sh)">${shaftGroup(variant)}</g></svg>
   </svg>`;
+}
+
+// ---------- production notes (English, for CPS) ----------
+function notes(x, y, variant) {
+  const rows = [
+    ['Paddle', 'CPS Energy Spoon blades (left + right) with CPS carbon shaft.'],
+    ['Back face (design side)', 'Full-colour print as shown. Right blade: name “MAXI” + club crest. Left blade: player number “#2” + club crest.'],
+    ['Power face (inner side)', 'No print. Please leave both power faces in the original black CPS carbon finish.'],
+    ['Shaft', variant === 'A' ? 'White shaft with red rings and red text.' : 'Standard black CPS carbon shaft. Red rings at both ends, white text “KSV ROTHE MÜHLE ESSEN”, mill-wheel icon, “MAXI #2”.'],
+    ['Colours', 'Club red: HEX #E31E24 (RGB 227 / 30 / 36) – please match as closely as possible. Dark red in gradient: #B5121B. White: #FFFFFF. Black: #111214.'],
+    ['Text (do not translate)', '“MAXI”, “#2”, “ROTHE MÜHLE ESSEN”, “KSV ROTHE MÜHLE ESSEN”, “1924” (part of the crest). Note the German letter “Ü”.'],
+    ['CPS logo', 'The CPS logo shown is a redrawn placeholder in club colours – please replace it with your original logo artwork (white on red).'],
+    ['Blade outline', 'The outline was traced from a product photo. Please fit the artwork to your original Energy Spoon template; small adjustments are fine.'],
+    ['Files', 'Vector files (SVG) for every blade face and the shaft are supplied together with these PNG previews.'],
+  ];
+  let g = `<rect x="${x}" y="${y}" width="3080" height="${rows.length * 50 + 110}" rx="10" fill="#fff"/><rect x="${x}" y="${y}" width="14" height="${rows.length * 50 + 110}" fill="${RED}"/>`;
+  g += txt(x + 50, y + 62, 36, '#111', 'PRODUCTION NOTES', { anchor: 'start', italic: false, w: 800, ls: 2 });
+  rows.forEach((r, i) => {
+    g += txt(x + 50, y + 122 + i * 50, 27, RED, r[0], { anchor: 'start', italic: false, w: 800 });
+    g += txt(x + 500, y + 122 + i * 50, 27, '#22262b', r[1], { anchor: 'start', italic: false, w: 500 });
+  });
+  return g;
 }
 
 // ---------- overview board ----------
@@ -158,20 +180,21 @@ function paddle(variant, face) {
   return `<g>${L}<g transform="translate(${xNeckL} ${yShaft})" filter="url(#sh)">${shaftGroup(variant, face)}</g><g transform="translate(${xNeckL + SL + 40 - OX} 0)">${Rb}</g></g>`;
 }
 function boardSVG(variant) {
-  const W = 3200, H = 2250, total = CW - OX + 40 + SL + 40 - OX + CW, s = (W - 120) / total;
+  const W = 3200, H = 2900, total = CW - OX + 40 + SL + 40 - OX + CW, s = (W - 120) / total;
   const tile = (side, face, x, y) => `<g transform="translate(${x} ${y}) scale(0.62)">${bladeGroup(variant, side, face)}</g>` + label(x + 40, y + 660, `${NAME[side]}`, NAME[face]);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${defs}
   <rect width="${W}" height="${H}" fill="url(#bgG)"/>
   <rect width="${W}" height="150" fill="${variant === 'A' ? RED : BLACK}"/><rect y="150" width="${W}" height="10" fill="${variant === 'A' ? BLACK : RED}"/>
   ${crestAt(110, 75, 120, WHITE)}
-  ${txt(200, 72, 54, WHITE, 'PADDEL FÜR MAXI  #2', { anchor: 'start', ls: 3 })}
-  ${txt(200, 118, 30, WHITE, `KSV Rothe Mühle Essen · CPS Energy Spoon · ${NAME[variant]}`, { anchor: 'start', italic: false, w: 500 })}
-  ${label(60, 240, 'GESAMTANSICHT · RÜCKSEITE', 'Designseite beider Blätter')}
+  ${txt(200, 72, 54, WHITE, 'CUSTOM PADDLE FOR MAXI  #2', { anchor: 'start', ls: 3 })}
+  ${txt(200, 118, 30, WHITE, `KSV Rothe Mühle Essen (Germany) · CPS Energy Spoon · ${NAME[variant]} · design brief for CPS`, { anchor: 'start', italic: false, w: 500 })}
+  ${label(60, 240, 'FULL PADDLE · BACK FACES', 'Design side of both blades')}
   <g transform="translate(60 290) scale(${s})">${paddle(variant, 'back')}</g>
-  ${label(60, 700, 'GESAMTANSICHT · INNENSEITE', 'Zugseite – original CPS schwarz, ohne Grafik')}
+  ${label(60, 700, 'FULL PADDLE · POWER FACES', 'Inner side – original CPS black, no print')}
   <g transform="translate(60 750) scale(${s})">${paddle(variant, 'front')}</g>
   ${tile('L', 'back', 60, 1130)}${tile('R', 'back', 1680, 1130)}
-  ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, 'Innenseite – original schwarz')).join('')}
+  ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, 'Power face – original black')).join('')}
+  ${notes(60, 2330, variant)}
   </svg>`;
 }
 
@@ -179,15 +202,15 @@ function boardSVG(variant) {
   const browser = await chromium.launch();
   const page = await browser.newPage({ deviceScaleFactor: 1 });
   const jobs = [];
-  for (const v of ['A', 'B']) {
-    const dir = v === 'A' ? 'variante-A-weisser-schaft' : 'variante-B-schwarzer-schaft';
+  for (const v of ['B']) {
+    const dir = 'final-black-shaft';
     fs.mkdirSync(path.join(OUT, dir, 'svg'), { recursive: true });
-    jobs.push([dir, `00-uebersicht`, boardSVG(v)]);
-    jobs.push([dir, `01-rechtes-blatt-rueckseite`, bladeSVG(v, 'R', 'back')]);
-    jobs.push([dir, `02-rechtes-blatt-innenseite`, bladeSVG(v, 'R', 'front')]);
-    jobs.push([dir, `03-linkes-blatt-rueckseite`, bladeSVG(v, 'L', 'back')]);
-    jobs.push([dir, `04-linkes-blatt-innenseite`, bladeSVG(v, 'L', 'front')]);
-    jobs.push([dir, `05-schaft`, shaftSVG(v)]);
+    jobs.push([dir, `00-overview-and-production-notes`, boardSVG(v)]);
+    jobs.push([dir, `01-right-blade-back-face`, bladeSVG(v, 'R', 'back')]);
+    jobs.push([dir, `02-right-blade-power-face`, bladeSVG(v, 'R', 'front')]);
+    jobs.push([dir, `03-left-blade-back-face`, bladeSVG(v, 'L', 'back')]);
+    jobs.push([dir, `04-left-blade-power-face`, bladeSVG(v, 'L', 'front')]);
+    jobs.push([dir, `05-shaft`, shaftSVG(v)]);
   }
   for (const [dir, name, svg] of jobs) {
     fs.writeFileSync(path.join(OUT, dir, 'svg', name + '.svg'), svg);
