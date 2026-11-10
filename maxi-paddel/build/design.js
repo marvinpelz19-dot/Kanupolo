@@ -50,11 +50,7 @@ function art(variant, side, face, X) {
   let shapes = '', marks = '';
   // inner (power) face stays the original black CPS carbon blade
   if (face === 'front') return { shapes: `<rect x="-300" y="-20" width="2600" height="900" fill="#17181b"/><rect x="-300" y="-20" width="2600" height="900" fill="url(#carbon)" opacity="0.55"/>`, marks };
-  const sub = (u, v, color, c2) => {
-    const w = 100 + 20 + 390;
-    const x0 = X(u) - w / 2;
-    return cps(x0, v - 31, 38, color, c2) + txt(x0 + 120, v, 30, color, 'ROTHE MÜHLE ESSEN', { anchor: 'start', ls: 4, w: 800 });
-  };
+  const sub = (u, v, color) => txt(X(u), v, 34, color, 'ROTHE MÜHLE ESSEN', { ls: 6, w: 800 });
   if (variant === 'A') {
     // white shaft: right blade = red neck / white tip, left blade = inverted
     const neck = R ? RED : WHITE, tip = R ? WHITE : RED;
@@ -158,7 +154,7 @@ function notes(x, y, variant) {
     ['Shaft', variant === 'A' ? 'White shaft with red rings and red text.' : 'Standard black CPS carbon shaft. Red rings at both ends, white text “KSV ROTHE MÜHLE ESSEN”, mill-wheel icon, “MAXI #2”.'],
     ['Colours', 'Club red: HEX #E31E24 (RGB 227 / 30 / 36) – please match as closely as possible. Dark red in gradient: #B5121B. White: #FFFFFF. Black: #111214.'],
     ['Text (do not translate)', '“MAXI”, “#2”, “ROTHE MÜHLE ESSEN”, “KSV ROTHE MÜHLE ESSEN”, “1924” (part of the crest). Note the German letter “Ü”.'],
-    ['CPS logo', 'The CPS logo shown is a redrawn placeholder in club colours – please replace it with your original logo artwork (white on red).'],
+    ['CPS logo', 'No CPS logo on the printed back faces.'],
     ['Blade outline', 'The outline was traced from a product photo. Please fit the artwork to your original Energy Spoon template; small adjustments are fine.'],
     ['Files', 'Vector files (SVG) for every blade face and the shaft are supplied together with these PNG previews.'],
   ];
