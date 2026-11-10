@@ -56,10 +56,9 @@ const txt = (x, y, size, fill, s, o = {}) =>
 function art(variant, side, face, X, sample = false) {
   const R = side === 'R';
   let shapes = '', marks = '';
-  // inner (power) face: original black CPS carbon, only a small white name / number
+  // inner (power) face: original black CPS carbon, no print
   if (face === 'front') {
     shapes = `<rect x="-300" y="-20" width="2600" height="900" fill="#17181b"/><rect x="-300" y="-20" width="2600" height="900" fill="url(#carbon)" opacity="0.55"/>`;
-    marks = txt(X(1080), 455, 120, WHITE, R ? '#2' : 'MAXI', { ls: 2 });
     return { shapes, marks };
   }
   const A = variant === 'A';
@@ -113,7 +112,7 @@ function bladeGroup(variant, side, face, sample = false) {
     </g></g>`;
 }
 const label = (x, y, a, b) => txt(x, y, 34, '#111', a, { anchor: 'start', italic: false, w: 800, ls: 2 }) + txt(x, y + 40, 26, '#5b6570', b, { anchor: 'start', italic: false, w: 500 });
-const NAME = { R: 'RIGHT BLADE', L: 'LEFT BLADE', back: 'Back face (design side)', front: 'Power face (inner side) – black, small white print', A: 'white shaft', B: 'black shaft' };
+const NAME = { R: 'RIGHT BLADE', L: 'LEFT BLADE', back: 'Back face (design side)', front: 'Power face (inner side) – original CPS black, no print', A: 'white shaft', B: 'black shaft' };
 
 function bladeSVG(variant, side, face) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${CH + 110}" viewBox="0 0 ${CW} ${CH + 110}">${defs}
@@ -155,7 +154,7 @@ function notes(x, y, variant) {
     ['Paddle', 'CPS Energy Spoon blades (left + right) with CPS carbon shaft.'],
     ['Back face (design side)', 'Print: black neck stripes on red, white divider line, small white club crest in the upper tip corner, below it “MAXI” (right blade) / “#2” (left blade), “ROTHE MÜHLE ESSEN” with line at the top edge.'],
     ['Signature area', 'The red area below “ROTHE MÜHLE ESSEN” must stay EMPTY (plain red). The team will sign there by hand. Hand-written names shown here are EXAMPLES – DO NOT PRINT.'],
-    ['Power face (inner side)', 'Original black CPS carbon finish. Small white print only: right blade “#2”, left blade “MAXI”. Nothing else.'],
+    ['Power face (inner side)', 'No print. Please leave both power faces in the original black CPS carbon finish.'],
     ['Shaft', variant === 'A' ? 'White shaft with red rings and red text.' : 'Standard black CPS carbon shaft. Red rings at both ends, white text “KSV ROTHE MÜHLE ESSEN”, mill-wheel icon, “MAXI #2”.'],
     ['Colours', 'Club red: HEX #E31E24 (RGB 227 / 30 / 36) – please match as closely as possible. Dark red in gradient: #B5121B. White: #FFFFFF. Black: #111214.'],
     ['Text (do not translate)', '“MAXI”, “#2”, “ROTHE MÜHLE ESSEN”, “KSV ROTHE MÜHLE ESSEN” (shaft), “1924” (part of the crest). Note the German letter “Ü”.'],
@@ -191,10 +190,10 @@ function boardSVG(variant) {
   ${txt(200, 118, 30, WHITE, `KSV Rothe Mühle Essen (Germany) · CPS Energy Spoon · ${NAME[variant]} · design brief for CPS`, { anchor: 'start', italic: false, w: 500 })}
   ${label(60, 240, 'FULL PADDLE · BACK FACES', 'Design side of both blades · with example signatures (signed by hand later, not printed)')}
   <g transform="translate(60 290) scale(${s})">${paddle(variant, 'back')}</g>
-  ${label(60, 700, 'FULL PADDLE · POWER FACES', 'Inner side – original CPS black with small white name / number')}
+  ${label(60, 700, 'FULL PADDLE · POWER FACES', 'Inner side – original CPS black, no print')}
   <g transform="translate(60 750) scale(${s})">${paddle(variant, 'front')}</g>
   ${tile('L', 'back', 60, 1130)}${tile('R', 'back', 1680, 1130)}
-  ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, i ? 'Power face – black, small white “#2”' : 'Power face – black, small white “MAXI”')).join('')}
+  ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, 'Power face – original black, no print')).join('')}
   ${label(60, 2330, 'SHAFT · CENTRE SECTION (ENLARGED)', 'Black CPS carbon shaft · white text · red rings at both ends')}
   <svg x="60" y="2400" width="3080" height="170" viewBox="${SL / 2 - 1340} -13 2680 148"><g filter="url(#sh)">${shaftGroup(variant)}</g></svg>
   ${notes(60, 2620, variant)}
