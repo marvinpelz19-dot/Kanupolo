@@ -48,6 +48,8 @@ const txt = (x, y, size, fill, s, o = {}) =>
 function art(variant, side, face, X) {
   const R = side === 'R';
   let shapes = '', marks = '';
+  // inner (power) face stays the original black CPS carbon blade
+  if (face === 'front') return { shapes: `<rect x="-300" y="-20" width="2600" height="900" fill="#17181b"/><rect x="-300" y="-20" width="2600" height="900" fill="url(#carbon)" opacity="0.55"/>`, marks };
   const sub = (u, v, color, c2) => {
     const w = 100 + 20 + 390;
     const x0 = X(u) - w / 2;
@@ -111,7 +113,7 @@ function bladeGroup(variant, side, face) {
     </g></g>`;
 }
 const label = (x, y, a, b) => txt(x, y, 34, '#111', a, { anchor: 'start', italic: false, w: 800, ls: 2 }) + txt(x, y + 40, 26, '#5b6570', b, { anchor: 'start', italic: false, w: 500 });
-const NAME = { R: 'RECHTES BLATT', L: 'LINKES BLATT', back: 'Rückseite (Designseite)', front: 'Innenseite (Zugseite) – bewusst leer', A: 'Variante A · weißer Schaft', B: 'Variante B · schwarzer Schaft' };
+const NAME = { R: 'RECHTES BLATT', L: 'LINKES BLATT', back: 'Rückseite (Designseite)', front: 'Innenseite (Zugseite) – original CPS schwarz', A: 'Variante A · weißer Schaft', B: 'Variante B · schwarzer Schaft' };
 
 function bladeSVG(variant, side, face) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${CH + 110}" viewBox="0 0 ${CW} ${CH + 110}">${defs}
@@ -130,10 +132,8 @@ function shaftGroup(variant, face = 'back') {
   g += `<rect width="150" height="${ST}" fill="${ring}"/><rect x="${SL - 150}" width="150" height="${ST}" fill="${ring}"/>` + rings(180, 1) + rings(SL - 180, -1);
   if (face === 'back') {
     g += wheelAt(SL / 2, ST / 2, 46, ink);
-    g += txt(SL / 2 - 90, ST / 2 + 21, 60, ink, 'ROTHE MÜHLE ESSEN', { anchor: 'end', ls: 10 });
+    g += txt(SL / 2 - 90, ST / 2 + 21, 60, ink, 'KSV ROTHE MÜHLE ESSEN', { anchor: 'end', ls: 10 });
     g += txt(SL / 2 + 90, ST / 2 + 21, 60, ink, 'MAXI  #2', { anchor: 'start', ls: 10 });
-    g += txt(600, ST / 2 + 13, 36, ink, 'GEMEINSAM STARK', { anchor: 'start', ls: 10, w: 700 });
-    g += txt(SL - 600, ST / 2 + 13, 36, ink, 'SEIT 1924', { anchor: 'end', ls: 10, w: 700 });
   }
   g += `<rect width="${SL}" height="${ST}" fill="url(#tube)"/><rect width="${SL}" height="${ST}" fill="none" stroke="#000" stroke-opacity="0.25" stroke-width="2"/>`;
   return g;
@@ -168,10 +168,10 @@ function boardSVG(variant) {
   ${txt(200, 118, 30, WHITE, `KSV Rothe Mühle Essen · CPS Energy Spoon · ${NAME[variant]}`, { anchor: 'start', italic: false, w: 500 })}
   ${label(60, 240, 'GESAMTANSICHT · RÜCKSEITE', 'Designseite beider Blätter')}
   <g transform="translate(60 290) scale(${s})">${paddle(variant, 'back')}</g>
-  ${label(60, 700, 'GESAMTANSICHT · INNENSEITE', 'Zugseite – ohne Grafik, nur Farbe')}
+  ${label(60, 700, 'GESAMTANSICHT · INNENSEITE', 'Zugseite – original CPS schwarz, ohne Grafik')}
   <g transform="translate(60 750) scale(${s})">${paddle(variant, 'front')}</g>
   ${tile('L', 'back', 60, 1130)}${tile('R', 'back', 1680, 1130)}
-  ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, 'Innenseite – leer')).join('')}
+  ${[0, 1].map((i) => `<g transform="translate(${i ? 1680 : 60} 1850) scale(0.36)">${bladeGroup(variant, i ? 'R' : 'L', 'front')}</g>` + label((i ? 1680 : 60) + 880, 1990, i ? NAME.R : NAME.L, 'Innenseite – original schwarz')).join('')}
   </svg>`;
 }
 
