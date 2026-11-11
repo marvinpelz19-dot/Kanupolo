@@ -126,10 +126,38 @@ const ICONS = {
  share:'M12 15V3M8 7l4-4 4 4M5 12v8h14v-8', pdf:'M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6', copy:'M9 9h11v11H9zM5 15H4V4h11v1',
  up:'M6 15l6-6 6 6', down:'M6 9l6 6 6-6', x:'M6 6l12 12M18 6L6 18', timer:'M12 8v5l3 2M9 2h6M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16z',
  user:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0', right:'M9 5l7 7-7 7', play:'M7 4l13 8-13 8z', edit:'M4 20h4L19 9l-4-4L4 16zM13 7l4 4',
- msg:'M4 5h16v11H9l-5 4z', watch:'M9 3h6l1 4M9 21h6l1-4M8 7h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zM12 10v2.5l1.5 1'
+ msg:'M4 5h16v11H9l-5 4z', pause:'M8 5v14M16 5v14', skip:'M6 5l9 7-9 7zM18 5v14', prev:'M18 5l-9 7 9 7zM6 5v14', list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', watch:'M9 3h6l1 4M9 21h6l1-4M8 7h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zM12 10v2.5l1.5 1'
 };
 const ic = (n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n]||''}"/></svg>`;
 
+const crestSvg = c=>`<svg class="${c}" viewBox="0 0 ${CREST.w.toFixed(1)} ${CREST.h}" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="${CREST.crest}"/></svg>`;
+const wheelSvg = c=>`<svg class="${c}" viewBox="${(CREST.cx-190).toFixed(1)} ${CREST.cy-190} 380 380" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="${CREST.wheel}"/></svg>`;
+const hm = m => { m=Math.round(m||0); return m<60 ? m+' min' : Math.floor(m/60)+':'+pad(m%60)+' h'; };
+const mmss = s => { s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+pad(s%60); };
+/* ---- Intervall-Timer ---- */
+const mkStep=(label,work,rest)=>({id:uid(),label,work,rest});
+const seedTimers=()=>[
+ {id:uid(),name:'TRX Woche 2 · 12 × 50/10',rounds:3,prep:10,roundRest:360,steps:['TRX Row','TRX Push-Up','TRX Y Raise','TRX Face Pull','TRX Squat','TRX Split Squat','TRX Hamstring Curl','TRX Lateral Lunge','TRX Plank','TRX Knee Tuck','TRX Body Saw','TRX Pike'].map(n=>mkStep(n,50,10))},
+ {id:uid(),name:'Core · 4 × 20 s, 5 Serien',rounds:5,prep:10,roundRest:180,steps:['Leg Raise','Cross Leg Raise','Crunch','Bicycle Crunch'].map(n=>mkStep(n,20,0))},
+ {id:uid(),name:'Sprints · 10 × 15 s all-out',rounds:10,prep:10,roundRest:105,steps:[mkStep('All-out',15,0)]},
+ {id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}];
+const timerById=id=>S.timers.find(t=>t.id===id);
+function buildSeq(t){
+  const seq=[], R=Math.max(1,t.rounds||1), st=t.steps.filter(s=>s.work>0);
+  if(t.prep>0&&st.length) seq.push({k:'prep',label:'Bereit machen',dur:t.prep});
+  for(let r=1;r<=R;r++) st.forEach((s,j)=>{
+    seq.push({k:'work',label:s.label||'Belastung',dur:s.work,r,j:j+1,n:st.length,R});
+    const lastStep=j===st.length-1; const rest = lastStep ? (r<R ? (t.roundRest||s.rest||0) : 0) : (s.rest||0);
+    if(rest>0) seq.push({k:'rest',label:lastStep?'Serienpause':'Pause',dur:rest,r,j:j+1,n:st.length,R}); });
+  return seq;
+}
+const timerTotal=t=>sum(buildSeq(t),x=>x.dur);
+const timerInfo=t=>`${t.rounds||1} ${t.rounds>1?'Runden':'Runde'}, ${t.steps.length} ${t.steps.length===1?'Schritt':'Schritte'}, ${mmss(timerTotal(t))} min`;
+function timerFromItems(name,items){
+  const its=items.filter(i=>i.mode==='t'); if(!its.length) return null;
+  const g=i=>i.target||i;
+  return {id:'tmp',name,rounds:Math.max(...its.map(i=>g(i).sets||1)),prep:10,roundRest:g(its[its.length-1]).rest||0,steps:its.map(i=>mkStep(i.name,g(i).time||30,g(i).rest||0))};
+}
 /* ---- Zustand ---- */
 let S;
 function freshState(){
@@ -141,8 +169,8 @@ function freshState(){
     return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:null,pct:pct||null,rest:rest||0,note:note||''};
   })}));
   return {version:1,
-    settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'dark',goals:SEED_GOALS,restDefault:90},
-    exercises, plans, guides:SEED_GUIDES.map(g=>({id:uid(),...g})), entries:[], tournaments:seedTournaments()};
+    settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
+    exercises, plans, guides:SEED_GUIDES.map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments()};
 }
 function load(){
   try{ const raw=localStorage.getItem(KEY); if(raw){ S=JSON.parse(raw); migrate(); return; } }catch(e){ console.warn(e); }
@@ -150,7 +178,7 @@ function load(){
 }
 function migrate(){
   const f=freshState();
-  for(const k of ['settings','exercises','plans','guides','entries','tournaments']) if(S[k]==null) S[k]=f[k];
+  for(const k of ['settings','exercises','plans','guides','timers','entries','tournaments']) if(S[k]==null) S[k]=f[k];
   S.settings={...f.settings,...S.settings};
 }
 let saveWarned=false;

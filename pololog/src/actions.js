@@ -1,6 +1,6 @@
 /* ============ PoloLog – Router, Aktionen, Export/Import ============ */
-const NAVMAP={training:'saison',plan:'kraft',turnier:'turniere',spiel:'turniere'};
-const NAV=[['heute','Heute','home'],['saison','Saison','calendar'],['kraft','Kraft','dumbbell'],['turniere','Turniere','trophy'],['stats','Statistik','chart']];
+const NAVMAP={training:'saison',plan:'kraft',timer:'kraft',turnier:'turniere',spiel:'turniere'};
+const NAV=[['heute','Heute','home'],['saison','Saison','calendar'],['kraft','Training','dumbbell'],['turniere','Turniere','trophy'],['stats','Statistik','chart']];
 let lastRoute='';
 function route(){ const p=(location.hash||'#/heute').slice(2).split('/'); return views[p[0]]?p:['heute']; }
 function go(h){ if(location.hash===h) render(); else location.hash=h; }
@@ -9,13 +9,20 @@ function render(){
   $('#view').innerHTML=views[r[0]](r[1],r[2]);
   const on=NAVMAP[r[0]]||r[0];
   $$('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===on));
-  if(key!==lastRoute){ window.scrollTo(0,0); lastRoute=key; } else window.scrollTo(0,y);
+  const v=$('#view'); v.classList.remove('enter');
+  if(key!==lastRoute){ window.scrollTo(0,0); lastRoute=key; void v.offsetWidth; v.classList.add('enter'); } else window.scrollTo(0,y);
   if(r[0]==='kraft'&&UI.exq) filterEx($('#view'),UI.exq);
 }
 function buildNav(){
-  const links=NAV.map(([k,l,i])=>`<a class="nav" data-nav="${k}" href="#/${k}">${ic(i)}<span>${l}</span></a>`).join('');
-  $('#tabs').innerHTML=links;
-  $('#side').innerHTML=`<div class="brand"><span class="logo">${ic('wave','sm')}</span>PoloLog</div>${links}<a class="nav" data-nav="mehr" href="#/mehr">${ic('gear')}<span>Einstellungen</span></a>`;
+  const link=([k,l,i])=>`<a class="nav" data-nav="${k}" href="#/${k}">${ic(i)}<span>${l}</span></a>`;
+  $('#tabs').innerHTML=link(NAV[0])+link(NAV[1])+`<button class="go" data-a="start" aria-label="Training starten">${wheelSvg('')}<span>Training starten</span></button>`+link(NAV[2])+link(NAV[3]);
+  const brand=`<div class="brand">${crestSvg('crest')}<div>PoloLog<small>Rothe Mühle Essen</small></div></div>`;
+  $('#side').innerHTML=brand+`<button class="btn pri block" data-a="start">${ic('play','sm')}Training starten</button>`+NAV.map(link).join('')+`<a class="nav" data-nav="mehr" href="#/mehr">${ic('gear')}<span>Einstellungen</span></a>`;
+  $('#top').innerHTML=brand+`<span class="sp"></span><a class="iconbtn plain" href="#/stats" aria-label="Statistik">${ic('chart')}</a><a class="iconbtn plain" href="#/mehr" aria-label="Einstellungen">${ic('gear')}</a>`;
+  $('#run').innerHTML=`<div class="top"><span id="rinfo"></span><button class="iconbtn plain" style="color:inherit" data-a="trClose" aria-label="Timer beenden">${ic('x')}</button></div>
+   <div class="phase" id="rphase"></div><div class="dial">${wheelSvg('')}<div class="time" id="rtime"></div></div><div class="next" id="rnext"></div><div class="bar"><i id="rbar"></i></div>
+   <div class="ctl"><button data-a="trPrev" aria-label="Zurück">${ic('prev')}</button><button class="main" data-a="trToggle" id="rtog" aria-label="Pause"></button><button data-a="trSkip" aria-label="Weiter">${ic('skip')}</button></div>`;
+  const fav=$('link[rel=icon]'); if(fav) fav.href='data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 0 540 558"><rect x="-40" width="540" height="558" rx="90" fill="#fff"/><path fill="#d71f26" fill-rule="evenodd" d="${CREST.crest}"/></svg>`);
 }
 /* ---- Sheet ---- */
 function sheet(title,html){ $('#sheet').innerHTML=`<div class="sheet"><div class="hd"><h2>${title}</h2><button class="iconbtn" data-a="closeSheet">${ic('x')}</button></div>${html}</div>`; $('#sheet').classList.add('on'); }
@@ -31,10 +38,10 @@ function startRest(sec){ if(!sec) return; Rest.end=Date.now()+sec*1000; clearInt
 function stopRest(){ clearInterval(Rest.iv); $('#rest').classList.remove('on'); }
 function tickRest(){
   const left=Math.ceil((Rest.end-Date.now())/1000);
-  if(left<=0){ stopRest(); if(navigator.vibrate) navigator.vibrate([200,100,200]); beep(); toast('Pause vorbei – weiter geht’s!'); return; }
-  $('#rest').classList.add('on'); $('#restt').textContent='Pause '+Math.floor(left/60)+':'+pad(left%60);
+  if(left<=0){ stopRest(); if(navigator.vibrate) navigator.vibrate([200,100,200]); beep(); toast('Pause vorbei, weiter geht’s'); return; }
+  $('#rest').classList.add('on'); $('#restt').textContent='Pause '+mmss(left);
 }
-function beep(){ try{ const c=new (window.AudioContext||window.webkitAudioContext)(), o=c.createOscillator(), g=c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value=880; g.gain.value=.15; o.start(); o.stop(c.currentTime+.35); }catch(e){} }
+let AC; function beep(f=880,d=.35){ try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); const o=AC.createOscillator(), g=AC.createGain(); o.connect(g); g.connect(AC.destination); o.frequency.value=f; g.gain.value=.2; o.start(); o.stop(AC.currentTime+d); }catch(e){} }
 
 /* ---- Neues Training ---- */
 function entrySheet(v){
@@ -57,7 +64,7 @@ function tournSheet(){
 }
 function pickSheet(target){
   UI.pickTarget=target; const cats=[...new Set(S.exercises.map(e=>e.cat))];
-  sheet('Übung hinzufügen',`<input placeholder="Suchen …" data-in="pickq" autofocus><div id="picklist" style="margin-top:8px">${cats.map(c=>`<div data-cat><div class="tiny muted" style="margin:12px 0 2px;font-weight:700;text-transform:uppercase">${esc(c)}</div>${S.exercises.filter(e=>e.cat===c).map(e=>`<button class="pick" data-a="addEx" data-id="${e.id}" data-name="${esc(e.name.toLowerCase())}"><span class="grow">${esc(e.name)}</span>${ic('plus','sm')}</button>`).join('')}</div>`).join('')}</div>
+  sheet('Übung hinzufügen',`<input placeholder="Suchen …" data-in="pickq" autofocus><div id="picklist" style="margin-top:8px">${cats.map(c=>`<div data-cat><div class="cathd">${esc(c)}</div>${S.exercises.filter(e=>e.cat===c).map(e=>`<button class="pick" data-a="addEx" data-id="${e.id}" data-name="${esc(e.name.toLowerCase())}"><span class="grow">${esc(e.name)}</span>${ic('plus','sm')}</button>`).join('')}</div>`).join('')}</div>
    <button class="btn block" style="margin-top:12px" data-a="editEx" data-id="">Eigene Übung anlegen</button>`);
 }
 function exSheet(id){
@@ -179,14 +186,90 @@ function garminSheet(acts){
   acts=acts.filter(a=>!have.has(gkey(a))).sort((a,b)=>b.date.localeCompare(a.date)); UI.garmin=acts;
   if(!acts.length) return toast('Keine neuen Aktivitäten gefunden');
   sheet(`Garmin-Import (${acts.length})`,`<p class="small muted" style="margin-top:0">Passende geplante Trainings am selben Tag werden ergänzt, sonst entsteht ein neuer Eintrag.</p>
-   ${acts.map((a,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" name="g${i}" checked style="width:22px;height:22px;flex:none"><div class="grow"><div class="ttl" style="font-weight:650">${esc(a.title)}</div><div class="tiny muted">${fdate(a.date)} ${a.time} · ${a.minutes||'?'} min${a.dist?' · '+fnum(a.dist)+' km':''}${a.hr?' · ♥ '+a.hr:''}</div></div>
+   ${acts.map((a,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" name="g${i}" checked style="width:22px;height:22px;flex:none"><div class="grow"><div class="ttl" style="font-weight:650">${esc(a.title)}</div><div class="tiny muted">${fdate(a.date)} ${a.time} · ${a.minutes||'?'} min${a.dist?' · '+fnum(a.dist)+' km':''}${a.hr?' · Puls '+a.hr:''}</div></div>
      <select name="t${i}" style="width:7.2rem;flex:none">${['wasser','kraft','sonstiges'].map(k=>`<option value="${k}" ${guessType(a.gtype+' '+a.title)===k?'selected':''}>${TYPES[k].short}</option>`).join('')}</select></div>`).join('')}
    <button class="btn pri block" style="margin-top:12px" data-a="garminImport">Importieren</button>`);
 }
 
+/* ---- Start-Auswahl ---- */
+const tile=(a,icon,title,sub,attrs='',cls='')=>`<button class="tile ${cls}" data-a="${a}" ${attrs}><span class="ico">${ic(icon)}</span><span class="grow"><b>${title}</b><span class="small muted">${sub}</span></span>${ic('right','sm')}</button>`;
+function startSheet(){
+  const open=S.entries.filter(e=>e.date===today()&&!e.done);
+  sheet('Was steht an?',`<div class="tiles">
+   ${open.map(e=>`<a class="tile pri" href="#/training/${e.id}"><span class="ico">${ic(TYPES[e.type].icon)}</span><span class="grow"><b>${esc(e.title)}</b><span class="small muted">Heute geplant, jetzt starten</span></span>${ic('right','sm')}</a>`).join('')}
+   ${tile('startPlans','dumbbell','Mit Plan trainieren','Sätze abhaken, Gewichte eintragen, Pausen-Timer','',open.length?'':'pri')}
+   ${tile('startFree','plus','Freies Krafttraining','Übungen aus der Bibliothek zusammenstellen','','t-kraft')}
+   ${tile('startTimers','timer','Intervall-Timer','Runden, Belastung und Pausen frei einstellen')}
+   ${tile('quick','wave','Wassertraining eintragen','Notiz, Minuten und Anstrengung','data-type="wasser"','t-wasser')}
+   ${tile('quick','bolt','Sonstiges eintragen','Laufen, Rad, Mobility und mehr','data-type="sonstiges"','t-sonstiges')}
+   ${tile('newEntry','calendar','Für später planen','Einzeln oder als wöchentliche Serie')}
+  </div>`);
+}
+/* ---- Intervall-Timer: Ablauf ---- */
+const TR={t:null,seq:[],i:0,end:0,left:0,paused:false,iv:null,lastS:null,entryId:null,lock:null,done:false};
+function runTimer(t,entryId){
+  const seq=buildSeq(t); if(!seq.length) return toast('Der Timer hat noch keine Übung mit Belastungszeit');
+  Object.assign(TR,{t,seq,entryId:entryId||null,paused:false,done:false,total:sum(seq,x=>x.dur)});
+  $('#sheet').classList.remove('on'); beep(1,.01);
+  try{ navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>TR.lock=l).catch(()=>{}); }catch(e){}
+  clearInterval(TR.iv); TR.iv=setInterval(trTick,100); trGo(0,false);
+}
+function trGo(i,sound){
+  if(i>=TR.seq.length) return trFinish();
+  TR.i=Math.max(0,i); const ph=TR.seq[TR.i]; TR.left=ph.dur*1000; TR.end=Date.now()+TR.left; TR.lastS=null;
+  if(sound){ beep(ph.k==='work'?990:520,.5); if(navigator.vibrate) navigator.vibrate(ph.k==='work'?[300]:[120,80,120]); }
+  trDraw();
+}
+function trTick(){
+  if(TR.paused||TR.done) return; TR.left=TR.end-Date.now();
+  if(TR.left<=0) return trGo(TR.i+1,true);
+  const s=Math.ceil(TR.left/1000); if(s<=3&&s!==TR.lastS&&TR.seq[TR.i].dur>3){ TR.lastS=s; beep(660,.12); }
+  trDraw();
+}
+function trDraw(){
+  const ph=TR.seq[TR.i], nx=TR.seq[TR.i+1], s=Math.ceil(TR.left/1000);
+  $('#run').className='on '+ph.k;
+  $('#rphase').textContent=ph.label;
+  $('#rtime').textContent=s>=60?mmss(s):s;
+  $('#rinfo').textContent=ph.k==='prep'?TR.t.name:`Runde ${ph.r}/${ph.R}, Übung ${ph.j}/${ph.n}`;
+  $('#rnext').textContent=nx?`Danach: ${nx.label} (${nx.dur>=60?mmss(nx.dur)+' min':nx.dur+' s'})`:'Letzter Abschnitt';
+  const before=sum(TR.seq.slice(0,TR.i),x=>x.dur), el=ph.dur-TR.left/1000;
+  $('#rbar').style.setProperty('--p',Math.min(1,(before+el)/TR.total));
+  $('#run .dial svg').style.transform=`rotate(${(el/ph.dur*360).toFixed(1)}deg)`;
+  $('#rtog').innerHTML=ic(TR.paused?'play':'pause');
+}
+function trFinish(){
+  clearInterval(TR.iv); TR.done=true; beep(990,.2); setTimeout(()=>beep(990,.2),300); setTimeout(()=>beep(1320,.6),600); if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
+  const min=Math.max(1,Math.round(TR.total/60));
+  if(TR.entryId){ const e=entry(TR.entryId); if(e){ e.items.filter(i=>i.mode==='t').forEach(it=>it.sets.forEach(st=>{ if(!st.done){ st.done=true; if(st.t==null) st.t=(it.target||{}).time||null; } })); if(!e.minutes) e.minutes=min; save(); render(); } }
+  $('#run').className='on prep'; $('#rphase').textContent='Geschafft'; $('#rtime').textContent=mmss(TR.total); $('#rinfo').textContent=TR.t.name; $('#rbar').style.setProperty('--p',1);
+  $('#rnext').innerHTML=TR.entryId?'Die Zeit-Übungen sind im Training abgehakt.':`<button class="btn" style="color:inherit;border-color:currentColor" data-a="trSave">Als Training eintragen</button>`;
+  $('#rtog').innerHTML=ic('check');
+}
+function trClose(){ clearInterval(TR.iv); TR.done=true; $('#run').className=''; try{ TR.lock&&TR.lock.release(); }catch(e){} TR.lock=null; }
+
 /* ---- Aktionen ---- */
 const A={
  closeSheet,
+ start(){ startSheet(); },
+ startPlans(){ sheet('Plan wählen',S.plans.map(p=>`<button class="tile" data-a="startPlan" data-id="${p.id}"><span class="ico t-kraft">${ic('dumbbell')}</span><span class="grow"><b>${esc(p.name)}</b><span class="small muted">${p.items.length} Übungen</span></span>${ic('play','sm')}</button>`).join('<div style="height:8px"></div>')||'<div class="empty">Noch keine Pläne. Lege unter Training einen an.</div>'); },
+ startFree(){ const e=newEntry({type:'kraft',title:'Freies Krafttraining'}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); setTimeout(()=>pickSheet('entry:'+e.id),350); },
+ startTimers(){ UI.kraftTab='timer'; $('#sheet').classList.remove('on'); go('#/kraft'); },
+ quick(el){ const e=newEntry({type:el.dataset.type}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); },
+ // Intervall-Timer
+ newTimer(){ const t={id:uid(),name:'Neuer Timer',rounds:3,prep:10,roundRest:60,steps:[mkStep('',40,20)]}; S.timers.push(t); save(); go('#/timer/'+t.id); },
+ dupTimer(el){ const t=JSON.parse(JSON.stringify(timerById(el.dataset.id))); t.id=uid(); t.name+=' (Kopie)'; t.steps.forEach(x=>x.id=uid()); S.timers.push(t); save(); go('#/timer/'+t.id); },
+ delTimer(el){ if(!confirm('Timer löschen?')) return; S.timers=S.timers.filter(t=>t.id!==el.dataset.id); save(); go('#/kraft'); },
+ addStep(el){ const t=timerById(el.dataset.id), l=t.steps[t.steps.length-1]; t.steps.push(mkStep('',l?l.work:40,l?l.rest:20)); save(); render(); },
+ delStep(el){ timerById(el.dataset.id).steps.splice(+el.dataset.i,1); save(); render(); },
+ runTimer(el){ clearTimeout(saveT); save(); runTimer(timerById(el.dataset.id)); },
+ runPlan(el){ const p=planById(el.dataset.id); runTimer(timerFromItems(p.name,p.items)); },
+ runEntry(el){ const e=entry(el.dataset.id); if(!e.startedAt){ e.startedAt=Date.now(); save(); } runTimer(timerFromItems(e.title,e.items),e.id); },
+ trToggle(){ if(TR.done) return trClose(); TR.paused=!TR.paused; if(!TR.paused) TR.end=Date.now()+TR.left; trDraw(); },
+ trSkip(){ if(!TR.done) trGo(TR.i+1,true); },
+ trPrev(){ if(!TR.done) trGo(TR.left>TR.seq[TR.i].dur*1000-2000?TR.i-1:TR.i,false); },
+ trClose(){ if(!TR.done&&!confirm('Timer wirklich beenden?')) return; trClose(); },
+ trSave(){ const e=newEntry({type:'kraft',title:TR.t.name,minutes:Math.max(1,Math.round(TR.total/60)),done:true,notes:`Intervall-Timer: ${timerInfo(TR.t)}\n`+TR.t.steps.map(x=>`${x.label||'Belastung'} ${x.work} s`+(x.rest?`, Pause ${x.rest} s`:'')).join('\n')}); S.entries.push(e); save(); trClose(); go('#/training/'+e.id); toast('Eingetragen. Wie anstrengend war es?'); },
  newEntry(el){ el.dataset.type==='turnier'?tournSheet():entrySheet({type:el.dataset.type||'wasser'}); },
  setType(el){ const v=formVals($('#sheet')); el.dataset.v==='turnier'?tournSheet():entrySheet({...v,type:el.dataset.v}); },
  saveEntry(){
@@ -211,7 +294,7 @@ const A={
  tag(el){ const e=entry(el.dataset.id), v=el.dataset.v; e.tags=e.tags.includes(v)?e.tags.filter(x=>x!==v):[...e.tags,v]; save(); render(); },
  addPlanText(el){ const e=entry(el.dataset.id); e.plan=guideText(guideFor(e.date),e.type,e.title)||' '; save(); render(); },
  toggleDone(el){ const e=entry(el.dataset.id); e.done=!e.done;
-  if(e.done){ if(!e.minutes) e.minutes = e.startedAt?Math.max(1,Math.round((Date.now()-e.startedAt)/6e4)):e.planned; stopRest(); toast(e.rpe?'Stark! Training gespeichert 💪':'Gespeichert – trag noch die Anstrengung (RPE) ein'); }
+  if(e.done){ if(!e.minutes) e.minutes = e.startedAt?Math.max(1,Math.round((Date.now()-e.startedAt)/6e4)):e.planned; stopRest(); toast(e.rpe?'Stark, Training gespeichert':'Gespeichert. Trag noch die Anstrengung ein'); }
   save(); render(); },
  delEntry(el){ if(!confirm('Diesen Eintrag wirklich löschen?')) return; S.entries=S.entries.filter(e=>e.id!==el.dataset.id); save(); go('#/saison'); },
  dupEntry(el){ const o=entry(el.dataset.id); const e=JSON.parse(JSON.stringify(o)); Object.assign(e,{id:uid(),date:addDays(o.date,7),done:false,rpe:null,minutes:null,notes:'',feedback:'',reply:'',g:{},startedAt:null}); e.items.forEach(it=>{ it.id=uid(); it.sets=it.sets.map(()=>({w:null,r:null,t:null,done:false})); }); S.entries.push(e); save(); toast('Kopie für '+fdate(e.date)+' angelegt'); go('#/training/'+e.id); },
@@ -295,7 +378,7 @@ const A={
    n++; }); save(); closeSheet(); toast(n+' Aktivitäten importiert'); },
  restAdd(){ Rest.end+=30000; tickRest(); }, restStop(){ stopRest(); }
 };
-function applyTheme(){ document.documentElement.dataset.theme=S.settings.theme==='light'?'light':'dark'; const m=$('meta[name=theme-color]'); if(m) m.content=S.settings.theme==='light'?'#f2f5fa':'#0a111e'; }
+function applyTheme(){ document.documentElement.dataset.theme=S.settings.theme==='light'?'light':'dark'; const m=$('meta[name=theme-color]'); if(m) m.content=S.settings.theme==='light'?'#faf6f3':'#171210'; }
 
 /* ---- Ereignisse ---- */
 document.addEventListener('click',ev=>{

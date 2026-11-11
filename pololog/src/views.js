@@ -34,22 +34,22 @@ heute(){
   const week=S.entries.filter(e=>e.date>=ws&&e.date<=we);
   const done=week.filter(e=>e.done);
   const todayE=S.entries.filter(e=>e.date===t);
-  const next=S.entries.filter(e=>e.date>t&&!e.done).sort(byDate).slice(0,5);
+  const next=S.entries.filter(e=>e.date>t&&!e.done).sort(byDate).slice(0,4);
   const open=S.entries.filter(e=>e.date<t&&!e.done).sort(byDate).slice(-3);
   const nt=S.tournaments.filter(x=>(x.to||x.from)>=t).sort((a,b)=>a.from.localeCompare(b.from))[0];
   const days=nt?Math.round((pdate(nt.from)-pdate(t))/864e5):null;
-  return `<div class="hero"><div class="small muted">${fdate(t)}</div><h1 style="margin:.2rem 0 .8rem">Hallo ${esc(S.settings.name||'')} 👋</h1>
-    <div class="grid g3"><div><b style="font-size:1.4rem">${done.length}/${week.length}</b><div class="tiny muted">Einheiten diese Woche</div></div>
-    <div><b style="font-size:1.4rem">${fmin(sum(done,e=>e.minutes))}</b><div class="tiny muted">Trainingszeit</div></div>
-    <div><b style="font-size:1.4rem">${nt?(days<=0?'läuft':days+' T'):'–'}</b><div class="tiny muted">${nt?'bis '+esc(nt.name||'Turnier'):'kein Turnier geplant'}</div></div></div></div>
-   <div class="sec"><h2>Heute</h2></div>
-   ${todayE.length?todayE.map(entryItem).join(''):`<div class="empty">Heute ist nichts geplant.</div>`}
-   <div class="grid g4" style="margin-top:10px">${['wasser','kraft','sonstiges','turnier'].map(k=>`<button class="btn t-${k}" data-a="newEntry" data-type="${k}" style="color:var(--c)">${ic(TYPES[k].icon,'sm')}${TYPES[k].short}</button>`).join('')}</div>
-   ${guideFor(t)?`<div class="sec"><h2>Diese Woche vom Trainer</h2></div>${guideCard(guideFor(t))}`:''}
+  const g=guideFor(t);
+  return `<section class="hero">${wheelSvg('wheel')}<div class="small">${fdate(t)}</div><h1>Hallo ${esc(S.settings.name||'')}</h1>
+    <button class="btn lg block" data-a="start">${ic('play','sm')}Training starten</button>
+    <div class="facts"><div><b>${done.length}/${week.length}</b><span>Einheiten diese Woche</span></div>
+    <div><b>${hm(sum(done,e=>e.minutes))}</b><span>Trainingszeit</span></div>
+    <div><b>${nt?(days<=0?'Jetzt':days):'–'}</b><span>${nt?(days<=0?esc(nt.name):'Tage bis '+esc(nt.name)):'kein Termin geplant'}</span></div></div></section>
+   ${todayE.length?`<div class="sec"><h2>Heute</h2></div>${todayE.map(entryItem).join('')}`:''}
+   ${g?`<div class="sec"><h2>Diese Woche von ${esc(S.settings.trainer)}</h2></div>${guideCard(g)}`:''}
    ${open.length?`<div class="sec"><h2>Noch offen</h2></div>${open.map(entryItem).join('')}`:''}
-   <div class="sec"><h2>Als Nächstes</h2><a class="small muted" href="#/saison">Saison ›</a></div>
-   ${next.length?next.map(entryItem).join(''):`<div class="empty">Keine geplanten Einheiten. Lege deine Saison im Tab „Saison“ an.</div>`}
-   ${nt?`<div class="sec"><h2>Nächstes Turnier</h2></div>${tournItem(nt)}`:''}`;
+   <div class="sec"><h2>Als Nächstes</h2><a class="small muted" href="#/saison">Zur Saison</a></div>
+   ${next.length?next.map(entryItem).join(''):`<div class="empty">Noch nichts geplant. Über „Training starten“ legst du los oder planst Einheiten für später.</div>`}
+   ${nt?`<div class="sec"><h2>Nächster Termin</h2><a class="small muted" href="#/turniere">Alle Turniere</a></div>${tournItem(nt)}`:''}`;
 },
 /* ---------- Saison ---------- */
 saison(){
@@ -83,9 +83,10 @@ training(id){
   if(e.type==='kraft'){
     const total=sum(e.items,i=>i.sets.length), dn=sum(e.items,i=>i.sets.filter(s=>s.done).length);
     body=`<div class="sec"><h2>Übungen</h2><span class="small muted">${dn}/${total} Sätze</span></div>
-     ${total?`<div class="progress" style="margin-bottom:12px"><i style="width:${total?dn/total*100:0}%"></i></div>`:''}
+     ${total?`<div class="progress" style="margin-bottom:12px"><i style="--p:${total?dn/total:0}"></i></div>`:''}
      ${e.items.map((it,i)=>exCard(e,it,i)).join('')}
      ${!e.items.length?`<div class="empty">Noch keine Übungen. Lade einen Plan oder füge Übungen einzeln hinzu.</div>`:''}
+     ${e.items.some(i=>i.mode==='t')?`<button class="btn pri block" style="margin-top:10px" data-a="runEntry" data-id="${e.id}">${ic('timer','sm')}Zeit-Übungen mit Timer starten</button>`:''}
      <div class="row" style="margin-top:10px"><button class="btn grow" data-a="pickEx" data-target="entry:${e.id}">${ic('plus','sm')}Übung</button><button class="btn grow" data-a="loadPlan" data-id="${e.id}">${ic('dumbbell','sm')}Plan laden</button></div>`;
   }
   const noteLabel = e.type==='wasser'?'Was habe ich gemacht? (Notizen)':e.type==='kraft'?'Notizen':'Was habe ich gemacht?';
@@ -108,12 +109,12 @@ training(id){
      <textarea data-bind="${p}/feedback" style="margin-top:8px" placeholder="Wie lief es? Was war schwer, was leicht? Fragen zum Plan …">${esc(e.feedback)}</textarea>
      <button class="btn block" style="margin-top:8px" data-a="sendFeedback" data-id="${e.id}">${ic('share','sm')}Feedback senden</button>
      <label style="margin-top:12px">Antwort / Hinweise vom Trainer</label><textarea data-bind="${p}/reply" placeholder="Antwort hier einfügen, damit alles beisammen bleibt">${esc(e.reply)}</textarea></div>
-   <button class="btn ${e.done?'':'pri'} block" style="margin-top:16px;padding:.9rem" data-a="toggleDone" data-id="${e.id}">${ic('check','sm')}${e.done?'Abgeschlossen – wieder öffnen':'Training abschließen'}</button>`;
+   <button class="btn ${e.done?'':'pri'} lg block" style="margin-top:18px" data-a="toggleDone" data-id="${e.id}">${ic('check','sm')}${e.done?'Abgeschlossen – wieder öffnen':'Training abschließen'}</button>`;
 },
 /* ---------- Kraft: Pläne / Übungen / Monatsplan ---------- */
 kraft(){
   const tab=UI.kraftTab;
-  const seg=`<div class="seg">${[['plaene','Pläne'],['uebungen','Übungen'],['monat','Monatsplan']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-a="ktab" data-v="${k}">${l}</button>`).join('')}</div>`;
+  const seg=`<div class="seg">${[['plaene','Pläne'],['uebungen','Übungen'],['timer','Timer'],['monat','Monatsplan']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-a="ktab" data-v="${k}">${l}</button>`).join('')}</div>`;
   let h='';
   if(tab==='plaene'){
     h=`<div class="sec"><h2>Meine Trainingspläne</h2><button class="btn sm" data-a="importPlan">Plan importieren</button></div>
@@ -122,13 +123,18 @@ kraft(){
   } else if(tab==='uebungen'){
     const cats=[...new Set(S.exercises.map(e=>e.cat))];
     h=`<div class="row" style="margin-top:14px"><input id="exq" placeholder="Übung suchen … (${S.exercises.length})" value="${esc(UI.exq)}" data-in="exq"><button class="btn pri" data-a="editEx" data-id="">${ic('plus','sm')}Neu</button></div>
-     <div id="exlist">${cats.map(c=>`<div data-cat><div class="sec"><h2>${esc(c)}</h2></div><div class="card" style="padding:4px 12px">${S.exercises.filter(e=>e.cat===c).map(e=>`<button class="pick" data-a="editEx" data-id="${e.id}" data-name="${esc(e.name.toLowerCase())}"><span class="grow">${esc(e.name)}${e.orm?` <span class="tiny muted">1RM ${fnum(e.orm)} kg</span>`:''}</span><span class="tiny muted">${MODES[e.mode]}</span></button>`).join('')}</div></div>`).join('')}</div>`;
+     <div id="exlist">${cats.map(c=>`<div data-cat><div class="sec"><h2>${esc(c)}</h2></div><div class="card" style="padding:2px 14px">${S.exercises.filter(e=>e.cat===c).map(e=>`<button class="pick" data-a="editEx" data-id="${e.id}" data-name="${esc(e.name.toLowerCase())}"><span class="grow">${esc(e.name)}${e.orm?` <span class="tiny muted">1RM ${fnum(e.orm)} kg</span>`:''}</span><span class="tiny muted">${MODES[e.mode]}</span></button>`).join('')}</div></div>`).join('')}</div>`;
+  } else if(tab==='timer'){
+    h=`<div class="sec"><h2>Intervall-Timer</h2></div>
+     <p class="small muted" style="margin-top:-4px">Runden, Belastung und Pause frei einstellen, auch mit unterschiedlicher Pause nach jeder Übung.</p>
+     ${S.timers.map(t=>`<a class="item t-kraft" href="#/timer/${t.id}"><div class="grow"><div class="ttl">${esc(t.name)}</div><div class="small muted">${timerInfo(t)}</div></div><button class="iconbtn" style="background:var(--red);color:var(--on-red);border-color:var(--red)" data-a="runTimer" data-id="${t.id}" aria-label="Starten">${ic('play','sm')}</button></a>`).join('')||`<div class="empty">Noch kein Timer angelegt.</div>`}
+     <button class="fab" data-a="newTimer" aria-label="Neuer Timer">${ic('plus')}</button>`;
   } else {
     h=`<div class="sec"><h2>Wochenvorgaben vom Trainer</h2><button class="btn sm" data-a="editGuide" data-id="">${ic('plus','sm')}Woche</button></div>
      <p class="small muted" style="margin-top:-4px">Die Vorgabe der jeweiligen Woche wird beim Anlegen eines Trainings automatisch übernommen.</p>
      ${[...S.guides].sort((a,b)=>a.from.localeCompare(b.from)).map(g=>`<div style="margin-top:10px">${guideCard(g,true).replace('<a class="btn sm" href="#/kraft" data-a="ktab" data-v="monat">Monatsplan</a>',`<button class="btn sm" data-a="editGuide" data-id="${g.id}">${ic('edit','sm')}</button>`)}</div>`).join('')||`<div class="empty">Keine Vorgaben.</div>`}`;
   }
-  return `<h1 style="margin-bottom:12px">Kraft & Pläne</h1>${seg}${h}`;
+  return `<h1 style="margin-bottom:14px">Training</h1>${seg}${h}`;
 },
 plan(id){
   const p=planById(id); if(!p) return notFound();
@@ -138,9 +144,10 @@ plan(id){
     <button class="iconbtn" data-a="sharePlan" data-id="${p.id}" title="Teilen">${ic('share')}</button><button class="iconbtn" data-a="pdfPlan" data-id="${p.id}">${ic('pdf')}</button><button class="iconbtn" data-a="dupPlan" data-id="${p.id}">${ic('copy')}</button><button class="iconbtn" style="color:var(--danger)" data-a="delPlan" data-id="${p.id}">${ic('trash')}</button></div>
    <div class="card" style="margin-top:12px">${inp(b+'/name',p.name,'style="font-size:1.1rem;font-weight:700" placeholder="Name des Plans"')}
      <textarea data-bind="${b}/note" style="margin-top:8px;min-height:3.5rem" placeholder="Beschreibung / Hinweise">${esc(p.note)}</textarea></div>
-   <button class="btn pri block" style="margin-top:12px" data-a="startPlan" data-id="${p.id}">${ic('play','sm')}Heute mit diesem Plan trainieren</button>
+   <button class="btn pri lg block" style="margin-top:12px" data-a="startPlan" data-id="${p.id}">${ic('play','sm')}Jetzt trainieren</button>
+   ${p.items.some(i=>i.mode==='t')?`<button class="btn block" style="margin-top:8px" data-a="runPlan" data-id="${p.id}">${ic('timer','sm')}Nur Timer für die Zeit-Übungen</button>`:''}
    <div class="sec"><h2>Übungen (${p.items.length})</h2></div>
-   ${p.items.map((it,i)=>{ const q=`${b}/items/${it.id}`; const hd=it.block&&it.block!==last?`<div class="small" style="margin:14px 2px 6px;font-weight:700;color:var(--kraft)">${esc(it.block)}</div>`:''; last=it.block;
+   ${p.items.map((it,i)=>{ const q=`${b}/items/${it.id}`; const hd=it.block&&it.block!==last?`<div class="blockhd">${esc(it.block)}</div>`:''; last=it.block;
      return hd+`<div class="ex"><div class="row"><span class="num">${i+1}</span><b class="grow">${esc(it.name)}</b>
        <button class="iconbtn sm" data-a="moveItem" data-id="${p.id}" data-i="${i}" data-d="-1">${ic('up','sm')}</button><button class="iconbtn sm" data-a="moveItem" data-id="${p.id}" data-i="${i}" data-d="1">${ic('down','sm')}</button><button class="iconbtn sm" data-a="delItem" data-id="${p.id}" data-i="${i}" style="color:var(--danger)">${ic('x','sm')}</button></div>
        <div class="planrow"><div><label>Sätze</label>${numinp(q+'/sets',it.sets)}</div>
@@ -149,6 +156,20 @@ plan(id){
         <div><label>Pause s</label>${numinp(q+'/rest',it.rest)}</div></div>
        <div class="planrow" style="grid-template-columns:1fr 2fr 2fr">${it.mode==='wr'?`<div><label>% 1RM</label>${numinp(q+'/pct',it.pct)}</div>`:'<div></div>'}<div><label>Block / Supersatz</label>${inp(q+'/block',it.block,'style="text-align:left"')}</div><div><label>Hinweis</label>${inp(q+'/note',it.note,'style="text-align:left"')}</div></div></div>`; }).join('')||`<div class="empty">Füge Übungen aus der Bibliothek hinzu.</div>`}
    <button class="btn block" style="margin-top:10px" data-a="pickEx" data-target="plan:${p.id}">${ic('plus','sm')}Übung hinzufügen</button>`;
+},
+timer(id){
+  const t=timerById(id); if(!t) return notFound(); const b=`timers/${t.id}`;
+  return `<div class="row"><a class="iconbtn" href="#/kraft">${ic('back')}</a><div class="grow"></div>
+    <button class="iconbtn" data-a="dupTimer" data-id="${t.id}" title="Duplizieren">${ic('copy')}</button><button class="iconbtn" style="color:var(--danger)" data-a="delTimer" data-id="${t.id}" title="Löschen">${ic('trash')}</button></div>
+   <div class="card" style="margin-top:12px">${inp(b+'/name',t.name,'style="font-weight:700;font-size:1.1rem" placeholder="Name des Timers"')}
+    <div class="grid g3" style="margin-top:10px">${field('Runden',numinp(b+'/rounds',t.rounds,'data-rr'))}${field('Vorlauf (s)',numinp(b+'/prep',t.prep,'data-rr'))}${field('Serienpause (s)',numinp(b+'/roundRest',t.roundRest,'data-rr'))}</div></div>
+   <div class="sec"><h2>Ablauf einer Runde</h2><span class="small muted">gesamt ${mmss(timerTotal(t))} min</span></div>
+   <div class="card" style="padding:6px 14px 12px">
+    <div class="step" style="border:0;padding-bottom:0"><label>Übung</label><label class="center">Belastung s</label><label class="center">Pause s</label><span></span></div>
+    ${t.steps.map((s,i)=>`<div class="step">${inp(`${b}/steps/${s.id}/label`,s.label,`placeholder="Übung ${i+1}"`)}${numinp(`${b}/steps/${s.id}/work`,s.work,'data-rr')}${numinp(`${b}/steps/${s.id}/rest`,s.rest,'data-rr')}<button class="iconbtn sm plain" data-a="delStep" data-id="${t.id}" data-i="${i}" aria-label="Entfernen">${ic('x','sm')}</button></div>`).join('')}
+    <button class="btn sm" style="margin-top:12px" data-a="addStep" data-id="${t.id}">${ic('plus','sm')}Übung hinzufügen</button></div>
+   <p class="small muted">Die Pause gilt jeweils nach der Übung. Nach der letzten Übung einer Runde läuft die Serienpause.</p>
+   <button class="btn pri lg block" style="margin-top:8px" data-a="runTimer" data-id="${t.id}">${ic('play','sm')}Timer starten</button>`;
 },
 /* ---------- Turniere ---------- */
 turniere(){
@@ -184,11 +205,11 @@ spiel(tid,gid){
   const t=tourn(tid), g=t&&t.games.find(x=>x.id===gid); if(!g) return notFound();
   const b=`tournaments/${t.id}/games/${g.id}`;
   const sumT=sum(t.players,p=>(g.stats[p.id]||{}).tore);
-  const stp=(key,val)=>`<div class="stepper"><button data-a="score" data-t="${t.id}" data-g="${g.id}" data-k="${key}" data-d="-1">−</button><b>${val??0}</b><button data-a="score" data-t="${t.id}" data-g="${g.id}" data-k="${key}" data-d="1">+</button></div>`;
+  const stp=(key,val)=>`<div class="stepper xl"><button data-a="score" data-t="${t.id}" data-g="${g.id}" data-k="${key}" data-d="-1">−</button><b>${val??0}</b><button data-a="score" data-t="${t.id}" data-g="${g.id}" data-k="${key}" data-d="1">+</button></div>`;
   return `<div class="row"><a class="iconbtn" href="#/turnier/${t.id}">${ic('back')}</a><div class="grow small muted">${esc(t.name)}</div><button class="iconbtn" style="color:var(--danger)" data-a="delGame" data-t="${t.id}" data-g="${g.id}">${ic('trash')}</button></div>
    <div class="card" style="margin-top:12px">
      <div class="grid g2">${field('Gegner',inp(b+'/opp',g.opp,'placeholder="Gegner"'))}${field('Phase',inp(b+'/phase',g.phase,'placeholder="Vorrunde, Halbfinale …"'))}</div>
-     <div class="grid g3d">${field('Datum',inp(b+'/date',g.date,'type="date"'))}${field('Zeit',inp(b+'/time',g.time,'type="time"'))}${field('Spielzeit (min)',numinp(b+'/minutes',g.minutes))}</div>
+     <div class="grid g3d">${field('Datum',inp(b+'/date',g.date,'type="date"'))}${field('Zeit',inp(b+'/time',g.time,'type="time"'))}${field('Minuten',numinp(b+'/minutes',g.minutes))}</div>
      <div class="grid g2" style="align-items:end;margin-top:6px"><div><label class="center">${esc(t.team||'Wir')}</label>${stp('gf',g.gf)}</div><div><label class="center">${esc(g.opp||'Gegner')}</label>${stp('ga',g.ga)}</div></div>
      ${sumT!==(g.gf??0)&&sumT>0?`<button class="small muted" style="margin-top:8px" data-a="syncScore" data-t="${t.id}" data-g="${g.id}">Spielertore ergeben ${sumT} – als unser Ergebnis übernehmen</button>`:''}</div>
    <div class="sec"><h2>Spielerstatistik</h2><span class="small muted">Tor zählt auch als Wurf</span></div>
@@ -196,7 +217,7 @@ spiel(tid,gid){
      return `<div class="ex"><button class="row" style="width:100%;text-align:left" data-a="togglePlayer" data-p="${pl.id}"><span class="num">${pl.nr??'–'}</span><b class="grow">${esc(pl.name||'Spieler')}${pl.me?' <span class="tiny muted">(ich)</span>':''}</b><span class="small muted">${s.tore||0} T / ${s.wuerfe||0} W${s.assists?' · '+s.assists+' A':''}</span>${ic(open?'up':'down','sm')}</button>
        ${open?`<div class="stat">${STATS.map(([k,l])=>`<div><label>${l}</label><div class="stepper"><button data-a="pstat" data-t="${t.id}" data-g="${g.id}" data-p="${pl.id}" data-k="${k}" data-d="-1">−</button><b>${s[k]||0}</b><button data-a="pstat" data-t="${t.id}" data-g="${g.id}" data-p="${pl.id}" data-k="${k}" data-d="1">+</button></div></div>`).join('')}</div>`:''}</div>`; }).join('')||`<div class="empty">Lege zuerst im Turnier den Kader an.</div>`}
    <div class="sec"><h2>Meine Leistung (1–10)</h2></div>
-   <div class="rpe">${Array.from({length:10},(_,i)=>`<button style="--i:${10-i}" class="${g.rating===i+1?'on':''}" data-a="rating" data-t="${t.id}" data-g="${g.id}" data-v="${i+1}">${i+1}</button>`).join('')}</div>
+   <div class="rpe">${Array.from({length:10},(_,i)=>`<button style="--i:${i+1}" class="${g.rating===i+1?'on':''}" data-a="rating" data-t="${t.id}" data-g="${g.id}" data-v="${i+1}">${i+1}</button>`).join('')}</div>
    <div class="sec"><h2>Persönliche Eindrücke</h2></div>
    <textarea data-bind="${b}/notes" style="min-height:9rem" placeholder="Wie lief das Spiel? Taktik, Schlüsselszenen, was nehme ich mit …">${esc(g.notes)}</textarea>`;
 },
@@ -269,10 +290,10 @@ function exCard(e,it,i){
   const p=`entries/${e.id}/items/${it.id}`; const lp=lastPerf(it.exId,e); const ex=exById(it.exId); const tg=it.target||{};
   const all=it.sets.length&&it.sets.every(s=>s.done);
   const phW = tg.weight ?? (tg.pct&&ex&&ex.orm?pctWeight(ex.orm,tg.pct):null);
-  const prev=e.items[i-1]; const hd=it.block&&(!prev||prev.block!==it.block)?`<div class="small" style="margin:14px 2px 6px;font-weight:700;color:var(--kraft)">${esc(it.block)}</div>`:'';
+  const prev=e.items[i-1]; const hd=it.block&&(!prev||prev.block!==it.block)?`<div class="blockhd">${esc(it.block)}</div>`:'';
   return hd+`<div class="ex ${all?'done':''}"><div class="row"><span class="num">${all?ic('check','sm'):i+1}</span><div class="grow"><b>${esc(it.name)}</b><div class="tiny muted">${esc(ftarget(it))}</div></div>
      <button class="iconbtn sm" data-a="delExItem" data-id="${e.id}" data-i="${i}">${ic('x','sm')}</button></div>
-   ${tg.note?`<div class="small" style="margin-top:6px">💡 ${esc(tg.note)}</div>`:''}
+   ${tg.note?`<div class="hint">${esc(tg.note)}</div>`:''}
    ${lp?`<div class="tiny muted" style="margin-top:4px">Letztes Mal (${fshort(lp.date)}): ${lp.sets.map(s=>fset(s,it.mode)).join(' | ')}</div>`:''}
    ${it.sets.map((s,j)=>{ const l=lp&&(lp.sets[j]||lp.sets[lp.sets.length-1])||{}; const q=`${p}/sets/${j}`;
      const f=(k,unit,ph)=>`<div class="unit"><input data-bind="${q}/${k}" data-num inputmode="decimal" value="${esc(fnum(s[k]))}" placeholder="${esc(fnum(ph))}"><span>${unit}</span></div>`;
@@ -289,7 +310,7 @@ function playerTotals(ts){
 }
 function statTable(tot){
   return `<div class="tablewrap"><table><tr><th>Spieler</th><th>Sp</th><th>Tore</th><th>Würfe</th><th>Quote</th><th>Ass.</th><th>BG</th><th>BV</th><th>Par.</th><th>G/G/R</th></tr>
-   ${tot.map(p=>`<tr><td>${p.nr!=null?`<span class="muted">${p.nr}</span> `:''}${esc(p.name||'–')}${p.me?' ★':''}</td><td>${p.sp}</td><td><b>${p.tore}</b></td><td>${p.wuerfe}</td><td>${p.wuerfe?Math.round(p.tore/p.wuerfe*100)+' %':'–'}</td><td>${p.assists}</td><td>${p.ballgewinne}</td><td>${p.ballverluste}</td><td>${p.paraden}</td><td>${p.gruen}/${p.gelb}/${p.rot}</td></tr>`).join('')}</table></div>`;
+   ${tot.map(p=>`<tr><td>${p.nr!=null?`<span class="muted">${p.nr}</span> `:''}${esc(p.name||'–')}${p.me?' (ich)':''}</td><td>${p.sp}</td><td><b>${p.tore}</b></td><td>${p.wuerfe}</td><td>${p.wuerfe?Math.round(p.tore/p.wuerfe*100)+' %':'–'}</td><td>${p.assists}</td><td>${p.ballgewinne}</td><td>${p.ballverluste}</td><td>${p.paraden}</td><td>${p.gruen}/${p.gelb}/${p.rot}</td></tr>`).join('')}</table></div>`;
 }
 /* ---- Diagramme (SVG) ---- */
 function barChart(weeks){
