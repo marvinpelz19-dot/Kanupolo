@@ -418,3 +418,8 @@ async function readFiles(el){
 window.addEventListener('hashchange',()=>{ if($('#sheet').classList.contains('on')){ $('#sheet').classList.remove('on'); $('#sheet').innerHTML=''; } render(); });
 window.addEventListener('afterprint',()=>{ $('#print').innerHTML=''; });
 load(); applyTheme(); buildNav(); render();
+if(location.protocol.startsWith('http')){ // als App installierbar, wenn die Seite gehostet ist
+  const add=(rel,href)=>{ const l=document.createElement('link'); l.rel=rel; l.href=href; document.head.appendChild(l); };
+  add('manifest','manifest.webmanifest'); add('apple-touch-icon','icons/apple-touch-icon.png');
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+}

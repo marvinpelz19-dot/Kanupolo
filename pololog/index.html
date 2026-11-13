@@ -318,6 +318,22 @@ function seedExercises(){
   for(const cat in LIB) for(const e of LIB[cat]){ const [name,mode]=e.split('|'); out.push({id:'x-'+slug(name),name,cat,mode:mode||'wr',note:'',orm:null}); }
   return out;
 }
+// TRX-Zirkel Woche 2 (9.–15.11.): [Übung, Pause danach s, Hinweis, Block]
+const W2='TRX – Woche 2 (12 Übungen, 50/10)', W2T='TRX Woche 2 · 12 × 50/10', W2DAY='2026-11-13';
+const BM='Band mittel · stehend, Blick zum Anker', BL='Band lang (Mitte Wade)';
+const W2_ITEMS=[
+ ['TRX Squat',10,'Unterkörper. Arme lang, Gewicht auf den Fersen',BM],
+ ['TRX Row',10,'Oberkörper Zug. Körper wie ein Brett, Ellbogen eng',BM],
+ ['TRX Lateral Lunge',10,'Unterkörper. Seite nach jeder Wiederholung wechseln',BM],
+ ['TRX Y Raise',10,'Schulter. Arme gestreckt zum Y, Schritt zurück macht es leichter',BM],
+ ['TRX Split Squat',25,'Unterkörper. Danach Band auf lang stellen (Schlaufen Mitte Wade)',BM],
+ ['TRX Chest Press',10,'Oberkörper Druck. Rücken zum Anker, Band nicht an den Armen',BL],
+ ['TRX Hamstring Curl',25,'Rückenlage, Fersen in den Schlaufen, Hüfte oben. Danach in den Stütz drehen',BL],
+ ['TRX Plank',10,'Bauchlage, Füße in den Schlaufen',BL],
+ ['TRX Push-Up',10,'Oberkörper Druck. Füße bleiben drin',BL],
+ ['TRX Knee Tuck',10,'Knie zur Brust, Hüfte ruhig',BL],
+ ['TRX Body Saw',10,'Im Unterarmstütz vor und zurück. Ersatz: TRX Side Plank',BL],
+ ['TRX Mountain Climber',360,'Letzte Übung, danach 6 min Serienpause und Band wieder auf mittel',BL]];
 // Plan-Vorlagen aus Maxims Dokumenten: [Name, Sätze, Wdh/Sek, %1RM, Pause s, Hinweis, Block, modus?]
 const SEED_PLANS = [
  {name:'Kraft – Session 1 & 2 (ab 02.11.) · Aufbau', note:'Ziel: Wiedereinstieg, solides Fundament. Bulgarian / Kraftausdauer.', items:[
@@ -352,8 +368,7 @@ const SEED_PLANS = [
   ['External Rotator (rotator cuff)',3,10,null,60,'mit Gummiband. Pause 1 min','Schulter B']]},
  {name:'TRX – Woche 1 (9 Übungen, 40/20)', note:'3 Serien · 40 s Arbeit / 20 s Pause · von der 1. bis zur letzten Übung, dann Serienpause 5 min. Übungen frei wählbar: 3 Oberkörper / 3 Unterkörper / 3 Core.', items:
   ['TRX Row','TRX Push-Up','TRX Y Raise','TRX Squat','TRX Split Squat','TRX Hamstring Curl','TRX Plank','TRX Knee Tuck','TRX Body Saw'].map((n,i,a)=>[n,3,40,null,i==a.length-1?300:20,'','','t'])},
- {name:'TRX – Woche 2 (12 Übungen, 50/10)', note:'3 Serien · 50 s Arbeit / 10 s Pause · Serienpause 6 min. 4 Oberkörper / 4 Unterkörper / 4 Core.', items:
-  ['TRX Row','TRX Push-Up','TRX Y Raise','TRX Face Pull','TRX Squat','TRX Split Squat','TRX Hamstring Curl','TRX Lateral Lunge','TRX Plank','TRX Knee Tuck','TRX Body Saw','TRX Pike'].map((n,i,a)=>[n,3,50,null,i==a.length-1?360:10,'','','t'])},
+ {name:W2, note:'3 Serien · 50 s Arbeit / 10 s Pause · Serienpause 6 min. 4 Oberkörper / 4 Unterkörper / 4 Core. Reihenfolge so, dass das Band nur einmal pro Serie umgestellt wird (nach Übung 5 von mittel auf lang). In den Pausen ab Übung 8 Knie ablegen, Füße bleiben in den Schlaufen.', items:W2_ITEMS.map(([n,rest,note,block])=>[n,3,50,null,rest,note,block,'t'])},
  {name:'TRX – Woche 4 (10 Übungen, 1 min)', note:'4 Serien · 1 min Arbeit, keine Pause · Serienpause 5 min. 2 Oberkörper / 2 Unterkörper / 6 Core.', items:
   ['TRX Row','TRX Push-Up','TRX Squat','TRX Hamstring Curl','TRX Plank','TRX Side Plank','TRX Pike','TRX Knee Tuck','TRX Mountain Climber','TRX Body Saw'].map((n,i,a)=>[n,4,60,null,i==a.length-1?300:0,'','','t'])}
 ];
@@ -420,7 +435,7 @@ const mmss = s => { s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+pad
 /* ---- Intervall-Timer ---- */
 const mkStep=(label,work,rest)=>({id:uid(),label,work,rest});
 const seedTimers=()=>[
- {id:uid(),name:'TRX Woche 2 · 12 × 50/10',rounds:3,prep:10,roundRest:360,steps:['TRX Row','TRX Push-Up','TRX Y Raise','TRX Face Pull','TRX Squat','TRX Split Squat','TRX Hamstring Curl','TRX Lateral Lunge','TRX Plank','TRX Knee Tuck','TRX Body Saw','TRX Pike'].map(n=>mkStep(n,50,10))},
+ {id:uid(),name:W2T,rounds:3,prep:10,roundRest:360,steps:W2_ITEMS.map(([n,rest],i,a)=>mkStep(n+(i===0?' (Band mittel)':i===5?' (Band lang)':''),50,i===a.length-1?0:rest))},
  {id:uid(),name:'Core · 4 × 20 s, 5 Serien',rounds:5,prep:10,roundRest:180,steps:['Leg Raise','Cross Leg Raise','Crunch','Bicycle Crunch'].map(n=>mkStep(n,20,0))},
  {id:uid(),name:'Sprints · 10 × 15 s all-out',rounds:10,prep:10,roundRest:105,steps:[mkStep('All-out',15,0)]},
  {id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}];
@@ -451,9 +466,15 @@ function freshState(){
     const m=mode||ex.mode;
     return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:null,pct:pct||null,rest:rest||0,note:note||''};
   })}));
-  return {version:1,
+  const st={version:1,seedV:2,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
     exercises, plans, guides:SEED_GUIDES.map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments()};
+  seedW2Entry(st); return st;
+}
+function seedW2Entry(st){
+  const p=st.plans.find(x=>x.name===W2); if(!p||st.entries.some(e=>e.date===W2DAY&&e.planId===p.id)) return;
+  const g=st.guides.find(g=>g.from<=W2DAY&&W2DAY<=g.to);
+  st.entries.push({id:uid(),type:'kraft',date:W2DAY,time:'',title:'TRX – Woche 2',planned:60,minutes:null,plan:g?g.trx:'',notes:'',tags:[],rpe:null,done:false,items:itemsFromPlan(p),planId:p.id,feedback:'',reply:'',g:{}});
 }
 function load(){
   try{ const raw=localStorage.getItem(KEY); if(raw){ S=JSON.parse(raw); migrate(); return; } }catch(e){ console.warn(e); }
@@ -463,6 +484,10 @@ function migrate(){
   const f=freshState();
   for(const k of ['settings','exercises','plans','guides','timers','entries','tournaments']) if(S[k]==null) S[k]=f[k];
   S.settings={...f.settings,...S.settings};
+  if((S.seedV||1)<2){ // neuer TRX-Zirkel Woche 2: Plan, Timer und Training für den 13.11.
+    const up=(list,name)=>{ const n=f[list].find(x=>x.name===name), i=S[list].findIndex(x=>x.name===name); if(i>=0){ n.id=S[list][i].id; S[list][i]=n; } else S[list].push(n); };
+    up('plans',W2); up('timers',W2T); seedW2Entry(S); S.seedV=2; save();
+  }
 }
 let saveWarned=false;
 function save(){
@@ -1302,6 +1327,11 @@ async function readFiles(el){
 window.addEventListener('hashchange',()=>{ if($('#sheet').classList.contains('on')){ $('#sheet').classList.remove('on'); $('#sheet').innerHTML=''; } render(); });
 window.addEventListener('afterprint',()=>{ $('#print').innerHTML=''; });
 load(); applyTheme(); buildNav(); render();
+if(location.protocol.startsWith('http')){ // als App installierbar, wenn die Seite gehostet ist
+  const add=(rel,href)=>{ const l=document.createElement('link'); l.rel=rel; l.href=href; document.head.appendChild(l); };
+  add('manifest','manifest.webmanifest'); add('apple-touch-icon','icons/apple-touch-icon.png');
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 
 </script>
 </body>

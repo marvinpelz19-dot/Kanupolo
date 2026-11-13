@@ -1,0 +1,17 @@
+{
+  "name": "PoloLog – Rothe Mühle Trainingsplaner",
+  "short_name": "PoloLog",
+  "description": "Kanupolo Training und Turniere planen, protokollieren und auswerten.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf6f3",
+  "theme_color": "#d71f26",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
