@@ -395,6 +395,7 @@ document.addEventListener('input',ev=>{
   if(!el.dataset.bind) return;
   const r=ref(el.dataset.bind); if(!r) return;
   r[0][r[1]] = 'num' in el.dataset ? num(el.value) : el.value;
+  if('orm' in el.dataset){ const o=num(el.value); $$('input[data-pct]',el.closest('.ex')).forEach(i=>i.placeholder=o?fnum(pctWeight(o,+i.dataset.pct)):''); }
   clearTimeout(saveT); saveT=setTimeout(save,250);
 });
 document.addEventListener('change',ev=>{

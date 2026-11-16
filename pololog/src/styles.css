@@ -177,6 +177,10 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .chk:active{transform:scale(.9)}
 .chk.on{background:var(--ok);color:#fff;border-color:var(--ok);animation:pop var(--short) var(--ease-out)}
 @keyframes pop{from{transform:scale(.8)}}
+.orm{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 10px;border-radius:var(--r-ctl);background:var(--paper-2)}
+.orm label{flex:1;margin:0;color:var(--ink);font-size:.88rem;font-weight:600}
+.orm .unit{position:relative;width:118px;flex:none}.orm input{text-align:center;font-weight:700;font-size:1.05rem;padding:.5rem 1.6rem .5rem .4rem}
+.orm .unit span{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:.72rem;color:var(--muted);pointer-events:none}
 .planrow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
 .planrow input,.planrow select{padding:.5rem .4rem;text-align:center}
 #rest{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(100px + env(safe-area-inset-bottom));z-index:40;background:var(--ink);color:var(--paper);border-radius:999px;padding:.5rem .6rem .5rem 1.2rem;display:flex;align-items:center;gap:.7rem;box-shadow:var(--lift);font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums;transition:transform var(--short) var(--ease-in),opacity var(--short) var(--ease-in),visibility 0s var(--short);white-space:nowrap;opacity:0;visibility:hidden;pointer-events:none}
