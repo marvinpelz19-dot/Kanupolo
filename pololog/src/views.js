@@ -295,9 +295,9 @@ function exCard(e,it,i){
      <button class="iconbtn sm" data-a="delExItem" data-id="${e.id}" data-i="${i}">${ic('x','sm')}</button></div>
    ${tg.note?`<div class="hint">${esc(tg.note)}</div>`:''}
    ${lp?`<div class="tiny muted" style="margin-top:4px">Letztes Mal (${fshort(lp.date)}): ${lp.sets.map(s=>fset(s,it.mode)).join(' | ')}</div>`:''}
-   ${it.sets.map((s,j)=>{ const l=lp&&(lp.sets[j]||lp.sets[lp.sets.length-1])||{}; const q=`${p}/sets/${j}`;
+   ${it.sets.map((s,j)=>{ const l=lp&&(lp.sets[j]||lp.sets[lp.sets.length-1])||{}; const q=`${p}/sets/${j}`; const sc=tg.scheme&&tg.scheme[j%tg.scheme.length];
      const f=(k,unit,ph)=>`<div class="unit"><input data-bind="${q}/${k}" data-num inputmode="decimal" value="${esc(fnum(s[k]))}" placeholder="${esc(fnum(ph))}"><span>${unit}</span></div>`;
-     return `<div class="set ${it.mode==='wr'?'':'one'}"><span class="n">${j+1}</span>${it.mode==='wr'?f('w','kg',phW??l.w)+f('r','Wdh',tg.reps??l.r):it.mode==='r'?f('r','Wdh',tg.reps??l.r):f('t','Sek',tg.time??l.t)}
+     return (sc&&j%tg.scheme.length===0?`<div class="tiny muted" style="margin:10px 0 -2px">Runde ${j/tg.scheme.length+1}</div>`:'')+`<div class="set ${it.mode==='wr'?'':'one'} ${sc?'sch':''}"><span class="n">${sc?sc.pct+'%':j+1}</span>${it.mode==='wr'?f('w','kg',sc?(ex&&ex.orm?pctWeight(ex.orm,sc.pct):l.w):phW??l.w)+f('r','Wdh',sc?sc.reps:tg.reps??l.r):it.mode==='r'?f('r','Wdh',tg.reps??l.r):f('t','Sek',tg.time??l.t)}
        <button class="chk ${s.done?'on':''}" data-a="setDone" data-id="${e.id}" data-it="${it.id}" data-j="${j}" aria-label="Satz erledigt">${ic('check')}</button></div>`; }).join('')}
    <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-a="addSet" data-id="${e.id}" data-it="${it.id}">+ Satz</button>${it.sets.length>1?`<button class="btn sm ghost" data-a="rmSet" data-id="${e.id}" data-it="${it.id}">− Satz</button>`:''}</div></div>`;
 }

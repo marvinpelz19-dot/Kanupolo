@@ -301,7 +301,7 @@ const A={
  setDone(el){ const e=entry(el.dataset.id), it=e.items.find(i=>i.id===el.dataset.it), s=it.sets[+el.dataset.j]; s.done=!s.done;
   if(s.done){ $$('input',el.closest('.set')).forEach(i=>{ const k=i.dataset.bind.split('/').pop(); if(s[k]==null) s[k]=num(i.placeholder); });
     if(!e.startedAt) e.startedAt=Date.now();
-    const r=it.target&&it.target.rest; const allDone=e.items.every(x=>x.sets.every(y=>y.done));
+    const tg=it.target||{}, sc=tg.scheme&&tg.scheme[+el.dataset.j%tg.scheme.length]; const r=sc?sc.rest:tg.rest; const allDone=e.items.every(x=>x.sets.every(y=>y.done));
     if(!allDone) startRest(r!=null?r:S.settings.restDefault); }
   save(); render(); },
  addSet(el){ const it=entry(el.dataset.id).items.find(i=>i.id===el.dataset.it); it.sets.push({w:null,r:null,t:null,done:false}); save(); render(); },

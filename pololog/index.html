@@ -180,6 +180,7 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .hint{font-size:.86rem;margin-top:8px;padding-left:10px;border-left:3px solid var(--red)}
 .set{display:grid;grid-template-columns:24px 1fr 1fr 52px;gap:6px;align-items:center;margin-top:6px}
 .set.one{grid-template-columns:24px 1fr 52px}
+.set.sch{grid-template-columns:38px 1fr 1fr 52px}.set.sch .n{font-weight:700;color:var(--red)}
 .set .n{font-size:.84rem;color:var(--muted);text-align:center}
 .set input{text-align:center;padding:.6rem .3rem;font-weight:700;font-size:1.05rem;background:var(--paper)}
 .set .unit{position:relative}
@@ -334,6 +335,10 @@ const W2_ITEMS=[
  ['TRX Knee Tuck',10,'Knie zur Brust, Hüfte ruhig',BL],
  ['TRX Body Saw',10,'Im Unterarmstütz vor und zurück. Ersatz: TRX Side Plank',BL],
  ['TRX Mountain Climber',360,'Letzte Übung, danach 6 min Serienpause und Band wieder auf mittel',BL]];
+// Kraft-Session 16.11. (nur 1× diese Woche, Ziel: Dynamic)
+const N16='Kraft – Session 16.11. · Dynamic (1× diese Woche)', N16DAY='2026-11-16';
+const BULG=[{reps:1,pct:90,rest:210},{reps:3,pct:70,rest:210},{reps:8,pct:40,rest:420}];
+const BN='Je Runde: 1 Wdh. bei 90 %, 3–4 min Pause, 3 Wdh. bei 70 %, 3–4 min Pause, 8 Wdh. bei 40 %, dann 7 min Satzpause. Den Start jeder Wiederholung so explosiv wie möglich.';
 // Plan-Vorlagen aus Maxims Dokumenten: [Name, Sätze, Wdh/Sek, %1RM, Pause s, Hinweis, Block, modus?]
 const SEED_PLANS = [
  {name:'Kraft – Session 1 & 2 (ab 02.11.) · Aufbau', note:'Ziel: Wiedereinstieg, solides Fundament. Bulgarian / Kraftausdauer.', items:[
@@ -368,6 +373,22 @@ const SEED_PLANS = [
   ['External Rotator (rotator cuff)',3,10,null,60,'mit Gummiband. Pause 1 min','Schulter B']]},
  {name:'TRX – Woche 1 (9 Übungen, 40/20)', note:'3 Serien · 40 s Arbeit / 20 s Pause · von der 1. bis zur letzten Übung, dann Serienpause 5 min. Übungen frei wählbar: 3 Oberkörper / 3 Unterkörper / 3 Core.', items:
   ['TRX Row','TRX Push-Up','TRX Y Raise','TRX Squat','TRX Split Squat','TRX Hamstring Curl','TRX Plank','TRX Knee Tuck','TRX Body Saw'].map((n,i,a)=>[n,3,40,null,i==a.length-1?300:20,'','','t'])},
+ {name:N16, note:'Nur eine Kraft-Einheit diese Woche. Bulgarian Strength 3 × (1 Wdh. bei 90 % + 3 Wdh. bei 70 % + 8 Wdh. bei 40 %), jede Station einzeln: erst Drücken, dann Ziehen, zum Schluss Trizeps. Danach Core, unterer Rücken, Medizinball, Klimmzüge und Schulter.', items:[
+  ['Bench Press',9,null,null,0,BN+' Auf Maxims Blatt: Push 1.','Bulgarian Strength · explosiv','wr',BULG],
+  ['Low Row',9,null,null,0,BN+' Auf Maxims Blatt: Pull 6.','Bulgarian Strength · explosiv','wr',BULG],
+  ['Triceps Pushdown',9,null,null,0,BN+' Auf Maxims Blatt: Push 6.','Bulgarian Strength · explosiv','wr',BULG],
+  ['Leg Raise (straight)',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
+  ['Cross Leg Raise (alternating)',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
+  ['Crunch',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
+  ['Bicycle Crunch',3,20,null,180,'20 s, dann 3 min Pause. Saubere, dynamische Bewegung','Core · 3 Runden, dynamisch','t'],
+  ['Superman (arms and legs extended)',3,6,null,60,'Pro Runde 6 × 10 s halten, dazwischen 5 s lösen','Unterer Rücken','r'],
+  ['MB Seated Trunk Rotation',3,15,null,0,'Mit Medizinball, Wiederholungszahl frei (15 als Richtwert)','Medizinball · 3 Runden','r'],
+  ['MB Seated Partner Pass (two-handed)',3,15,null,60,'Wenn möglich mit Mitspieler gegenüber, etwa 15 beidhändige Pässe','Medizinball · 3 Runden','r'],
+  ['Pull-Up (close grip)',3,5,null,0,'Dynamisch, direkt weiter','Klimmzüge · 3 Runden','r'],
+  ['Hanging with ball between the legs',3,5,null,120,'5 Klimmzüge mit Ball zwischen den Beinen. Pause 2 min','Klimmzüge · 3 Runden','r'],
+  ['Shoulder Depression (cable – front)',3,10,null,0,'Leichter Widerstand, nur Positionsarbeit','Schulter · 3 Runden','wr'],
+  ['Internal Rotator (rotator cuff)',3,10,null,0,'Leichter Widerstand','Schulter · 3 Runden','wr'],
+  ['External Rotator (rotator cuff)',3,10,null,180,'Leichter Widerstand. Pause 3 min','Schulter · 3 Runden','wr']]},
  {name:W2, note:'3 Serien · 50 s Arbeit / 10 s Pause · Serienpause 6 min. 4 Oberkörper / 4 Unterkörper / 4 Core. Reihenfolge so, dass das Band nur einmal pro Serie umgestellt wird (nach Übung 5 von mittel auf lang). In den Pausen ab Übung 8 Knie ablegen, Füße bleiben in den Schlaufen.', items:W2_ITEMS.map(([n,rest,note,block])=>[n,3,50,null,rest,note,block,'t'])},
  {name:'TRX – Woche 4 (10 Übungen, 1 min)', note:'4 Serien · 1 min Arbeit, keine Pause · Serienpause 5 min. 2 Oberkörper / 2 Unterkörper / 6 Core.', items:
   ['TRX Row','TRX Push-Up','TRX Squat','TRX Hamstring Curl','TRX Plank','TRX Side Plank','TRX Pike','TRX Knee Tuck','TRX Mountain Climber','TRX Body Saw'].map((n,i,a)=>[n,4,60,null,i==a.length-1?300:0,'','','t'])}
@@ -461,15 +482,20 @@ let S;
 function freshState(){
   const exercises = seedExercises();
   const byName = Object.fromEntries(exercises.map(e=>[e.name,e]));
-  const plans = SEED_PLANS.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode])=>{
+  const plans = SEED_PLANS.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme])=>{
     const ex=byName[n]; if(!ex) console.warn('Seed: Übung fehlt',n);
     const m=mode||ex.mode;
-    return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:null,pct:pct||null,rest:rest||0,note:note||''};
+    return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{})};
   })}));
-  const st={version:1,seedV:2,
+  const st={version:1,seedV:3,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
     exercises, plans, guides:SEED_GUIDES.map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments()};
-  seedW2Entry(st); return st;
+  seedW2Entry(st); seedPlanEntry(st,N16,N16DAY,'Kraft – Dynamic','kraft',90); return st;
+}
+function seedPlanEntry(st,planName,date,title,guideKey,planned){
+  const p=st.plans.find(x=>x.name===planName); if(!p||st.entries.some(e=>e.date===date&&e.planId===p.id)) return;
+  const g=st.guides.find(g=>g.from<=date&&date<=g.to);
+  st.entries.push({id:uid(),type:'kraft',date,time:'',title,planned,minutes:null,plan:g?g[guideKey]:'',notes:'',tags:[],rpe:null,done:false,items:itemsFromPlan(p),planId:p.id,feedback:'',reply:'',g:{}});
 }
 function seedW2Entry(st){
   const p=st.plans.find(x=>x.name===W2); if(!p||st.entries.some(e=>e.date===W2DAY&&e.planId===p.id)) return;
@@ -487,6 +513,10 @@ function migrate(){
   if((S.seedV||1)<2){ // neuer TRX-Zirkel Woche 2: Plan, Timer und Training für den 13.11.
     const up=(list,name)=>{ const n=f[list].find(x=>x.name===name), i=S[list].findIndex(x=>x.name===name); if(i>=0){ n.id=S[list][i].id; S[list][i]=n; } else S[list].push(n); };
     up('plans',W2); up('timers',W2T); seedW2Entry(S); S.seedV=2; save();
+  }
+  if(S.seedV<3){ // Kraft-Session 16.11.
+    if(!S.plans.some(x=>x.name===N16)) S.plans.unshift(f.plans.find(x=>x.name===N16));
+    seedPlanEntry(S,N16,N16DAY,'Kraft – Dynamic','kraft',90); S.seedV=3; save();
   }
 }
 let saveWarned=false;
@@ -506,7 +536,7 @@ const guideText = (g,type,title='') => !g?'': type==='kraft' ? (/trx/i.test(titl
 function tournMinutes(t){ return sum(t.games,g=>g.minutes); }
 function itemsFromPlan(p){
   return p.items.map(it=>({id:uid(),exId:it.exId,name:it.name,mode:it.mode,block:it.block||'',
-    target:{sets:it.sets,reps:it.reps,time:it.time,weight:it.weight,pct:it.pct,rest:it.rest,note:it.note},
+    target:{sets:it.sets,reps:it.reps,time:it.time,weight:it.weight,pct:it.pct,rest:it.rest,note:it.note,...(it.scheme?{scheme:it.scheme}:{})},
     sets:Array.from({length:Math.max(1,it.sets||1)},()=>({w:null,r:null,t:null,done:false}))}));
 }
 function newEntry(o){
@@ -524,6 +554,7 @@ function lastPerf(exId, before){
 function fset(s,mode){ return mode==='t' ? (s.t??'–')+' s' : mode==='r' ? (s.r??'–')+' Wdh.' : (s.w!=null?fnum(s.w)+' kg × ':'')+(s.r??'–'); }
 function ftarget(it){
   const t=it.target||it; const a=[];
+  if(t.scheme) return Math.round((t.sets||t.scheme.length)/t.scheme.length)+' × ('+t.scheme.map(x=>x.reps+' Wdh. bei '+x.pct+' %').join(' + ')+')';
   const n=t.sets||1; const q=it.mode==='t'?(t.time?t.time+' s':''):(t.reps?t.reps+' Wdh.':'');
   a.push(n+' × '+(q||'–'));
   if(t.weight!=null) a.push(fnum(t.weight)+' kg');
@@ -867,9 +898,9 @@ function exCard(e,it,i){
      <button class="iconbtn sm" data-a="delExItem" data-id="${e.id}" data-i="${i}">${ic('x','sm')}</button></div>
    ${tg.note?`<div class="hint">${esc(tg.note)}</div>`:''}
    ${lp?`<div class="tiny muted" style="margin-top:4px">Letztes Mal (${fshort(lp.date)}): ${lp.sets.map(s=>fset(s,it.mode)).join(' | ')}</div>`:''}
-   ${it.sets.map((s,j)=>{ const l=lp&&(lp.sets[j]||lp.sets[lp.sets.length-1])||{}; const q=`${p}/sets/${j}`;
+   ${it.sets.map((s,j)=>{ const l=lp&&(lp.sets[j]||lp.sets[lp.sets.length-1])||{}; const q=`${p}/sets/${j}`; const sc=tg.scheme&&tg.scheme[j%tg.scheme.length];
      const f=(k,unit,ph)=>`<div class="unit"><input data-bind="${q}/${k}" data-num inputmode="decimal" value="${esc(fnum(s[k]))}" placeholder="${esc(fnum(ph))}"><span>${unit}</span></div>`;
-     return `<div class="set ${it.mode==='wr'?'':'one'}"><span class="n">${j+1}</span>${it.mode==='wr'?f('w','kg',phW??l.w)+f('r','Wdh',tg.reps??l.r):it.mode==='r'?f('r','Wdh',tg.reps??l.r):f('t','Sek',tg.time??l.t)}
+     return (sc&&j%tg.scheme.length===0?`<div class="tiny muted" style="margin:10px 0 -2px">Runde ${j/tg.scheme.length+1}</div>`:'')+`<div class="set ${it.mode==='wr'?'':'one'} ${sc?'sch':''}"><span class="n">${sc?sc.pct+'%':j+1}</span>${it.mode==='wr'?f('w','kg',sc?(ex&&ex.orm?pctWeight(ex.orm,sc.pct):l.w):phW??l.w)+f('r','Wdh',sc?sc.reps:tg.reps??l.r):it.mode==='r'?f('r','Wdh',tg.reps??l.r):f('t','Sek',tg.time??l.t)}
        <button class="chk ${s.done?'on':''}" data-a="setDone" data-id="${e.id}" data-it="${it.id}" data-j="${j}" aria-label="Satz erledigt">${ic('check')}</button></div>`; }).join('')}
    <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-a="addSet" data-id="${e.id}" data-it="${it.id}">+ Satz</button>${it.sets.length>1?`<button class="btn sm ghost" data-a="rmSet" data-id="${e.id}" data-it="${it.id}">− Satz</button>`:''}</div></div>`;
 }
@@ -1210,7 +1241,7 @@ const A={
  setDone(el){ const e=entry(el.dataset.id), it=e.items.find(i=>i.id===el.dataset.it), s=it.sets[+el.dataset.j]; s.done=!s.done;
   if(s.done){ $$('input',el.closest('.set')).forEach(i=>{ const k=i.dataset.bind.split('/').pop(); if(s[k]==null) s[k]=num(i.placeholder); });
     if(!e.startedAt) e.startedAt=Date.now();
-    const r=it.target&&it.target.rest; const allDone=e.items.every(x=>x.sets.every(y=>y.done));
+    const tg=it.target||{}, sc=tg.scheme&&tg.scheme[+el.dataset.j%tg.scheme.length]; const r=sc?sc.rest:tg.rest; const allDone=e.items.every(x=>x.sets.every(y=>y.done));
     if(!allDone) startRest(r!=null?r:S.settings.restDefault); }
   save(); render(); },
  addSet(el){ const it=entry(el.dataset.id).items.find(i=>i.id===el.dataset.it); it.sets.push({w:null,r:null,t:null,done:false}); save(); render(); },

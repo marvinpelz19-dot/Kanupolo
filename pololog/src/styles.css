@@ -168,6 +168,7 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .hint{font-size:.86rem;margin-top:8px;padding-left:10px;border-left:3px solid var(--red)}
 .set{display:grid;grid-template-columns:24px 1fr 1fr 52px;gap:6px;align-items:center;margin-top:6px}
 .set.one{grid-template-columns:24px 1fr 52px}
+.set.sch{grid-template-columns:38px 1fr 1fr 52px}.set.sch .n{font-weight:700;color:var(--red)}
 .set .n{font-size:.84rem;color:var(--muted);text-align:center}
 .set input{text-align:center;padding:.6rem .3rem;font-weight:700;font-size:1.05rem;background:var(--paper)}
 .set .unit{position:relative}
