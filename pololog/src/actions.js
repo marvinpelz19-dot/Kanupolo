@@ -208,9 +208,9 @@ function startSheet(){
 }
 /* ---- Intervall-Timer: Ablauf ---- */
 const TR={t:null,seq:[],i:0,end:0,left:0,paused:false,iv:null,lastS:null,entryId:null,lock:null,done:false};
-function runTimer(t,entryId){
+function runTimer(t,entryId,itemId){
   const seq=buildSeq(t); if(!seq.length) return toast('Der Timer hat noch keine Übung mit Belastungszeit');
-  Object.assign(TR,{t,seq,entryId:entryId||null,paused:false,done:false,total:sum(seq,x=>x.dur)});
+  Object.assign(TR,{t,seq,entryId:entryId||null,itemId:itemId||null,paused:false,done:false,total:sum(seq,x=>x.dur)});
   $('#sheet').classList.remove('on'); beep(1,.01);
   try{ navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>TR.lock=l).catch(()=>{}); }catch(e){}
   clearInterval(TR.iv); TR.iv=setInterval(trTick,100); trGo(0,false);
@@ -242,9 +242,11 @@ function trDraw(){
 function trFinish(){
   clearInterval(TR.iv); TR.done=true; beep(990,.2); setTimeout(()=>beep(990,.2),300); setTimeout(()=>beep(1320,.6),600); if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
   const min=Math.max(1,Math.round(TR.total/60));
-  if(TR.entryId){ const e=entry(TR.entryId); if(e){ e.items.filter(i=>i.mode==='t').forEach(it=>it.sets.forEach(st=>{ if(!st.done){ st.done=true; if(st.t==null) st.t=(it.target||{}).time||null; } })); if(!e.minutes) e.minutes=min; save(); render(); } }
+  if(TR.itemId){ const e=entry(TR.entryId), it=e&&e.items.find(i=>i.id===TR.itemId);
+    if(it){ const tm=itemTm(it); let k=TR.t.rounds; for(const st of it.sets){ if(k<=0) break; if(!st.done){ st.done=true; if(it.mode==='t'){ if(st.t==null) st.t=tm.work*tm.n; } else if(st.r==null) st.r=tm.n; k--; } } save(); render(); } }
+  else if(TR.entryId){ const e=entry(TR.entryId); if(e){ e.items.filter(i=>i.mode==='t').forEach(it=>it.sets.forEach(st=>{ if(!st.done){ st.done=true; if(st.t==null) st.t=(it.target||{}).time||null; } })); if(!e.minutes) e.minutes=min; save(); render(); } }
   $('#run').className='on prep'; $('#rphase').textContent='Geschafft'; $('#rtime').textContent=mmss(TR.total); $('#rinfo').textContent=TR.t.name; $('#rbar').style.setProperty('--p',1);
-  $('#rnext').innerHTML=TR.entryId?'Die Zeit-Übungen sind im Training abgehakt.':`<button class="btn" style="color:inherit;border-color:currentColor" data-a="trSave">Als Training eintragen</button>`;
+  $('#rnext').innerHTML=TR.itemId?'Im Training abgehakt.':TR.entryId?'Die Zeit-Übungen sind im Training abgehakt.':`<button class="btn" style="color:inherit;border-color:currentColor" data-a="trSave">Als Training eintragen</button>`;
   $('#rtog').innerHTML=ic('check');
 }
 function trClose(){ clearInterval(TR.iv); TR.done=true; $('#run').className=''; try{ TR.lock&&TR.lock.release(); }catch(e){} TR.lock=null; }
@@ -302,6 +304,23 @@ const A={
  startFree(){ const e=newEntry({type:'kraft',title:'Freies Krafttraining'}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); setTimeout(()=>pickSheet('entry:'+e.id),350); },
  startTimers(){ UI.kraftTab='timer'; $('#sheet').classList.remove('on'); go('#/kraft'); },
  quick(el){ const e=newEntry({type:el.dataset.type}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); },
+ // Timer für eine einzelne Übung im Training
+ exTimer(el){ const e=entry(el.dataset.id), it=e.items.find(i=>i.id===el.dataset.it), tm=itemTm(it), tg=it.target||{};
+  const open=it.sets.filter(x=>!x.done).length||1, n=(k,l,v)=>field(l,`<input name="${k}" inputmode="numeric" value="${v}" style="text-align:center;font-weight:700">`);
+  sheet('Timer: '+esc(it.name),`<input type="hidden" name="eid" value="${e.id}"><input type="hidden" name="iid" value="${it.id}">
+   <p class="small muted" style="margin-top:0">Belastung und Pause frei einstellen. Jeder durchlaufene Satz wird im Training abgehakt.</p>
+   <div class="grid g3">${n('n','Intervalle pro Satz',tm.n)}${n('work','Belastung (s)',tm.work)}${n('rest','Pause dazwischen (s)',tm.rest)}</div>
+   <div class="grid g2">${n('sets','Sätze am Stück',open)}${n('rr','Satzpause (s)',tm.rr??(tg.rest||60))}</div>
+   <button class="btn pri lg block" data-a="exTimerGo">${ic('play','sm')}Timer starten</button>`); },
+ exTimerGo(){ const v=formVals($('#sheet')), e=entry(v.eid), it=e.items.find(i=>i.id===v.iid);
+  const tm={n:Math.max(1,num(v.n)||1),work:Math.max(1,num(v.work)||10),rest:Math.max(0,num(v.rest)||0),rr:Math.max(0,num(v.rr)||0)}; it.tm=tm;
+  if(!e.startedAt) e.startedAt=Date.now(); save();
+  runTimer({id:'tmp',name:it.name,rounds:Math.max(1,num(v.sets)||1),prep:5,roundRest:tm.rr,steps:Array.from({length:tm.n},(_,i)=>mkStep(tm.n>1?`${it.name} ${i+1}/${tm.n}`:it.name,tm.work,tm.rest))},e.id,it.id); },
+ exMode(el){ const it=entry(el.dataset.id).items.find(i=>i.id===el.dataset.it); it.target=it.target||{};
+  const tm=itemTm(it);
+  if(it.mode==='r'){ it.mode='t'; if(!it.target.time) it.target.time=tm.work*tm.n; it.sets.forEach(x=>{ if(x.done&&x.t==null) x.t=tm.work*tm.n; }); }
+  else { it.mode='r'; it.sets.forEach(x=>{ if(x.done&&x.r==null) x.r=tm.n; }); }
+  save(); render(); toast(it.mode==='t'?'Erfassung in Sekunden':'Erfassung in Wiederholungen'); },
  // Intervall-Timer
  newTimer(){ const t={id:uid(),name:'Neuer Timer',rounds:3,prep:10,roundRest:60,steps:[mkStep('',40,20)]}; S.timers.push(t); save(); go('#/timer/'+t.id); },
  dupTimer(el){ const t=JSON.parse(JSON.stringify(timerById(el.dataset.id))); t.id=uid(); t.name+=' (Kopie)'; t.steps.forEach(x=>x.id=uid()); S.timers.push(t); save(); go('#/timer/'+t.id); },

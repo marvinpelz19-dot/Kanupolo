@@ -101,7 +101,7 @@ const SEED_PLANS = [
   ['Cross Leg Raise (alternating)',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
   ['Crunch',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
   ['Bicycle Crunch',3,20,null,180,'20 s, dann 3 min Pause. Saubere, dynamische Bewegung','Core · 3 Runden, dynamisch','t'],
-  ['Superman (arms and legs extended)',3,6,null,60,'Pro Runde 6 × 10 s halten, dazwischen 5 s lösen','Unterer Rücken','r'],
+  ['Superman (arms and legs extended)',3,6,null,60,'Pro Runde 6 × 10 s halten, dazwischen 5 s lösen. Über „Timer“ läuft das automatisch','Unterer Rücken','r',null,{n:6,work:10,rest:5}],
   ['MB Seated Trunk Rotation',3,15,null,0,'Mit Medizinball, Wiederholungszahl frei (15 als Richtwert)','Medizinball · 3 Runden','r'],
   ['MB Seated Partner Pass (two-handed)',3,15,null,60,'Wenn möglich mit Mitspieler gegenüber, etwa 15 beidhändige Pässe','Medizinball · 3 Runden','r'],
   ['Pull-Up (close grip)',3,5,null,0,'Dynamisch, direkt weiter','Klimmzüge · 3 Runden','r'],
@@ -197,6 +197,12 @@ function timerFromItems(name,items){
   const g=i=>i.target||i;
   return {id:'tmp',name,rounds:Math.max(...its.map(i=>g(i).sets||1)),prep:10,roundRest:g(its[its.length-1]).rest||0,steps:its.map(i=>mkStep(i.name,g(i).time||30,g(i).rest||0))};
 }
+// Timer-Vorgabe für eine einzelne Übung: n Intervalle pro Satz mit Belastung und Pause
+function itemTm(it){
+  const tg=it.target||{};
+  if(it.tm) return it.tm;
+  return it.mode==='t' ? {n:1,work:tg.time||30,rest:0} : {n:tg.reps||6,work:10,rest:5};
+}
 /* ---- Zustand ---- */
 let S;
 function guestState(){
@@ -209,12 +215,12 @@ function freshState(){
   if(PROFILE==='guest') return guestState();
   const exercises = seedExercises();
   const byName = Object.fromEntries(exercises.map(e=>[e.name,e]));
-  const plans = SEED_PLANS.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme])=>{
+  const plans = SEED_PLANS.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme,tm])=>{
     const ex=byName[n]; if(!ex) console.warn('Seed: Übung fehlt',n);
     const m=mode||ex.mode;
-    return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{})};
+    return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{}),...(tm?{tm}:{})};
   })}));
-  const st={version:1,seedV:4,
+  const st={version:1,seedV:5,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
     exercises, plans, guides:SEED_GUIDES.map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments()};
   seedW2Entry(st); seedPlanEntry(st,N16,N16DAY,'Kraft – Dynamic','kraft',90); return st;
@@ -257,6 +263,12 @@ function migrate(){
     }
     S.seedV=4; save();
   }
+  if(S.seedV<5){ // Superman 16.11.: Halte-Timer 6 × 10 s / 5 s
+    const sup='Superman (arms and legs extended)', tm={n:6,work:10,rest:5};
+    const pl=S.plans.find(x=>x.name===N16), pi=pl&&pl.items.find(i=>i.name===sup); if(pi&&!pi.tm) pi.tm={...tm};
+    for(const e of S.entries) if(pl&&e.planId===pl.id) for(const it of e.items) if(it.name===sup&&!it.tm) it.tm={...tm};
+    S.seedV=5; save();
+  }
 }
 let saveWarned=false;
 function save(){
@@ -275,7 +287,7 @@ const guideFor = date => S.guides.find(g=>g.from<=date && date<=g.to);
 const guideText = (g,type,title='') => !g?'': type==='kraft' ? (/trx/i.test(title)? g.trx : g.kraft) : (g[type]||'');
 function tournMinutes(t){ return sum(t.games,g=>g.minutes); }
 function itemsFromPlan(p){
-  return p.items.map(it=>({id:uid(),exId:it.exId,name:it.name,mode:it.mode,block:it.block||'',
+  return p.items.map(it=>({id:uid(),exId:it.exId,name:it.name,mode:it.mode,block:it.block||'',...(it.tm?{tm:{...it.tm}}:{}),
     target:{sets:it.sets,reps:it.reps,time:it.time,weight:it.weight,pct:it.pct,rest:it.rest,note:it.note,...(it.scheme?{scheme:it.scheme}:{})},
     sets:Array.from({length:Math.max(1,it.sets||1)},()=>({w:null,r:null,t:null,done:false}))}));
 }
