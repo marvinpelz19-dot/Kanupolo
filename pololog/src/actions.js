@@ -5,6 +5,7 @@ let lastRoute='';
 function route(){ const p=(location.hash||'#/heute').slice(2).split('/'); return views[p[0]]?p:['heute']; }
 function go(h){ if(location.hash===h) render(); else location.hash=h; }
 function render(){
+  if(!S) return;
   const r=route(), key=r.join('/'), y=window.scrollY;
   $('#view').innerHTML=views[r[0]](r[1],r[2]);
   const on=NAVMAP[r[0]]||r[0];
@@ -248,9 +249,54 @@ function trFinish(){
 }
 function trClose(){ clearInterval(TR.iv); TR.done=true; $('#run').className=''; try{ TR.lock&&TR.lock.release(); }catch(e){} TR.lock=null; }
 
+/* ---- Profile & Anmeldung ---- */
+const ls={ get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+const lockGet=()=>{ if(OWNER_LOCK) return OWNER_LOCK; try{ return JSON.parse(ls.get(LOCK)||'null'); }catch(e){ return null; } };
+async function pwHash(pw,salt){
+  if(window.crypto&&crypto.subtle){
+    const enc=new TextEncoder(), k=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+    const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode(salt),iterations:150000},k,256);
+    return [...new Uint8Array(bits)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  let h=5381; const s=salt+pw; for(let r=0;r<3000;r++) for(let i=0;i<s.length;i++) h=((h*33)^s.charCodeAt(i)^r)>>>0; return 'x'+h.toString(16);
+}
+async function lockSet(pw){ const salt=uid()+uid(); ls.set(LOCK,JSON.stringify({salt,hash:await pwHash(pw,salt)})); }
+function gate(html){ $('#gate').innerHTML=`<div class="gatebox">${crestSvg('gcrest')}<h1>PoloLog</h1>${html}</div>`; $('#gate').classList.add('on'); }
+function gateHome(){
+  gate(`<p class="muted">Wer trainiert?</p><div class="tiles">
+   <button class="tile pri" data-a="gateOwner"><span class="ico">${ic('lock')}</span><span class="grow"><b>${OWNER_NAME}</b><span class="small muted">Mein Profil mit Plänen, Turnieren und Vorgaben</span></span>${ic('right','sm')}</button>
+   <button class="tile" data-a="gateGuest"><span class="ico">${ic('user')}</span><span class="grow"><b>Gastprofil</b><span class="small muted">Leere Version zum Selbstplanen, alle Übungen inklusive</span></span>${ic('right','sm')}</button></div>`);
+}
+function gateLogin(msg){
+  const has=!!lockGet();
+  gate(`<form data-form="login" class="gateform"><h2>${OWNER_NAME}</h2>
+   <p class="small muted">${has?'Bitte Passwort eingeben.':'Lege ein Passwort für dein Profil fest. Es wird nur auf diesem Gerät hinterlegt.'}</p>
+   <div class="field"><label for="pw1">${has?'Passwort':'Neues Passwort'}</label><input id="pw1" name="pw1" type="password" autocomplete="${has?'current-password':'new-password'}" required minlength="4"></div>
+   ${has?'':`<div class="field"><label for="pw2">Passwort wiederholen</label><input id="pw2" name="pw2" type="password" autocomplete="new-password" required minlength="4"></div>`}
+   ${msg?`<p class="small" style="color:var(--danger)">${msg}</p>`:''}
+   <button class="btn pri lg block" type="submit">${has?'Anmelden':'Passwort festlegen'}</button>
+   <button class="btn ghost block" type="button" data-a="gateBack" style="margin-top:6px">Zurück</button></form>`);
+  const i=$('#pw1'); i&&i.focus();
+}
+async function doLogin(form){
+  const v=formVals(form), lock=lockGet();
+  if(lock){ if(await pwHash(v.pw1,lock.salt)!==lock.hash) return gateLogin('Das Passwort stimmt nicht.'); }
+  else { if(v.pw1.length<4) return gateLogin('Mindestens 4 Zeichen.'); if(v.pw1!==v.pw2) return gateLogin('Die beiden Eingaben sind verschieden.'); await lockSet(v.pw1); }
+  startApp('owner');
+}
+function startApp(profile){
+  PROFILE=profile; KEY=KEYS[profile]; ls.set(SESSION,profile);
+  load(); applyTheme(); buildNav(); $('#gate').classList.remove('on'); $('#gate').innerHTML='';
+  lastRoute=''; if(location.hash&&location.hash!=='#/heute') location.hash='#/heute'; else render();
+}
+
 /* ---- Aktionen ---- */
 const A={
  closeSheet,
+ gateOwner(){ gateLogin(); }, gateGuest(){ startApp('guest'); }, gateBack(){ gateHome(); },
+ logout(){ clearTimeout(saveT); save(); ls.del(SESSION); stopRest(); S=null; $('#sheet').classList.remove('on'); $('#view').innerHTML=''; gateHome(); },
+ pwSheet(){ sheet('Passwort ändern',`<form data-form="newpw">${field('Neues Passwort','<input name="pw1" type="password" autocomplete="new-password" required minlength="4">')}${field('Wiederholen','<input name="pw2" type="password" autocomplete="new-password" required minlength="4">')}<button class="btn pri block" type="submit">Speichern</button></form>`); },
+ copyLock(){ const l=lockGet(); l?copyText(JSON.stringify(l)):toast('Noch kein Passwort festgelegt'); },
  start(){ startSheet(); },
  startPlans(){ sheet('Plan wählen',S.plans.map(p=>`<button class="tile" data-a="startPlan" data-id="${p.id}"><span class="ico t-kraft">${ic('dumbbell')}</span><span class="grow"><b>${esc(p.name)}</b><span class="small muted">${p.items.length} Übungen</span></span>${ic('play','sm')}</button>`).join('<div style="height:8px"></div>')||'<div class="empty">Noch keine Pläne. Lege unter Training einen an.</div>'); },
  startFree(){ const e=newEntry({type:'kraft',title:'Freies Krafttraining'}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); setTimeout(()=>pickSheet('entry:'+e.id),350); },
@@ -301,7 +347,7 @@ const A={
  setDone(el){ const e=entry(el.dataset.id), it=e.items.find(i=>i.id===el.dataset.it), s=it.sets[+el.dataset.j]; s.done=!s.done;
   if(s.done){ $$('input',el.closest('.set')).forEach(i=>{ const k=i.dataset.bind.split('/').pop(); if(s[k]==null) s[k]=num(i.placeholder); });
     if(!e.startedAt) e.startedAt=Date.now();
-    const tg=it.target||{}, sc=tg.scheme&&tg.scheme[+el.dataset.j%tg.scheme.length]; const r=sc?sc.rest:tg.rest; const allDone=e.items.every(x=>x.sets.every(y=>y.done));
+    const tg=it.target||{}, sc=tg.scheme&&tg.scheme[+el.dataset.j%tg.scheme.length], lastSet=+el.dataset.j===it.sets.length-1; const r=sc?(lastSet?Math.max(sc.rest||0,tg.rest||0):sc.rest):tg.rest; const allDone=e.items.every(x=>x.sets.every(y=>y.done));
     if(!allDone) startRest(r!=null?r:S.settings.restDefault); }
   save(); render(); },
  addSet(el){ const it=entry(el.dataset.id).items.find(i=>i.id===el.dataset.it); it.sets.push({w:null,r:null,t:null,done:false}); save(); render(); },
@@ -403,6 +449,11 @@ document.addEventListener('change',ev=>{
   if(el.dataset.bind){ clearTimeout(saveT); save(); if('rr' in el.dataset) render(); }
   if(el.dataset.file) readFiles(el);
 });
+document.addEventListener('submit',async ev=>{
+  const f=ev.target; if(!f.dataset.form) return; ev.preventDefault();
+  if(f.dataset.form==='login') return doLogin(f);
+  if(f.dataset.form==='newpw'){ const v=formVals(f); if(v.pw1.length<4||v.pw1!==v.pw2) return toast('Eingaben prüfen: gleich und mindestens 4 Zeichen'); await lockSet(v.pw1); closeSheet(); toast('Passwort geändert'); }
+});
 window.addEventListener('pagehide',()=>{ clearTimeout(saveT); save(); });
 document.addEventListener('visibilitychange',()=>{ if(document.hidden){ clearTimeout(saveT); save(); } });
 async function readFiles(el){
@@ -418,7 +469,10 @@ async function readFiles(el){
 }
 window.addEventListener('hashchange',()=>{ if($('#sheet').classList.contains('on')){ $('#sheet').classList.remove('on'); $('#sheet').innerHTML=''; } render(); });
 window.addEventListener('afterprint',()=>{ $('#print').innerHTML=''; });
-load(); applyTheme(); buildNav(); render();
+{ // Start: gemerktes Profil öffnen, sonst Profilauswahl
+  const sess=ls.get(SESSION);
+  if(sess==='guest'||(sess==='owner'&&lockGet())) startApp(sess); else gateHome();
+}
 if(location.protocol.startsWith('http')){ // als App installierbar, wenn die Seite gehostet ist
   const add=(rel,href)=>{ const l=document.createElement('link'); l.rel=rel; l.href=href; document.head.appendChild(l); };
   add('manifest','manifest.webmanifest'); add('apple-touch-icon','icons/apple-touch-icon.png');

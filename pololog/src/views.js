@@ -39,7 +39,7 @@ heute(){
   const nt=S.tournaments.filter(x=>(x.to||x.from)>=t).sort((a,b)=>a.from.localeCompare(b.from))[0];
   const days=nt?Math.round((pdate(nt.from)-pdate(t))/864e5):null;
   const g=guideFor(t);
-  return `<section class="hero">${wheelSvg('wheel')}<div class="small">${fdate(t)}</div><h1>Hallo ${esc(S.settings.name||'')}</h1>
+  return `<section class="hero">${wheelSvg('wheel')}<div class="small">${fdate(t)}</div><h1>${S.settings.name?'Hallo '+esc(S.settings.name):'Willkommen'}</h1>
     <button class="btn lg block" data-a="start">${ic('play','sm')}Training starten</button>
     <div class="facts"><div><b>${done.length}/${week.length}</b><span>Einheiten diese Woche</span></div>
     <div><b>${hm(sum(done,e=>e.minutes))}</b><span>Trainingszeit</span></div>
@@ -264,6 +264,9 @@ stats(){
 mehr(){
   const s=S.settings, b='settings';
   return `<h1>Einstellungen & Daten</h1>
+   <div class="sec"><h2>Profil</h2></div>
+   <div class="card"><div class="row">${ic(PROFILE==='owner'?'lock':'user')}<div class="grow"><b>${PROFILE==='owner'?OWNER_NAME:'Gastprofil'}</b><div class="small muted">${PROFILE==='owner'?'Mein Profil, mit Passwort geschützt':'Leere Version, Daten nur auf diesem Gerät'}</div></div></div>
+     <div class="row wrap" style="margin-top:12px"><button class="btn sm" data-a="logout">${ic('logout','sm')}Abmelden / Profil wechseln</button>${PROFILE==='owner'&&!OWNER_LOCK?`<button class="btn sm" data-a="pwSheet">${ic('lock','sm')}Passwort ändern</button><button class="btn sm" data-a="copyLock">Passwort-Code kopieren</button>`:''}</div></div>
    <div class="sec"><h2>Profil & Trainer</h2></div>
    <div class="card"><div class="grid g2">${field('Mein Name',inp(b+'/name',s.name))}${field('Trainer',inp(b+'/trainer',s.trainer))}${field('WhatsApp-Nr. Trainer (mit +Land)',inp(b+'/trainerPhone',s.trainerPhone,'placeholder="+33…" inputmode="tel"'))}${field('E-Mail Trainer',inp(b+'/trainerMail',s.trainerMail,'type="email"'))}
      ${field('Sprache für Feedback',`<select data-bind="${b}/lang"><option value="en" ${s.lang==='en'?'selected':''}>English</option><option value="fr" ${s.lang==='fr'?'selected':''}>Français</option><option value="de" ${s.lang==='de'?'selected':''}>Deutsch</option></select>`)}${field('Standard-Pause (Sek.)',numinp(b+'/restDefault',s.restDefault))}</div>
@@ -298,7 +301,7 @@ function exCard(e,it,i){
    ${lp?`<div class="tiny muted" style="margin-top:4px">Letztes Mal (${fshort(lp.date)}): ${lp.sets.map(s=>fset(s,it.mode)).join(' | ')}</div>`:''}
    ${it.sets.map((s,j)=>{ const l=lp&&(lp.sets[j]||lp.sets[lp.sets.length-1])||{}; const q=`${p}/sets/${j}`; const sc=tg.scheme&&tg.scheme[j%tg.scheme.length];
      const pc=sc?sc.pct:tg.pct; const f=(k,unit,ph,x='')=>`<div class="unit"><input data-bind="${q}/${k}" data-num inputmode="decimal" value="${esc(fnum(s[k]))}" placeholder="${esc(fnum(ph))}" ${x}><span>${unit}</span></div>`;
-     return (sc&&j%tg.scheme.length===0?`<div class="tiny muted" style="margin:10px 0 -2px">Runde ${j/tg.scheme.length+1}</div>`:'')+`<div class="set ${it.mode==='wr'?'':'one'} ${sc?'sch':''}"><span class="n">${sc?sc.pct+'%':j+1}</span>${it.mode==='wr'?f('w','kg',sc?(ex&&ex.orm?pctWeight(ex.orm,sc.pct):l.w):phW??l.w,pc&&tg.weight==null?`data-pct="${pc}"`:'')+f('r','Wdh',sc?sc.reps:tg.reps??l.r):it.mode==='r'?f('r','Wdh',tg.reps??l.r):f('t','Sek',tg.time??l.t)}
+     return (sc&&it.sets.length>tg.scheme.length&&j%tg.scheme.length===0?`<div class="tiny muted" style="margin:10px 0 -2px">Runde ${j/tg.scheme.length+1}</div>`:'')+`<div class="set ${it.mode==='wr'?'':'one'} ${sc?'sch':''}"><span class="n">${sc?sc.pct+'%':j+1}</span>${it.mode==='wr'?f('w','kg',sc?(ex&&ex.orm?pctWeight(ex.orm,sc.pct):l.w):phW??l.w,pc&&tg.weight==null?`data-pct="${pc}"`:'')+f('r','Wdh',sc?sc.reps:tg.reps??l.r):it.mode==='r'?f('r','Wdh',tg.reps??l.r):f('t','Sek',tg.time??l.t)}
        <button class="chk ${s.done?'on':''}" data-a="setDone" data-id="${e.id}" data-it="${it.id}" data-j="${j}" aria-label="Satz erledigt">${ic('check')}</button></div>`; }).join('')}
    <div class="row" style="margin-top:8px"><button class="btn sm ghost" data-a="addSet" data-id="${e.id}" data-it="${it.id}">+ Satz</button>${it.sets.length>1?`<button class="btn sm ghost" data-a="rmSet" data-id="${e.id}" data-it="${it.id}">− Satz</button>`:''}</div></div>`;
 }

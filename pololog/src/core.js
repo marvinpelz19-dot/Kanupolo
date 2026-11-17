@@ -1,6 +1,9 @@
 'use strict';
 /* ============ PoloLog – Kern: Daten, Speicher, Helfer ============ */
-const KEY = 'pololog.v1';
+let KEY = 'pololog.v1', PROFILE = 'owner';
+const KEYS = {owner:'pololog.v1', guest:'pololog.guest.v1'}, SESSION = 'pololog.session', LOCK = 'pololog.lock';
+const OWNER_NAME = 'Marvin Pelz';
+const OWNER_LOCK = /*LOCK*/null; // optional fest hinterlegtes Passwort (Salt + Hash), siehe build.js
 const TYPES = {
   wasser:    {label:'Wassertraining', short:'Wasser',    icon:'wave'},
   kraft:     {label:'Krafttraining',  short:'Kraft',     icon:'dumbbell'},
@@ -53,8 +56,11 @@ const W2_ITEMS=[
  ['TRX Mountain Climber',360,'Letzte Übung, danach 6 min Serienpause und Band wieder auf mittel',BL]];
 // Kraft-Session 16.11. (nur 1× diese Woche, Ziel: Dynamic)
 const N16='Kraft – Session 16.11. · Dynamic (1× diese Woche)', N16DAY='2026-11-16';
-const BULG=[{reps:1,pct:90,rest:210},{reps:3,pct:70,rest:210},{reps:8,pct:40,rest:420}];
-const BN='Je Runde: 1 Wdh. bei 90 %, 3–4 min Pause, 3 Wdh. bei 70 %, 3–4 min Pause, 8 Wdh. bei 40 %, dann 7 min Satzpause. Den Start jeder Wiederholung so explosiv wie möglich.';
+const BULG=[{reps:1,pct:90,rest:0},{reps:3,pct:70,rest:0},{reps:8,pct:40,rest:0}];
+const bulgRound=r=>{ const bl='Bulgarian Strength · Runde '+r+' von 3'; return [
+  ['Bench Press',3,null,null,0,'Start jeder Wiederholung so explosiv wie möglich. Danach direkt zum Low Row. (Maxims Blatt: Push 1)',bl,'wr',BULG],
+  ['Low Row',3,null,null,0,'Explosiv ziehen. Danach direkt zum Trizeps. (Maxims Blatt: Pull 6)',bl,'wr',BULG],
+  ['Triceps Pushdown',3,null,null,r<3?210:420,r<3?'Danach 3–4 min Pause, dann die nächste Runde. (Maxims Blatt: Push 6)':'Danach 7 min Pause, dann weiter mit Core. (Maxims Blatt: Push 6)',bl,'wr',BULG]]; };
 // Plan-Vorlagen aus Maxims Dokumenten: [Name, Sätze, Wdh/Sek, %1RM, Pause s, Hinweis, Block, modus?]
 const SEED_PLANS = [
  {name:'Kraft – Session 1 & 2 (ab 02.11.) · Aufbau', note:'Ziel: Wiedereinstieg, solides Fundament. Bulgarian / Kraftausdauer.', items:[
@@ -89,10 +95,8 @@ const SEED_PLANS = [
   ['External Rotator (rotator cuff)',3,10,null,60,'mit Gummiband. Pause 1 min','Schulter B']]},
  {name:'TRX – Woche 1 (9 Übungen, 40/20)', note:'3 Serien · 40 s Arbeit / 20 s Pause · von der 1. bis zur letzten Übung, dann Serienpause 5 min. Übungen frei wählbar: 3 Oberkörper / 3 Unterkörper / 3 Core.', items:
   ['TRX Row','TRX Push-Up','TRX Y Raise','TRX Squat','TRX Split Squat','TRX Hamstring Curl','TRX Plank','TRX Knee Tuck','TRX Body Saw'].map((n,i,a)=>[n,3,40,null,i==a.length-1?300:20,'','','t'])},
- {name:N16, note:'Nur eine Kraft-Einheit diese Woche. Bulgarian Strength 3 × (1 Wdh. bei 90 % + 3 Wdh. bei 70 % + 8 Wdh. bei 40 %), jede Station einzeln: erst Drücken, dann Ziehen, zum Schluss Trizeps. Danach Core, unterer Rücken, Medizinball, Klimmzüge und Schulter.', items:[
-  ['Bench Press',9,null,null,0,BN+' Auf Maxims Blatt: Push 1.','Bulgarian Strength · explosiv','wr',BULG],
-  ['Low Row',9,null,null,0,BN+' Auf Maxims Blatt: Pull 6.','Bulgarian Strength · explosiv','wr',BULG],
-  ['Triceps Pushdown',9,null,null,0,BN+' Auf Maxims Blatt: Push 6.','Bulgarian Strength · explosiv','wr',BULG],
+ {name:N16, note:'Nur eine Kraft-Einheit diese Woche. Bulgarian Strength in 3 Runden: Bankdrücken, dann direkt Low Row, dann direkt Trizeps, jeweils 1 Wdh. bei 90 % + 3 Wdh. bei 70 % + 8 Wdh. bei 40 %. Erst nach dem Trizeps 3–4 min Pause, nach der dritten Runde 7 min. Danach Core, unterer Rücken, Medizinball, Klimmzüge und Schulter.', items:[
+  ...[1,2,3].flatMap(bulgRound),
   ['Leg Raise (straight)',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
   ['Cross Leg Raise (alternating)',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
   ['Crunch',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
@@ -161,7 +165,7 @@ const ICONS = {
  share:'M12 15V3M8 7l4-4 4 4M5 12v8h14v-8', pdf:'M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6', copy:'M9 9h11v11H9zM5 15H4V4h11v1',
  up:'M6 15l6-6 6 6', down:'M6 9l6 6 6-6', x:'M6 6l12 12M18 6L6 18', timer:'M12 8v5l3 2M9 2h6M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16z',
  user:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0', right:'M9 5l7 7-7 7', play:'M7 4l13 8-13 8z', edit:'M4 20h4L19 9l-4-4L4 16zM13 7l4 4',
- msg:'M4 5h16v11H9l-5 4z', pause:'M8 5v14M16 5v14', skip:'M6 5l9 7-9 7zM18 5v14', prev:'M18 5l-9 7 9 7zM6 5v14', list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', watch:'M9 3h6l1 4M9 21h6l1-4M8 7h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zM12 10v2.5l1.5 1'
+ msg:'M4 5h16v11H9l-5 4z', pause:'M8 5v14M16 5v14', lock:'M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z', logout:'M10 5H5v14h5M14 8l4 4-4 4M18 12H9', skip:'M6 5l9 7-9 7zM18 5v14', prev:'M18 5l-9 7 9 7zM6 5v14', list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', watch:'M9 3h6l1 4M9 21h6l1-4M8 7h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zM12 10v2.5l1.5 1'
 };
 const ic = (n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n]||''}"/></svg>`;
 
@@ -195,7 +199,14 @@ function timerFromItems(name,items){
 }
 /* ---- Zustand ---- */
 let S;
+function guestState(){
+  return {version:1,seedV:99,
+    settings:{name:'',trainer:'',trainerPhone:'',trainerMail:'',lang:'de',theme:'light',goals:'',restDefault:90},
+    exercises:seedExercises(), plans:[], guides:[], entries:[], tournaments:[],
+    timers:[{id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}]};
+}
 function freshState(){
+  if(PROFILE==='guest') return guestState();
   const exercises = seedExercises();
   const byName = Object.fromEntries(exercises.map(e=>[e.name,e]));
   const plans = SEED_PLANS.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme])=>{
@@ -203,7 +214,7 @@ function freshState(){
     const m=mode||ex.mode;
     return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{})};
   })}));
-  const st={version:1,seedV:3,
+  const st={version:1,seedV:4,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
     exercises, plans, guides:SEED_GUIDES.map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments()};
   seedW2Entry(st); seedPlanEntry(st,N16,N16DAY,'Kraft – Dynamic','kraft',90); return st;
@@ -226,6 +237,7 @@ function migrate(){
   const f=freshState();
   for(const k of ['settings','exercises','plans','guides','timers','entries','tournaments']) if(S[k]==null) S[k]=f[k];
   S.settings={...f.settings,...S.settings};
+  if(PROFILE!=='owner') return;
   if((S.seedV||1)<2){ // neuer TRX-Zirkel Woche 2: Plan, Timer und Training für den 13.11.
     const up=(list,name)=>{ const n=f[list].find(x=>x.name===name), i=S[list].findIndex(x=>x.name===name); if(i>=0){ n.id=S[list][i].id; S[list][i]=n; } else S[list].push(n); };
     up('plans',W2); up('timers',W2T); seedW2Entry(S); S.seedV=2; save();
@@ -234,9 +246,21 @@ function migrate(){
     if(!S.plans.some(x=>x.name===N16)) S.plans.unshift(f.plans.find(x=>x.name===N16));
     seedPlanEntry(S,N16,N16DAY,'Kraft – Dynamic','kraft',90); S.seedV=3; save();
   }
+  if(S.seedV<4){ // 16.11.: Runden-Reihenfolge Bank -> Rudern -> Trizeps -> Pause, eingetragene Sätze bleiben erhalten
+    const np=f.plans.find(x=>x.name===N16), i=S.plans.findIndex(x=>x.name===N16);
+    if(i>=0){ np.id=S.plans[i].id; S.plans[i]=np; } else S.plans.unshift(np);
+    const e=S.entries.find(e=>e.date===N16DAY&&e.planId===np.id);
+    if(e&&e.items.length>=3&&e.items.slice(0,3).every(it=>it.target&&it.target.scheme&&it.sets.length===9)){
+      const fresh=itemsFromPlan(np).slice(0,9), old=e.items.slice(0,3);
+      fresh.forEach((it,k)=>{ const r=Math.floor(k/3); it.sets=old[k%3].sets.slice(r*3,r*3+3); });
+      e.items=[...fresh,...e.items.slice(3)];
+    }
+    S.seedV=4; save();
+  }
 }
 let saveWarned=false;
 function save(){
+  if(!S) return;
   try{ localStorage.setItem(KEY,JSON.stringify(S)); }
   catch(e){ if(!saveWarned){ saveWarned=true; toast('Speichern nicht möglich – bitte Backup exportieren!'); } }
 }
@@ -270,7 +294,7 @@ function lastPerf(exId, before){
 function fset(s,mode){ return mode==='t' ? (s.t??'–')+' s' : mode==='r' ? (s.r??'–')+' Wdh.' : (s.w!=null?fnum(s.w)+' kg × ':'')+(s.r??'–'); }
 function ftarget(it){
   const t=it.target||it; const a=[];
-  if(t.scheme) return Math.round((t.sets||t.scheme.length)/t.scheme.length)+' × ('+t.scheme.map(x=>x.reps+' Wdh. bei '+x.pct+' %').join(' + ')+')';
+  if(t.scheme){ const n=Math.round((t.sets||t.scheme.length)/t.scheme.length), l=t.scheme.map(x=>x.reps+' Wdh. bei '+x.pct+' %').join(' + '); return (n>1?n+' × ('+l+')':l)+(t.rest?' · Pause '+(t.rest>=60?fnum(t.rest/60)+' min':t.rest+' s'):''); }
   const n=t.sets||1; const q=it.mode==='t'?(t.time?t.time+' s':''):(t.reps?t.reps+' Wdh.':'');
   a.push(n+' × '+(q||'–'));
   if(t.weight!=null) a.push(fnum(t.weight)+' kg');

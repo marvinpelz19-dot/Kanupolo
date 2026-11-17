@@ -16,6 +16,9 @@ Alle Daten bleiben lokal im Browser (Backup-Export unter *Einstellungen*).
 - **PDF**: Training, Plan, Turnier, Saisonübersicht, Trainingstagebuch (über „Drucken → Als PDF speichern“)
 - **Garmin**: Import von CSV (Aktivitätenliste), TCX und GPX aus Garmin Connect
 
+## Profile
+Beim Start wählt man ein Profil: das passwortgeschützte Profil von Marvin (mit Plänen, Turnieren, Trainer-Vorgaben) oder ein leeres Gastprofil mit der Übungsbibliothek. Beide speichern getrennt im Browser. Das Passwort ist eine Sperre auf dem Gerät, keine Verschlüsselung; mit `src/owner-lock.json` lässt es sich fest in den Build legen.
+
 ## Design
 Rot-weiß mit dem Wappen der Rothe Mühle (aus `maxi-paddel/assets/crest.json`), Überschriften in Barlow Condensed (OFL, eingebettet).
 
