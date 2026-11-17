@@ -1,7 +1,7 @@
 'use strict';
 /* ============ PoloLog – Kern: Daten, Speicher, Helfer ============ */
 let KEY = 'pololog.v1', PROFILE = 'owner';
-const KEYS = {owner:'pololog.v1', guest:'pololog.guest.v1'}, SESSION = 'pololog.session', LOCK = 'pololog.lock';
+const KEYS = {owner:'pololog.v1', guest:'pololog.guest.v1'}, SESSION = 'pololog.session2', LOCK = 'pololog.lock';
 const OWNER_NAME = 'Marvin Pelz';
 const OWNER_LOCK = /*LOCK*/null; // optional fest hinterlegtes Passwort (Salt + Hash), siehe build.js
 const TYPES = {

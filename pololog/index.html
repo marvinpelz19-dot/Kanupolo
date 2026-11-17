@@ -296,9 +296,9 @@ const CREST={"w":459.3333333333333,"h":558,"cx":227.66666666666666,"cy":247,"cre
 'use strict';
 /* ============ PoloLog – Kern: Daten, Speicher, Helfer ============ */
 let KEY = 'pololog.v1', PROFILE = 'owner';
-const KEYS = {owner:'pololog.v1', guest:'pololog.guest.v1'}, SESSION = 'pololog.session', LOCK = 'pololog.lock';
+const KEYS = {owner:'pololog.v1', guest:'pololog.guest.v1'}, SESSION = 'pololog.session2', LOCK = 'pololog.lock';
 const OWNER_NAME = 'Marvin Pelz';
-const OWNER_LOCK = null; // optional fest hinterlegtes Passwort (Salt + Hash), siehe build.js
+const OWNER_LOCK = {"salt":"88dns0ra1b8ejnxn3po1b8","hash":"c7d66862f685a67f80bd922f6b90ab2f14317c850103b0ea3bd2b87d965d7c8c"}; // optional fest hinterlegtes Passwort (Salt + Hash), siehe build.js
 const TYPES = {
   wasser:    {label:'Wassertraining', short:'Wasser',    icon:'wave'},
   kraft:     {label:'Krafttraining',  short:'Kraft',     icon:'dumbbell'},
