@@ -94,6 +94,9 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .iconbtn{width:42px;height:42px;border-radius:var(--r-ctl);display:grid;place-items:center;border:1px solid var(--rule);background:var(--card);flex:none;transition:transform var(--micro) var(--ease-out),background-color var(--micro) var(--ease-out)}
 .iconbtn:hover{background:var(--paper-2)}.iconbtn:active{transform:scale(.94)}
 .iconbtn.sm{width:32px;height:32px;border-radius:9px}
+.clockbtn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--red);color:var(--on-red);flex:none;transition:transform var(--micro) var(--ease-out)}
+.clockbtn:active{transform:scale(.9)}
+.btn.sm.pri{border-color:var(--red)}
 .iconbtn.plain{border-color:transparent;background:none}
 .chip{display:inline-flex;align-items:center;gap:.35rem;min-height:36px;padding:.3rem .85rem;border-radius:999px;border:1px solid var(--rule);background:var(--card);font-size:.86rem;white-space:nowrap;transition:background-color var(--micro) var(--ease-out),color var(--micro) var(--ease-out)}
 .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}

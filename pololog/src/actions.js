@@ -18,8 +18,8 @@ function buildNav(){
   const link=([k,l,i])=>`<a class="nav" data-nav="${k}" href="#/${k}">${ic(i)}<span>${l}</span></a>`;
   $('#tabs').innerHTML=link(NAV[0])+link(NAV[1])+`<button class="go" data-a="start" aria-label="Training starten">${wheelSvg('')}<span>Training starten</span></button>`+link(NAV[2])+link(NAV[3]);
   const brand=`<div class="brand">${crestSvg('crest')}<div>PoloLog<small>Rothe Mühle Essen</small></div></div>`;
-  $('#side').innerHTML=brand+`<button class="btn pri block" data-a="start">${ic('play','sm')}Training starten</button>`+NAV.map(link).join('')+`<a class="nav" data-nav="mehr" href="#/mehr">${ic('gear')}<span>Einstellungen</span></a>`;
-  $('#top').innerHTML=brand+`<span class="sp"></span><a class="iconbtn plain" href="#/stats" aria-label="Statistik">${ic('chart')}</a><a class="iconbtn plain" href="#/mehr" aria-label="Einstellungen">${ic('gear')}</a>`;
+  $('#side').innerHTML=brand+`<button class="btn pri block" data-a="start">${ic('play','sm')}Training starten</button>`+`<button class="btn block" style="margin:0 0 10px" data-a="quickTimer">${ic('timer','sm')}Timer einstellen</button>`+NAV.map(link).join('')+`<a class="nav" data-nav="mehr" href="#/mehr">${ic('gear')}<span>Einstellungen</span></a>`;
+  $('#top').innerHTML=brand+`<span class="sp"></span><button class="clockbtn" data-a="quickTimer" aria-label="Timer einstellen">${ic('timer')}</button><a class="iconbtn plain" href="#/stats" aria-label="Statistik">${ic('chart')}</a><a class="iconbtn plain" href="#/mehr" aria-label="Einstellungen">${ic('gear')}</a>`;
   $('#run').innerHTML=`<div class="top"><span id="rinfo"></span><button class="iconbtn plain" style="color:inherit" data-a="trClose" aria-label="Timer beenden">${ic('x')}</button></div>
    <div class="phase" id="rphase"></div><div class="dial">${wheelSvg('')}<div class="time" id="rtime"></div></div><div class="next" id="rnext"></div><div class="bar"><i id="rbar"></i></div>
    <div class="ctl"><button data-a="trPrev" aria-label="Zurück">${ic('prev')}</button><button class="main" data-a="trToggle" id="rtog" aria-label="Pause"></button><button data-a="trSkip" aria-label="Weiter">${ic('skip')}</button></div>`;
@@ -304,6 +304,18 @@ const A={
  startFree(){ const e=newEntry({type:'kraft',title:'Freies Krafttraining'}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); setTimeout(()=>pickSheet('entry:'+e.id),350); },
  startTimers(){ UI.kraftTab='timer'; $('#sheet').classList.remove('on'); go('#/kraft'); },
  quick(el){ const e=newEntry({type:el.dataset.type}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); },
+ // Schnell-Timer: überall erreichbar, frei einstellbar
+ quickTimer(){ const q=UI.quick||{n:8,work:30,rest:15,sets:1,rr:60,name:''}, n=(k,l,v)=>field(l,`<input name="${k}" inputmode="numeric" value="${v}" style="text-align:center;font-weight:700">`);
+  sheet('Timer einstellen',`<div class="grid g3">${n('n','Intervalle',q.n)}${n('work','Belastung (s)',q.work)}${n('rest','Pause (s)',q.rest)}</div>
+   <div class="grid g2">${n('sets','Runden',q.sets)}${n('rr','Rundenpause (s)',q.rr)}</div>
+   ${field('Name (nur zum Speichern)',`<input name="name" value="${esc(q.name)}" placeholder="z. B. Sprints 8 × 30/15">`)}
+   <button class="btn pri lg block" data-a="quickGo">${ic('play','sm')}Timer starten</button>
+   <div class="grid g2" style="margin-top:8px"><button class="btn" data-a="quickSave">Speichern</button><button class="btn" data-a="startTimers">Meine Timer</button></div>
+   <p class="small muted" style="margin-bottom:0">Unterschiedliche Pausen je Übung stellst du nach dem Speichern unter „Meine Timer“ ein.</p>`); },
+ quickRead(){ const v=formVals($('#sheet')); const q={n:Math.max(1,num(v.n)||1),work:Math.max(1,num(v.work)||30),rest:Math.max(0,num(v.rest)||0),sets:Math.max(1,num(v.sets)||1),rr:Math.max(0,num(v.rr)||0),name:v.name.trim()}; UI.quick=q;
+  return {id:uid(),name:q.name||`${q.n} × ${q.work}/${q.rest}`,rounds:q.sets,prep:10,roundRest:q.rr,steps:Array.from({length:q.n},(_,i)=>mkStep(q.n>1?`Intervall ${i+1}/${q.n}`:'Belastung',q.work,q.rest))}; },
+ quickGo(){ runTimer(A.quickRead()); },
+ quickSave(){ const t=A.quickRead(); S.timers.push(t); save(); $('#sheet').classList.remove('on'); toast('Timer gespeichert'); go('#/timer/'+t.id); },
  // Timer für eine einzelne Übung im Training
  exTimer(el){ const e=entry(el.dataset.id), it=e.items.find(i=>i.id===el.dataset.it), tm=itemTm(it), tg=it.target||{};
   const open=it.sets.filter(x=>!x.done).length||1, n=(k,l,v)=>field(l,`<input name="${k}" inputmode="numeric" value="${v}" style="text-align:center;font-weight:700">`);
