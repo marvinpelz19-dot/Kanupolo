@@ -149,6 +149,12 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .rpe button{aspect-ratio:1;border-radius:10px;border:1px solid var(--rule);font-weight:600;background:color-mix(in srgb,var(--red) calc(var(--i)*7%),var(--card));transition:transform var(--micro) var(--ease-out)}
 .rpe button.on{background:var(--red);color:var(--on-red);border-color:var(--red);transform:scale(1.12)}
 
+.rate{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rate button{min-height:50px;border-radius:var(--r-ctl);border:1.5px solid var(--rule);background:var(--card);font-family:var(--display);font-weight:700;font-size:1.5rem;transition:transform var(--micro) var(--ease-out),background-color var(--micro) var(--ease-out)}
+.rate button:active{transform:scale(.93)}
+.rate button.on{background:var(--red);color:var(--on-red);border-color:var(--red)}
+.rate button.sug{border:1.5px dashed var(--red);color:var(--red)}
+.wf{margin-top:10px}.wfscore{font-family:var(--display);font-weight:700;font-size:2rem;line-height:1;color:var(--red)}.wfscore small{font-size:1rem;color:var(--muted)}
 /* Kalender */
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal .wd{font-size:.74rem;color:var(--muted);text-align:center;padding:2px 0}

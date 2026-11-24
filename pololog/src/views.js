@@ -45,6 +45,8 @@ heute(){
     <div><b>${hm(sum(done,e=>e.minutes))}</b><span>Trainingszeit</span></div>
     <div><b>${nt?(days<=0?'Jetzt':days):'–'}</b><span>${nt?(days<=0?esc(nt.name):'Tage bis '+esc(nt.name)):'kein Termin geplant'}</span></div></div></section>
    ${todayE.length?`<div class="sec"><h2>Heute</h2></div>${todayE.map(entryItem).join('')}`:''}
+   ${(()=>{ const ws=weekStart(t), w=S.weekly[ws], n=w?WF.filter(([k])=>w.scores&&w.scores[k]).length:0;
+      return `<a class="item" style="margin-top:12px;--c:var(--ink)" href="#/feedback/${ws}"><div class="grow"><div class="ttl">Wochen-Feedback${S.settings.trainer?' für '+esc(S.settings.trainer):''}</div><div class="small muted">${n===WF.length?'Ausgefüllt, bereit zum Senden':n?n+' von '+WF.length+' bewertet':'5 Bewertungen von 1 bis 5, als PDF senden'}</div></div>${n===WF.length?`<span class="tick">${ic('check')}</span>`:ic('right')}</a>`; })()}
    ${g?`<div class="sec"><h2>Diese Woche von ${esc(S.settings.trainer)}</h2></div>${guideCard(g)}`:''}
    ${open.length?`<div class="sec"><h2>Noch offen</h2></div>${open.map(entryItem).join('')}`:''}
    <div class="sec"><h2>Als Nächstes</h2><a class="small muted" href="#/saison">Zur Saison</a></div>
@@ -103,6 +105,9 @@ training(id){
    <textarea data-bind="${p}/notes" placeholder="${e.type==='wasser'?'z. B. 3×6 Feldlängen bei 85 %, danach Torschuss aus der Drehung …':'Notizen zum Training …'}" style="min-height:${e.type==='kraft'?5:9}rem">${esc(e.notes)}</textarea>
    <div class="sec"><h2>Anstrengung (RPE 1–10)</h2><span class="small muted">${e.rpe?rpeText(e.rpe):''}</span></div>
    <div class="rpe">${Array.from({length:10},(_,i)=>`<button style="--i:${i+1}" class="${e.rpe===i+1?'on':''}" data-a="rpe" data-id="${e.id}" data-v="${i+1}">${i+1}</button>`).join('')}</div>
+   <div class="sec"><h2>Schwierigkeit für ${esc(S.settings.trainer||'Trainer')} (1–5)</h2><span class="small muted">${e.diff?['','sehr leicht','leicht','mittel','hart','sehr hart'][e.diff]:''}</span></div>
+   <div class="rate">${[1,2,3,4,5].map(i=>`<button class="${e.diff===i?'on':''}" data-a="diff" data-id="${e.id}" data-v="${i}">${i}</button>`).join('')}</div>
+   <p class="tiny muted" style="margin:6px 2px 0">1 = sehr leicht, 5 = sehr hart. Fließt als Vorschlag ins <a href="#/feedback/${weekStart(e.date)}"><u>Wochen-Feedback</u></a> ein.</p>
    <details class="card" style="margin-top:16px" ${g.dist||g.hr||g.kcal?'open':''}><summary class="row">${ic('watch','sm')}<span class="grow">Garmin / Messwerte</span><span class="small muted">${g.src?'importiert':'optional'}</span></summary>
      <div class="grid g4" style="margin-top:10px">${field('Distanz (km)',numinp(p+'/g/dist',g.dist))}${field('Ø Puls',numinp(p+'/g/hr',g.hr))}${field('Max. Puls',numinp(p+'/g/maxhr',g.maxhr))}${field('kcal',numinp(p+'/g/kcal',g.kcal))}</div></details>
    <div class="card" style="margin-top:12px"><div class="row">${ic('msg','sm')}<b class="grow">Feedback an ${esc(S.settings.trainer||'Trainer')}</b></div>
@@ -170,6 +175,22 @@ timer(id){
     <button class="btn sm" style="margin-top:12px" data-a="addStep" data-id="${t.id}">${ic('plus','sm')}Übung hinzufügen</button></div>
    <p class="small muted">Die Pause gilt jeweils nach der Übung. Nach der letzten Übung einer Runde läuft die Serienpause.</p>
    <button class="btn pri lg block" style="margin-top:8px" data-a="runTimer" data-id="${t.id}">${ic('play','sm')}Timer starten</button>`;
+},
+feedback(ws){
+  ws=ws||weekStart(today()); const we=addDays(ws,6), w=wfGet(ws), sug=wfSuggest(ws), E=wfEntries(ws), b=`weekly/${ws}`;
+  const done=WF.filter(([k])=>w.scores[k]).length;
+  return `<div class="row"><a class="iconbtn" href="#/feedback/${addDays(ws,-7)}" aria-label="Woche zurück">${ic('back')}</a><div class="grow center"><h1 style="font-size:1.9rem">Wochen-Feedback</h1><div class="small muted">${fshort(ws)} bis ${fdate(we)}</div></div><a class="iconbtn" href="#/feedback/${addDays(ws,7)}" style="transform:scaleX(-1)" aria-label="Woche vor">${ic('back')}</a></div>
+   <div class="card" style="margin-top:14px">${field('Woche (so steht es auf dem Bogen)',inp(b+'/label',w.label))}
+     <p class="small muted" style="margin:0">Pro Zeile eine Zahl antippen. Schwierigkeit: 1 = sehr leicht, 5 = sehr hart. Gesamtform: 1 = sehr müde, 5 = frisch.</p></div>
+   ${WF.map(([k,en,de])=>`<div class="card wf"><div class="row"><div class="grow"><b>${en}</b><div class="small muted">${de}${!w.scores[k]&&sug[k]?' · Vorschlag aus deinen Einheiten: '+sug[k]:''}</div></div><span class="wfscore">${w.scores[k]||'–'}<small>/5</small></span></div>
+     <div class="rate" style="margin-top:10px">${[1,2,3,4,5].map(i=>`<button class="${w.scores[k]===i?'on':!w.scores[k]&&sug[k]===i?'sug':''}" data-a="wf" data-ws="${ws}" data-k="${k}" data-v="${i}">${i}</button>`).join('')}</div></div>`).join('')}
+   <div class="sec"><h2>Kommentar</h2></div>
+   <textarea data-bind="${b}/comments" style="min-height:8rem" placeholder="Was lief gut, was war schwer, Fragen an den Trainer (gern auf Englisch) …">${esc(w.comments)}</textarea>
+   <button class="btn pri lg block" style="margin-top:16px" data-a="wfShare" data-ws="${ws}">${ic('share','sm')}PDF senden</button>
+   <button class="btn block" style="margin-top:8px" data-a="wfOpen" data-ws="${ws}">${ic('pdf','sm')}PDF öffnen / speichern</button>
+   <p class="small muted center">${done} von ${WF.length} bewertet. Die PDF sieht aus wie Maxims Bogen und enthält zusätzlich deine Einheiten der Woche.</p>
+   <div class="sec"><h2>Einheiten dieser Woche</h2></div>
+   ${E.map(entryItem).join('')||`<div class="empty">Keine Einheiten in dieser Woche.</div>`}`;
 },
 /* ---------- Turniere ---------- */
 turniere(){
@@ -271,6 +292,7 @@ mehr(){
    <div class="card"><div class="grid g2">${field('Mein Name',inp(b+'/name',s.name))}${field('Trainer',inp(b+'/trainer',s.trainer))}${field('WhatsApp-Nr. Trainer (mit +Land)',inp(b+'/trainerPhone',s.trainerPhone,'placeholder="+33…" inputmode="tel"'))}${field('E-Mail Trainer',inp(b+'/trainerMail',s.trainerMail,'type="email"'))}
      ${field('Sprache für Feedback',`<select data-bind="${b}/lang"><option value="en" ${s.lang==='en'?'selected':''}>English</option><option value="fr" ${s.lang==='fr'?'selected':''}>Français</option><option value="de" ${s.lang==='de'?'selected':''}>Deutsch</option></select>`)}${field('Standard-Pause (Sek.)',numinp(b+'/restDefault',s.restDefault))}</div>
      <div class="row" style="margin-top:4px"><span class="grow small muted">Design</span><div class="seg" style="width:60%">${[['dark','Dunkel'],['light','Hell']].map(([k,l])=>`<button class="${s.theme===k?'on':''}" data-a="theme" data-v="${k}">${l}</button>`).join('')}</div></div></div>
+   <a class="btn block" style="margin-top:10px" href="#/feedback">${ic('check','sm')}Wochen-Feedback (1–5) als PDF</a>
    <button class="btn block" style="margin-top:10px" data-a="weekReport">${ic('share','sm')}Wochenbericht an ${esc(s.trainer||'Trainer')} senden</button>
    <div class="sec"><h2>Meine Ziele</h2></div><textarea data-bind="${b}/goals" style="min-height:12rem">${esc(s.goals)}</textarea>
    <div class="sec"><h2>Garmin Connect</h2></div>

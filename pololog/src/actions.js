@@ -1,5 +1,5 @@
 /* ============ PoloLog – Router, Aktionen, Export/Import ============ */
-const NAVMAP={training:'saison',plan:'kraft',timer:'kraft',turnier:'turniere',spiel:'turniere'};
+const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',turnier:'turniere',spiel:'turniere'};
 const NAV=[['heute','Heute','home'],['saison','Saison','calendar'],['kraft','Training','dumbbell'],['turniere','Turniere','trophy'],['stats','Statistik','chart']];
 let lastRoute='';
 function route(){ const p=(location.hash||'#/heute').slice(2).split('/'); return views[p[0]]?p:['heute']; }
@@ -138,6 +138,69 @@ function tournPrint(t){
    ${tot.length&&t.games.length?`<h2>Spielerstatistik</h2>${statTable(tot)}`:t.players.length?`<h2>Kader</h2><p>${esc(t.players.map(p=>(p.nr!=null?'#'+p.nr+' ':'')+p.name).join(', '))}</p>`:''}
    ${t.games.filter(g=>g.notes).map(g=>`<div class="nb"><h2>Eindrücke: vs. ${esc(g.opp||'–')} (${g.gf??'–'}:${g.ga??'–'})</h2><p>${esc(g.notes)}</p></div>`).join('')}
    ${P('Fazit',t.notes)}${P('Infos',t.info)}`;
+}
+
+/* ---- PDF direkt in der App erzeugen (ohne Druckdialog) ---- */
+const CP1252={0x2013:0x96,0x2014:0x97,0x2022:0x95,0x201e:0x84,0x201c:0x93,0x201d:0x94,0x2018:0x91,0x2019:0x92,0x20ac:0x80,0x2026:0x85,0x00d7:0xd7};
+const pdfStr=t=>[...String(t)].map(c=>{ const n=c.codePointAt(0); return String.fromCharCode(n<256?n:CP1252[n]||63); }).join('');
+const pdfW=(t,size,bold)=>sum([...pdfStr(t)],c=>/[ijl.,:;'|!It ]/.test(c)?.28:/[mwMW]/.test(c)?.86:/[A-Z0-9]/.test(c)?.66:/[frJ()\-\/]/.test(c)?.36:.54)*size*(bold?1.05:1);
+function pdfWrap(t,size,maxW){ const out=[]; for(const para of String(t).split('\n')){ let line=''; for(const word of para.split(' ')){ const tryL=line?line+' '+word:word; if(pdfW(tryL,size)>maxW&&line){ out.push(line); line=word; } else line=tryL; } out.push(line); } return out; }
+function makePdf(draw){
+  const ops=[], col=c=>c.map(v=>(v/255).toFixed(3)).join(' ');
+  const P={ text(x,y,t,size=10,bold=false,c=[30,22,20]){ ops.push(`BT /${bold?'F2':'F1'} ${size} Tf ${col(c)} rg ${x.toFixed(1)} ${y.toFixed(1)} Td (${pdfStr(t).replace(/[\\()]/g,'\\$&')}) Tj ET`); },
+    ctext(cx,y,t,size,bold,c){ P.text(cx-pdfW(t,size,bold)/2,y,t,size,bold,c); },
+    rect(x,y,w,h,fill,stroke,lw=.8){ ops.push(`${fill?col(fill)+' rg ':''}${stroke?col(stroke)+' RG '+lw+' w ':''}${x.toFixed(1)} ${y.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)} re ${fill&&stroke?'B':fill?'f':'S'}`); },
+    line(x1,y1,x2,y2,c=[30,22,20],lw=.8){ ops.push(`${col(c)} RG ${lw} w ${x1.toFixed(1)} ${y1.toFixed(1)} m ${x2.toFixed(1)} ${y2.toFixed(1)} l S`); } };
+  draw(P);
+  const stream=ops.join('\n');
+  const objs=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>',
+    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'];
+  let out='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n'; const off=[];
+  objs.forEach((o,i)=>{ off.push(out.length); out+=`${i+1} 0 obj\n${o}\nendobj\n`; });
+  const xref=out.length; out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+off.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Uint8Array.from(out,c=>c.charCodeAt(0)&255);
+}
+const wfFile=ws=>'Feedback_'+(S.settings.name||'Athlete').replace(/[^\w]+/g,'_')+'_'+ws+'.pdf';
+function wfPdf(ws){
+  const w=wfGet(ws), E=wfEntries(ws).filter(e=>e.done), RED=[215,31,38], INK=[30,22,20], MUT=[110,98,93], RULE=[214,204,197], WHITE=[255,255,255], PAPER=[250,246,243];
+  const athlete=PROFILE==='owner'?'PELZ Marvin':(S.settings.name||'');
+  return makePdf(P=>{
+    P.rect(0,762,595,80,RED); P.text(40,806,'KPOLOMAX TRAINING',22,true,WHITE); P.text(40,784,'QUICK SESSION EVALUATION  •  One-page athlete weekly feedback',10.5,false,WHITE);
+    P.text(40,732,'ATHLETE:',10,true,MUT); P.text(100,732,athlete,12,true); P.text(330,732,'DATE:',10,true,MUT); P.text(370,732,w.label||'',12,true);
+    P.text(40,716,ldate(ws,'en')+' – '+ldate(addDays(ws,6),'en'),9,false,MUT);
+    const x0=40, wA=190, wC=44, wS=105, top=694, hH=24, hR=32;
+    P.rect(x0,top-hH,wA+5*wC+wS,hH,INK); P.text(x0+10,top-16,'ACTIVITY',10,true,WHITE);
+    for(let i=1;i<=5;i++) P.ctext(x0+wA+(i-.5)*wC,top-16,String(i),11,true,WHITE);
+    P.ctext(x0+wA+5*wC+wS/2,top-16,'SCORE / 5',10,true,WHITE);
+    WF.forEach(([k,en],r)=>{ const y=top-hH-(r+1)*hR, sc=w.scores[k];
+      if(r%2===0) P.rect(x0,y,wA+5*wC+wS,hR,PAPER);
+      P.text(x0+10,y+11,en.toUpperCase(),10.5,true);
+      for(let i=1;i<=5;i++){ const bx=x0+wA+(i-.5)*wC-8, by=y+8; if(sc===i){ P.rect(bx,by,16,16,RED); P.line(bx+4,by+4,bx+12,by+12,WHITE,1.8); P.line(bx+4,by+12,bx+12,by+4,WHITE,1.8); } else P.rect(bx,by,16,16,null,MUT,.9); }
+      P.ctext(x0+wA+5*wC+wS/2,y+10,sc?String(sc):'–',14,true,sc?RED:MUT);
+      P.line(x0,y,x0+wA+5*wC+wS,y,RULE,.6); });
+    let y=top-hH-5*hR-22;
+    P.text(x0,y,'DIFFICULTY:  1 = very easy   •   5 = very hard      |     OVERALL FITNESS:  1 = very tired   •   5 = feeling fresh',8.5,false,MUT);
+    y-=30; P.text(x0,y,"ATHLETE'S COMMENTS",11,true,RED); y-=8;
+    const lines=pdfWrap(w.comments||'',10.5,495).slice(0,14), boxH=Math.max(96,lines.length*14+20);
+    P.rect(x0,y-boxH,515,boxH,null,RULE,.9); lines.forEach((l,i)=>P.text(x0+10,y-18-i*14,l,10.5));
+    y-=boxH+28;
+    if(E.length){ P.text(x0,y,'SESSIONS THIS WEEK',11,true,RED); y-=6; P.line(x0,y,x0+515,y,INK,1); y-=15;
+      P.text(x0,y,'Date',8.5,true,MUT); P.text(x0+70,y,'Session',8.5,true,MUT); P.text(x0+345,y,'Min',8.5,true,MUT); P.text(x0+390,y,'RPE /10',8.5,true,MUT); P.text(x0+450,y,'Difficulty /5',8.5,true,MUT); y-=5;
+      for(const e of E.slice(0,Math.max(0,Math.floor((y-70)/15)))){ P.line(x0,y,x0+515,y,RULE,.5); y-=11;
+        let t=e.title||''; while(pdfW(t,9.5)>265&&t.length>4) t=t.slice(0,-2); if(t!==(e.title||'')) t+='…';
+        P.text(x0,y,pdate(e.date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}),9.5); P.text(x0+70,y,t,9.5); P.text(x0+345,y,e.minutes?String(e.minutes):'–',9.5); P.text(x0+390,y,e.rpe?String(e.rpe):'–',9.5); P.text(x0+450,y,e.diff?String(e.diff):'–',9.5); y-=4; }
+      P.line(x0,y,x0+515,y,RULE,.5); }
+    P.text(40,40,'Created with PoloLog  •  KSV Rothe Mühle Essen  •  '+ldate(today(),'en'),8,false,MUT);
+  });
+}
+function savePdf(bytes,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})); a.download=name; a.target='_blank'; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },4000); toast('PDF gespeichert: '+name); }
+async function sharePdf(bytes,name){
+  try{ const file=new File([bytes],name,{type:'application/pdf'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:name.replace(/\.pdf$/,'')}); return; }
+  }catch(e){ if(e&&e.name==='AbortError') return; }
+  savePdf(bytes,name); toast('Teilen wird hier nicht unterstützt. Die PDF wurde gespeichert, du kannst sie aus den Downloads senden.');
 }
 
 /* ---- Garmin-Import ---- */
@@ -367,6 +430,10 @@ const A={
  range(el){ UI.range=el.dataset.v; render(); },
  theme(el){ S.settings.theme=el.dataset.v; applyTheme(); save(); render(); },
  // Training
+ diff(el){ const e=entry(el.dataset.id); e.diff=e.diff===+el.dataset.v?null:+el.dataset.v; save(); render(); },
+ wf(el){ const w=wfGet(el.dataset.ws), k=el.dataset.k, v=+el.dataset.v; w.scores[k]=w.scores[k]===v?null:v; save(); render(); },
+ wfShare(el){ clearTimeout(saveT); save(); const ws=el.dataset.ws; sharePdf(wfPdf(ws),wfFile(ws)); },
+ wfOpen(el){ clearTimeout(saveT); save(); const ws=el.dataset.ws; savePdf(wfPdf(ws),wfFile(ws)); },
  rpe(el){ const e=entry(el.dataset.id); e.rpe=e.rpe===+el.dataset.v?null:+el.dataset.v; save(); render(); },
  tag(el){ const e=entry(el.dataset.id), v=el.dataset.v; e.tags=e.tags.includes(v)?e.tags.filter(x=>x!==v):[...e.tags,v]; save(); render(); },
  addPlanText(el){ const e=entry(el.dataset.id); e.plan=guideText(guideFor(e.date),e.type,e.title)||' '; save(); render(); },

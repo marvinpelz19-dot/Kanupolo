@@ -28,9 +28,9 @@ const LIB = {
   'Plyometrie':['Box Jump|r','Squat Jump|r','Countermovement Jump|r','Broad Jump|r','Split Jump|r','Depth Jump|r','Lateral Jump|r','Hurdle Hop|r','Tuck Jump|r','Triple Jump|r'],
   'Medizinball':['MB Chest Pass','MB Overhead Throw','MB Wall Ball','MB Standing Twist','MB Seated Rotation','MB Seated Trunk Rotation','MB Seated Partner Pass (two-handed)','MB Russian Twist','MB Woodchopper','MB Pallof Press','MB Rotational Throw','MB Slam','MB Squat to Twist','MB Lunge & Twist','MB Dynamic Plank|t','MB Hip Thrust','MB Kneeling Press','MB Diagonal Throw'],
   'Swiss Ball':['SB Plank|t','SB Pike|r','SB Mountain Climber|t','SB Push-Up|r','SB Squat|r','SB Bulgarian Split Squat|r','SB Hip Thrust|r','SB Single Leg Deadlift|r','SB Side Plank|t','SB Bird Dog|r','SB Superman|r','SB Single Leg Balance|t','SB Side Bends|r','SB Trunk Rotation|r','SB Balance Pass|r','SB Unilateral Push-Up|r','SB Seated Balance (hold)|t','SB Seated Balance with arm action (paddle motion)|t','SB Trunk Rotation (feet on floor, back on ball)|r'],
-  'TRX Oberkörper':['TRX Row|r','TRX Push-Up|r','TRX Chest Press|r','TRX T Fly|r','TRX Biceps Curl|r','TRX Triceps Extension|r','TRX Y Raise|r','TRX Face Pull|r'],
-  'TRX Unterkörper':['TRX Squat|r','TRX Assisted Lunge|r','TRX Split Squat|r','TRX Single-Leg Squat|r','TRX Hamstring Curl|r','TRX Hip Hinge|r','TRX Glute Bridge|r','TRX Lateral Lunge|r'],
-  'TRX Core':['TRX Plank|t','TRX Side Plank|t','TRX Pike|r','TRX Knee Tuck|r','TRX Mountain Climber|t','TRX Body Saw|r','TRX Side Crunch|r','TRX Atomic Push-Up|r']
+  'TRX Oberkörper':['TRX Shoulder External Rotation|r','TRX Shoulder Internal Rotation|r','TRX Row|r','TRX Push-Up|r','TRX Chest Press|r','TRX T Fly|r','TRX Biceps Curl|r','TRX Triceps Extension|r','TRX Y Raise|r','TRX Face Pull|r'],
+  'TRX Unterkörper':['TRX Reverse Lunge|r','TRX Squat|r','TRX Assisted Lunge|r','TRX Split Squat|r','TRX Single-Leg Squat|r','TRX Hamstring Curl|r','TRX Hip Hinge|r','TRX Glute Bridge|r','TRX Lateral Lunge|r'],
+  'TRX Core':['TRX Spider|r','TRX Standing Fallout|r','TRX Plank|t','TRX Side Plank|t','TRX Pike|r','TRX Knee Tuck|r','TRX Mountain Climber|t','TRX Body Saw|r','TRX Side Crunch|r','TRX Atomic Push-Up|r']
 };
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 function seedExercises(){
@@ -61,6 +61,29 @@ const bulgRound=r=>{ const bl='Bulgarian Strength · Runde '+r+' von 3'; return 
   ['Bench Press',3,null,null,0,'Start jeder Wiederholung so explosiv wie möglich. Danach direkt zum Low Row. (Maxims Blatt: Push 1)',bl,'wr',BULG],
   ['Low Row',3,null,null,0,'Explosiv ziehen. Danach direkt zum Trizeps. (Maxims Blatt: Pull 6)',bl,'wr',BULG],
   ['Triceps Pushdown',3,null,null,r<3?210:420,r<3?'Danach 3–4 min Pause, dann die nächste Runde. (Maxims Blatt: Push 6)':'Danach 7 min Pause, dann weiter mit Core. (Maxims Blatt: Push 6)',bl,'wr',BULG]]; };
+// Woche 4 (23.–29.11.): Kraft exzentrisch (2× pro Woche) und TRX mit 10 Übungen
+const N23='Kraft – Session 23.11. · Exzentrisch (2× diese Woche)', W4N='TRX – Woche 4 (10 Übungen, 1 min)', W4T='TRX Woche 4 · 10 × 60 s';
+const ECC=[{reps:1,pct:90,rest:0},{reps:3,pct:80,rest:0}];
+const eccStation=(name,a,an,b,bmode,bpct,bn)=>[1,2,3].flatMap(r=>{ const bl=name+' · Runde '+r+' von 3'; return [
+  [a,2,null,null,0,an,bl,'wr',ECC],
+  [b,1,10,bpct,420,bn+(r<3?' Danach 7 min Pause.':' Danach 7 min Pause, dann nächste Station.'),bl,bmode]]; });
+const eccPullUp=[1,2,3].flatMap(r=>{ const bl='Klimmzüge exzentrisch · Runde '+r+' von 3'; return [
+  ['Pull-Up with added weight',1,1,null,0,'Exzentrisch: 1 Wdh. mit Zusatzgewicht am Gürtel (90 %), 6 s ablassen. Direkt weiter.',bl,'wr'],
+  ['Pull-Up (wide grip)',1,3,null,0,'Konzentrisch: 3 Wdh. mit Körpergewicht (80 %). Direkt weiter.',bl,'r'],
+  ['Lat Pulldown',1,10,40,420,'10 Wdh. dynamisch bei 40 %. Danach 7 min Pause.',bl,'wr']]; });
+const W4_ITEMS=[
+ ['TRX Row','Griffe zu den Rippen ziehen, Körper bleibt eine Linie','Band mittel · stehend'],
+ ['TRX Squat','Nach hinten in die Hocke setzen, kontrolliert aufstehen','Band mittel · stehend'],
+ ['TRX Reverse Lunge','Ein Bein nach hinten in den Ausfallschritt, zurück in den Stand','Band mittel · stehend'],
+ ['TRX Plank','Stabile Planke halten, Füße in den Schlaufen (Suspended Plank)','Band lang · Füße in den Schlaufen'],
+ ['TRX Knee Tuck','Aus der Planke beide Knie zur Brust ziehen','Band lang · Füße in den Schlaufen'],
+ ['TRX Pike','Aus der Planke die Hüfte zur Decke heben, Beine gestreckt','Band lang · Füße in den Schlaufen'],
+ ['TRX Spider','Aus der Planke ein Knie außen zum gleichseitigen Ellbogen, Seiten wechseln','Band lang · Füße in den Schlaufen'],
+ ['TRX Shoulder External Rotation','Ellbogen auf Schulterhöhe, 90° gebeugt, kontrolliert nach außen rotieren','Band mittel · stehend'],
+ ['TRX Shoulder Internal Rotation','Ellbogen auf Schulterhöhe, 90° gebeugt, kontrolliert nach innen rotieren','Band mittel · stehend'],
+ ['TRX Standing Fallout','Mit gestreckten Armen nach vorn lehnen, Rumpf fest','Band mittel · stehend']];
+// Wochen-Feedback nach Maxims Bogen (Quick Session Evaluation)
+const WF=[['strength','Strength Training','Kraft'],['kayak','Kayak','Boot'],['trx','TRX','TRX'],['running','Running','Laufen, Rad, Sonstiges'],['fitness','Overall Fitness','Gesamtform']];
 // Plan-Vorlagen aus Maxims Dokumenten: [Name, Sätze, Wdh/Sek, %1RM, Pause s, Hinweis, Block, modus?]
 const SEED_PLANS = [
  {name:'Kraft – Session 1 & 2 (ab 02.11.) · Aufbau', note:'Ziel: Wiedereinstieg, solides Fundament. Bulgarian / Kraftausdauer.', items:[
@@ -95,6 +118,18 @@ const SEED_PLANS = [
   ['External Rotator (rotator cuff)',3,10,null,60,'mit Gummiband. Pause 1 min','Schulter B']]},
  {name:'TRX – Woche 1 (9 Übungen, 40/20)', note:'3 Serien · 40 s Arbeit / 20 s Pause · von der 1. bis zur letzten Übung, dann Serienpause 5 min. Übungen frei wählbar: 3 Oberkörper / 3 Unterkörper / 3 Core.', items:
   ['TRX Row','TRX Push-Up','TRX Y Raise','TRX Squat','TRX Split Squat','TRX Hamstring Curl','TRX Plank','TRX Knee Tuck','TRX Body Saw'].map((n,i,a)=>[n,3,40,null,i==a.length-1?300:20,'','','t'])},
+ {name:N23, note:'Ziel: exzentrische Kraft. 2× diese Woche. Je Station 3 Runden: 1 exzentrische Wdh. bei 90 % (6 s ablassen) + 3 konzentrische Wdh. bei 80 % + 10 dynamische Wdh. bei 40 %, die drei Lasten direkt nacheinander, dann 7 min Pause. Für die exzentrische Wiederholung brauchst du jemanden zur Sicherung! Swiss-Ball-Übung nach Wahl zusätzlich möglich.', items:[
+  ...eccStation('Push exzentrisch','Bench Press','Satz 1 exzentrisch: 1 Wdh. bei 90 %, 6 s ablassen, nur mit Sicherung! Satz 2 konzentrisch: 3 Wdh. bei 80 %. Dann direkt Liegestütze. (Maxims Blatt: Push 1)','Push-Up','r',null,'10 dynamische Liegestütze mit Körpergewicht (die 40 %).'),
+  ...eccStation('Pull exzentrisch','Seated Cable Row','Satz 1 exzentrisch: 1 Wdh. bei 90 %, 6 s nachgeben, mit Hilfe beim Anziehen. Satz 2 konzentrisch: 3 Wdh. bei 80 %. Dann direkt Low Row. (Maxims Blatt: Pull 2)','Low Row','wr',40,'10 Wdh. dynamisch bei 40 %. (Maxims Blatt: Pull 6)'),
+  ...eccPullUp,
+  ['Leg Raise (straight)',4,15,null,0,'15 Wdh., direkt weiter','Core · 4 Runden am Stück','r'],
+  ['Cross Leg Raise (alternating)',4,15,null,0,'15 Wdh., direkt weiter','Core · 4 Runden am Stück','r'],
+  ['Crunch',4,50,null,0,'50 Wdh., direkt weiter','Core · 4 Runden am Stück','r'],
+  ['Bicycle Crunch',4,20,null,210,'20 Wdh., dann 3–4 min Pause. Frisch genug starten, damit die Bewegung dynamisch bleibt','Core · 4 Runden am Stück','r'],
+  ['Superman (arms and legs extended)',4,60,null,120,'1 Minute statisch halten. Pause 2 min','Unterer Rücken','t',null,{n:1,work:60,rest:0,rr:120}],
+  ['Shoulder Depression (cable – front)',4,10,null,0,'10 Wdh. Positionsarbeit zur Verletzungsvorbeugung','Schulter · 4 Runden','wr'],
+  ['Internal Rotator (rotator cuff)',4,10,null,0,'10 Wdh. je Seite','Schulter · 4 Runden','wr'],
+  ['External Rotator (rotator cuff)',4,10,null,120,'10 Wdh. je Seite. Pause 2 min','Schulter · 4 Runden','wr']]},
  {name:N16, note:'Nur eine Kraft-Einheit diese Woche. Bulgarian Strength in 3 Runden: Bankdrücken, dann direkt Low Row, dann direkt Trizeps, jeweils 1 Wdh. bei 90 % + 3 Wdh. bei 70 % + 8 Wdh. bei 40 %. Erst nach dem Trizeps 3–4 min Pause, nach der dritten Runde 7 min. Danach Core, unterer Rücken, Medizinball, Klimmzüge und Schulter.', items:[
   ...[1,2,3].flatMap(bulgRound),
   ['Leg Raise (straight)',3,20,null,0,'20 s, direkt weiter','Core · 3 Runden, dynamisch','t'],
@@ -110,8 +145,7 @@ const SEED_PLANS = [
   ['Internal Rotator (rotator cuff)',3,10,null,0,'Leichter Widerstand','Schulter · 3 Runden','wr'],
   ['External Rotator (rotator cuff)',3,10,null,180,'Leichter Widerstand. Pause 3 min','Schulter · 3 Runden','wr']]},
  {name:W2, note:'3 Serien · 50 s Arbeit / 10 s Pause · Serienpause 6 min. 4 Oberkörper / 4 Unterkörper / 4 Core. Reihenfolge so, dass das Band nur einmal pro Serie umgestellt wird (nach Übung 5 von mittel auf lang). In den Pausen ab Übung 8 Knie ablegen, Füße bleiben in den Schlaufen.', items:W2_ITEMS.map(([n,rest,note,block])=>[n,3,50,null,rest,note,block,'t'])},
- {name:'TRX – Woche 4 (10 Übungen, 1 min)', note:'4 Serien · 1 min Arbeit, keine Pause · Serienpause 5 min. 2 Oberkörper / 2 Unterkörper / 6 Core.', items:
-  ['TRX Row','TRX Push-Up','TRX Squat','TRX Hamstring Curl','TRX Plank','TRX Side Plank','TRX Pike','TRX Knee Tuck','TRX Mountain Climber','TRX Body Saw'].map((n,i,a)=>[n,4,60,null,i==a.length-1?300:0,'','','t'])}
+ {name:W4N, note:'Maxims TRX-Plan vom 23.11.: 4 Serien mit 10 Übungen (1 Oberkörper, 2 Unterkörper, 7 Core/Ganzkörper). 1 Minute Arbeit, keine Pause, von Übung 1 bis 10 durch, dann 5 min Serienpause. Band: Übung 1–3 mittel, 4–7 lang mit Füßen in den Schlaufen, 8–10 wieder mittel.', items:W4_ITEMS.map(([n,cue,bl],i,a)=>[n,4,60,null,i===a.length-1?300:0,cue,bl,'t'])}
 ];
 const SEED_GUIDES = [
  {from:'2026-11-02',to:'2026-11-08',title:'Woche 1',
@@ -177,6 +211,7 @@ const mmss = s => { s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+pad
 const mkStep=(label,work,rest)=>({id:uid(),label,work,rest});
 const seedTimers=()=>[
  {id:uid(),name:W2T,rounds:3,prep:10,roundRest:360,steps:W2_ITEMS.map(([n,rest],i,a)=>mkStep(n+(i===0?' (Band mittel)':i===5?' (Band lang)':''),50,i===a.length-1?0:rest))},
+ {id:uid(),name:W4T,rounds:4,prep:10,roundRest:300,steps:W4_ITEMS.map(([n])=>mkStep(n,60,0))},
  {id:uid(),name:'Core · 4 × 20 s, 5 Serien',rounds:5,prep:10,roundRest:180,steps:['Leg Raise','Cross Leg Raise','Crunch','Bicycle Crunch'].map(n=>mkStep(n,20,0))},
  {id:uid(),name:'Sprints · 10 × 15 s all-out',rounds:10,prep:10,roundRest:105,steps:[mkStep('All-out',15,0)]},
  {id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}];
@@ -203,12 +238,19 @@ function itemTm(it){
   if(it.tm) return it.tm;
   return it.mode==='t' ? {n:1,work:tg.time||30,rest:0} : {n:tg.reps||6,work:10,rest:5};
 }
+/* ---- Wochen-Feedback ---- */
+const wfCat = e => e.type==='wasser'?'kayak':e.type==='sonstiges'?'running':/trx/i.test(e.title||'')?'trx':'strength';
+const wfEntries = ws => S.entries.filter(e=>e.date>=ws&&e.date<=addDays(ws,6)).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+function wfSuggest(ws){ const o={}; for(const [k] of WF){ const v=wfEntries(ws).filter(e=>e.diff&&wfCat(e)===k).map(e=>e.diff); if(v.length) o[k]=Math.round(sum(v)/v.length); } return o; }
+function wfLabel(ws){ const g=guideFor(ws), d=pdate(ws), mon=['January','February','March','April','May','June','July','August','September','October','November','December'][d.getMonth()];
+  const n=g&&(g.title.match(/\d+/)||[])[0]; return n?mon+' Week '+n:'Week of '+d.getDate()+' '+mon+' '+d.getFullYear(); }
+function wfGet(ws){ const w=S.weekly[ws]=S.weekly[ws]||{}; if(w.label==null) w.label=wfLabel(ws); w.scores=w.scores||{}; if(w.comments==null) w.comments=''; return w; }
 /* ---- Zustand ---- */
 let S;
 function guestState(){
   return {version:1,seedV:99,
     settings:{name:'',trainer:'',trainerPhone:'',trainerMail:'',lang:'de',theme:'light',goals:'',restDefault:90},
-    exercises:seedExercises(), plans:[], guides:[], entries:[], tournaments:[],
+    exercises:seedExercises(), plans:[], guides:[], entries:[], tournaments:[], weekly:{},
     timers:[{id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}]};
 }
 function freshState(){
@@ -220,15 +262,20 @@ function freshState(){
     const m=mode||ex.mode;
     return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{}),...(tm?{tm}:{})};
   })}));
-  const st={version:1,seedV:5,
+  const st={version:1,seedV:6,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
-    exercises, plans, guides:SEED_GUIDES.map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments()};
-  seedW2Entry(st); seedPlanEntry(st,N16,N16DAY,'Kraft – Dynamic','kraft',90); return st;
+    exercises, plans, guides:SEED_GUIDES.map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments(), weekly:{}};
+  seedW2Entry(st); seedPlanEntry(st,N16,N16DAY,'Kraft – Dynamic','kraft',90); seedW4(st); return st;
 }
 function seedPlanEntry(st,planName,date,title,guideKey,planned){
   const p=st.plans.find(x=>x.name===planName); if(!p||st.entries.some(e=>e.date===date&&e.planId===p.id)) return;
   const g=st.guides.find(g=>g.from<=date&&date<=g.to);
   st.entries.push({id:uid(),type:'kraft',date,time:'',title,planned,minutes:null,plan:g?g[guideKey]:'',notes:'',tags:[],rpe:null,done:false,items:itemsFromPlan(p),planId:p.id,feedback:'',reply:'',g:{}});
+}
+function seedW4(st){
+  seedPlanEntry(st,N23,'2026-11-24','Kraft – Exzentrisch 1','kraft',110);
+  seedPlanEntry(st,W4N,'2026-11-26','TRX – Woche 4','trx',60);
+  seedPlanEntry(st,N23,'2026-11-27','Kraft – Exzentrisch 2','kraft',110);
 }
 function seedW2Entry(st){
   const p=st.plans.find(x=>x.name===W2); if(!p||st.entries.some(e=>e.date===W2DAY&&e.planId===p.id)) return;
@@ -241,7 +288,7 @@ function load(){
 }
 function migrate(){
   const f=freshState();
-  for(const k of ['settings','exercises','plans','guides','timers','entries','tournaments']) if(S[k]==null) S[k]=f[k];
+  for(const k of ['settings','exercises','plans','guides','timers','entries','tournaments','weekly']) if(S[k]==null) S[k]=f[k];
   S.settings={...f.settings,...S.settings};
   if(PROFILE!=='owner') return;
   if((S.seedV||1)<2){ // neuer TRX-Zirkel Woche 2: Plan, Timer und Training für den 13.11.
@@ -268,6 +315,12 @@ function migrate(){
     const pl=S.plans.find(x=>x.name===N16), pi=pl&&pl.items.find(i=>i.name===sup); if(pi&&!pi.tm) pi.tm={...tm};
     for(const e of S.entries) if(pl&&e.planId===pl.id) for(const it of e.items) if(it.name===sup&&!it.tm) it.tm={...tm};
     S.seedV=5; save();
+  }
+  if(S.seedV<6){ // Woche 4: neue TRX-Übungen, Kraft exzentrisch, TRX-Plan + Timer, Trainings der Woche
+    for(const x of f.exercises) if(!S.exercises.some(e=>e.name===x.name)) S.exercises.push(x);
+    const fix=pl=>{ pl.items.forEach(it=>{ const ex=S.exercises.find(e=>e.name===it.name); if(ex) it.exId=ex.id; }); return pl; };
+    const put=(list,name,front)=>{ const n=f[list].find(x=>x.name===name), i=S[list].findIndex(x=>x.name===name); if(list==='plans') fix(n); if(i>=0){ n.id=S[list][i].id; S[list][i]=n; } else front?S[list].unshift(n):S[list].push(n); };
+    put('plans',N23,true); put('plans',W4N); put('timers',W4T,true); seedW4(S); S.seedV=6; save();
   }
 }
 let saveWarned=false;
