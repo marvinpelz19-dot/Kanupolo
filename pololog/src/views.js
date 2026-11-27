@@ -23,7 +23,7 @@ function record(t){ const r={w:0,d:0,l:0,gf:0,ga:0}; for(const g of t.games){ if
 function guideCard(g,open){
   if(!g) return '';
   const rows=[['kraft','Kraft','kraft'],['trx','TRX','kraft'],['wasser','Boot','wasser'],['sonstiges','Laufen / Rad / Sonstiges','sonstiges']].filter(r=>g[r[0]]);
-  return `<div class="card"><div class="row"><div class="grow"><b>${esc(S.settings.trainer)}s Vorgabe · ${esc(g.title)}</b><div class="small muted">${fshort(g.from)} – ${fshort(g.to)}</div></div><a class="btn sm" href="#/kraft" data-a="ktab" data-v="monat">Monatsplan</a></div>
+  return `<div class="card"><div class="row"><div class="grow"><b>${esc(S.settings.trainer)}s Vorgabe · ${esc(g.title)}</b><div class="small muted">${fshort(g.from)} – ${fshort(g.to)}</div></div><a class="btn sm" href="#/inhalte" data-a="ktab" data-v="monat">Monatsplan</a></div>
    ${rows.map(r=>`<details ${open?'open':''} style="margin-top:10px"><summary><span class="badge t-${r[2]}">${r[1]}</span></summary><div class="small" style="white-space:pre-wrap;margin-top:6px">${esc(g[r[0]])}</div></details>`).join('')}</div>`;
 }
 
@@ -40,7 +40,7 @@ heute(){
   const days=nt?Math.round((pdate(nt.from)-pdate(t))/864e5):null;
   const g=guideFor(t);
   return `<section class="hero">${wheelSvg('wheel')}<div class="small">${fdate(t)}</div><h1>${S.settings.name?'Hallo '+esc(S.settings.name):'Willkommen'}</h1>
-    <button class="btn lg block" data-a="start">${ic('play','sm')}Training starten</button>
+    ${(()=>{ const o=todayE.filter(e=>!e.done); return o.length?`<a class="btn lg block" href="#/training/${o[0].id}">${ic('play','sm')}<span class="cut">${esc(o[0].title)}</span></a><button class="herolink" data-a="start">${o.length>1?'Heute stehen '+o.length+' Einheiten an · ':''}Etwas anderes trainieren</button>`:`<button class="btn lg block" data-a="start">${ic('play','sm')}Training starten</button>`; })()}
     <div class="facts"><div><b>${done.length}/${week.length}</b><span>Einheiten diese Woche</span></div>
     <div><b>${hm(sum(done,e=>e.minutes))}</b><span>Trainingszeit</span></div>
     <div><b>${nt?(days<=0?'Jetzt':days):'–'}</b><span>${nt?(days<=0?esc(nt.name):'Tage bis '+esc(nt.name)):'kein Termin geplant'}</span></div></div></section>
@@ -49,8 +49,8 @@ heute(){
       return `<a class="item" style="margin-top:12px;--c:var(--ink)" href="#/feedback/${ws}"><div class="grow"><div class="ttl">Wochen-Feedback${S.settings.trainer?' für '+esc(S.settings.trainer):''}</div><div class="small muted">${n===WF.length?'Ausgefüllt, bereit zum Senden':n?n+' von '+WF.length+' bewertet':'5 Bewertungen von 1 bis 5, als PDF senden'}</div></div>${n===WF.length?`<span class="tick">${ic('check')}</span>`:ic('right')}</a>`; })()}
    ${g?`<div class="sec"><h2>Diese Woche von ${esc(S.settings.trainer)}</h2></div>${guideCard(g)}`:''}
    ${open.length?`<div class="sec"><h2>Noch offen</h2></div>${open.map(entryItem).join('')}`:''}
-   <div class="sec"><h2>Als Nächstes</h2><a class="small muted" href="#/saison">Zur Saison</a></div>
-   ${next.length?next.map(entryItem).join(''):`<div class="empty">Noch nichts geplant. Über „Training starten“ legst du los oder planst Einheiten für später.</div>`}
+   ${weekBlock(ws,'Diese Woche')}
+   ${S.entries.some(e=>e.date>we&&e.date<=addDays(we,7))?weekBlock(addDays(ws,7),'Nächste Woche'):''}
    ${nt?`<div class="sec"><h2>Nächster Termin</h2><a class="small muted" href="#/turniere">Alle Turniere</a></div>${tournItem(nt)}`:''}`;
 },
 /* ---------- Saison ---------- */
@@ -88,7 +88,7 @@ training(id){
      ${total?`<div class="progress" style="margin-bottom:12px"><i style="--p:${total?dn/total:0}"></i></div>`:''}
      ${e.items.map((it,i)=>exCard(e,it,i)).join('')}
      ${!e.items.length?`<div class="empty">Noch keine Übungen. Lade einen Plan oder füge Übungen einzeln hinzu.</div>`:''}
-     ${e.items.some(i=>i.mode==='t')?`<button class="btn pri block" style="margin-top:10px" data-a="runEntry" data-id="${e.id}">${ic('timer','sm')}Zeit-Übungen mit Timer starten</button>`:''}
+     ${isCircuit(e.items)?`<button class="btn pri block" style="margin-top:10px" data-a="runEntry" data-id="${e.id}">${ic('timer','sm')}Ganzen Zirkel mit Timer starten</button>`:''}
      <div class="row" style="margin-top:10px"><button class="btn grow" data-a="pickEx" data-target="entry:${e.id}">${ic('plus','sm')}Übung</button><button class="btn grow" data-a="loadPlan" data-id="${e.id}">${ic('dumbbell','sm')}Plan laden</button></div>`;
   }
   const noteLabel = e.type==='wasser'?'Was habe ich gemacht? (Notizen)':e.type==='kraft'?'Notizen':'Was habe ich gemacht?';
@@ -96,9 +96,10 @@ training(id){
      <button class="iconbtn" data-a="pdfEntry" data-id="${e.id}" title="PDF">${ic('pdf')}</button><button class="iconbtn" data-a="dupEntry" data-id="${e.id}" title="Duplizieren">${ic('copy')}</button><button class="iconbtn" data-a="delEntry" data-id="${e.id}" title="Löschen" style="color:var(--danger)">${ic('trash')}</button></div>
    <div class="card" style="margin-top:12px">
      ${inp(p+'/title',e.title,'style="font-size:1.15rem;font-weight:700" placeholder="Titel"')}
-     <div class="grid g3d" style="margin-top:10px">${field('Datum',inp(p+'/date',e.date,'type="date"'))}${field('Uhrzeit',inp(p+'/time',e.time,'type="time"'))}${field('Dauer (min)',numinp(p+'/minutes',e.minutes,`placeholder="${e.planned||''}"`))}</div>
+     <div class="grid g3d" style="margin-top:10px">${field('Datum',`<button class="datebtn" data-a="moveEntry" data-id="${e.id}">${ic('calendar','sm')}<span>${WD[pdate(e.date).getDay()]}, ${fshort(e.date)}</span></button>`)}${field('Uhrzeit',inp(p+'/time',e.time,'type="time"'))}${field('Dauer (min)',numinp(p+'/minutes',e.minutes,`placeholder="${e.planned||''}"`))}</div>
      ${e.plan?`<details ${e.done?'':'open'}><summary class="small muted">Vorgabe / Plan ▾</summary><textarea data-bind="${p}/plan" style="margin-top:6px">${esc(e.plan)}</textarea></details>`:`<button class="small muted" data-a="addPlanText" data-id="${e.id}">+ Vorgabe / geplanten Inhalt notieren</button>`}
    </div>
+   ${e.tname&&S.timers.some(t=>t.name===e.tname)?`<button class="btn pri lg block" style="margin-top:12px" data-a="runNamed" data-id="${e.id}">${ic('timer','sm')}Timer für diese Einheit</button><p class="tiny muted center" style="margin:6px 0 0">${esc(e.tname)}</p>`:''}
    ${body}
    ${e.type==='wasser'?`<div class="sec"><h2>Inhalte</h2></div><div class="chips">${WTAGS.map(t=>`<button class="chip ${e.tags.includes(t)?'on':''}" data-a="tag" data-id="${e.id}" data-v="${t}">${t}</button>`).join('')}</div>`:''}
    <div class="sec"><h2>${noteLabel}</h2></div>
@@ -116,8 +117,47 @@ training(id){
      <label style="margin-top:12px">Antwort / Hinweise vom Trainer</label><textarea data-bind="${p}/reply" placeholder="Antwort hier einfügen, damit alles beisammen bleibt">${esc(e.reply)}</textarea></div>
    <button class="btn ${e.done?'':'pri'} lg block" style="margin-top:18px" data-a="toggleDone" data-id="${e.id}">${ic('check','sm')}${e.done?'Abgeschlossen – wieder öffnen':'Training abschließen'}</button>`;
 },
-/* ---------- Kraft: Pläne / Übungen / Monatsplan ---------- */
+/* ---------- Training: Übersicht mit Wochen-Kachel ---------- */
 kraft(){
+  const t=today(), ws=weekStart(t), we=addDays(ws,6), E=wfEntries(ws), g=guideFor(ws), nx=addDays(ws,7), NE=wfEntries(nx);
+  const open=E.filter(e=>!e.done&&e.date>=t)[0], done=E.filter(e=>e.done), hist=S.entries.filter(e=>e.done).length;
+  return `<h1 style="margin-bottom:14px">Training</h1>
+   <a class="wtile" href="#/woche/${ws}">${wheelSvg('wheel')}<div class="small">Diese Woche${g?' · '+esc(g.title):''}</div>
+     <h2>${fshort(ws)} bis ${fshort(we)}${we.slice(0,4)}</h2>
+     <div class="progress"><i style="--p:${E.length?done.length/E.length:0}"></i></div>
+     <div class="row"><span class="grow">${done.length} von ${E.length} Einheiten erledigt</span>${ic('right')}</div>
+     ${open?`<div class="wnext"><span class="tiny">Als Nächstes</span><b>${esc(open.title)}</b><span class="small">${open.date===t?'heute':WD[pdate(open.date).getDay()]+', '+fshort(open.date)}</span></div>`:E.length?`<div class="wnext"><b>Alles erledigt für diese Woche</b></div>`:`<div class="wnext"><b>Noch nichts geplant</b><span class="small">Antippen und Einheiten anlegen</span></div>`}</a>
+   ${NE.length?`<a class="tile" style="margin-top:10px" href="#/woche/${nx}"><span class="ico">${ic('calendar')}</span><span class="grow"><b>Nächste Woche</b><span class="small muted">${fshort(nx)} bis ${fshort(addDays(nx,6))} · ${NE.length} Einheiten geplant</span></span>${ic('right','sm')}</a>`:''}
+   <div class="sec"><h2>Alles Weitere</h2></div>
+   <div class="tiles">
+    <a class="tile" href="#/inhalte"><span class="ico">${ic('dumbbell')}</span><span class="grow"><b>Alle Trainingsinhalte</b><span class="small muted">${S.plans.length} Pläne, ${S.exercises.length} Übungen, ${S.timers.length} Timer, Monatsplan</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/historie"><span class="ico">${ic('list')}</span><span class="grow"><b>Historie</b><span class="small muted">${hist} absolvierte Einheiten</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/feedback/${ws}"><span class="ico">${ic('check')}</span><span class="grow"><b>Wochen-Feedback</b><span class="small muted">Bewertung 1 bis 5 als PDF${S.settings.trainer?' für '+esc(S.settings.trainer):''}</span></span>${ic('right','sm')}</a>
+   </div>`;
+},
+woche(ws){
+  ws=ws||weekStart(today()); const t=today(), we=addDays(ws,6), E=wfEntries(ws), g=guideFor(ws), cur=weekStart(t);
+  const T=S.tournaments.filter(x=>x.from<=we&&(x.to||x.from)>=ws), done=E.filter(e=>e.done);
+  const name=ws===cur?'Diese Woche':ws===addDays(cur,7)?'Nächste Woche':ws===addDays(cur,-7)?'Letzte Woche':'Woche';
+  return `<div class="row"><a class="iconbtn" href="#/woche/${addDays(ws,-7)}" aria-label="Woche zurück">${ic('back')}</a><div class="grow center"><h1 style="font-size:1.9rem">${name}</h1><div class="small muted">${fshort(ws)} bis ${fdate(we)}${g?' · '+esc(g.title):''}</div></div><a class="iconbtn" href="#/woche/${addDays(ws,7)}" style="transform:scaleX(-1)" aria-label="Woche vor">${ic('back')}</a></div>
+   ${E.length?`<div class="progress" style="margin:14px 0 4px"><i style="--p:${done.length/E.length}"></i></div><div class="small muted">${done.length} von ${E.length} erledigt · ${hm(sum(done,e=>e.minutes))} trainiert</div>`:''}
+   <div style="margin-top:14px">${T.map(tournItem).join('')}</div>
+   ${E.map(e=>{ const n=e.items.length, sub=[e.done?(e.minutes?e.minutes+' min':'erledigt'):(e.planned?'ca. '+e.planned+' min':''), n?n+' Übungen':'', e.rpe?'RPE '+e.rpe:''].filter(Boolean).join(' · ');
+     return `<div class="srow t-${e.type} ${e.done?'done':''} ${e.date===t?'now':''}"><button class="sdate" data-a="moveEntry" data-id="${e.id}" aria-label="Datum ändern"><b>${WD[pdate(e.date).getDay()]}</b><span>${fshort(e.date)}</span></button>
+       <a class="sbody" href="#/training/${e.id}"><span class="grow"><b>${esc(e.title)}</b><span class="small muted">${TYPES[e.type].short}${sub?' · '+sub:''}</span></span>${e.done?`<span class="tick">${ic('check')}</span>`:ic('right','sm')}</a></div>`; }).join('')||`<div class="empty">In dieser Woche ist noch nichts geplant.</div>`}
+   <p class="tiny muted" style="margin:8px 2px 0">Tipp: Auf das Datum links tippen, um eine Einheit auf einen anderen Tag zu legen.</p>
+   <button class="btn block" style="margin-top:10px" data-a="planDay" data-d="${ws>t?ws:(t<=we?t:ws)}">${ic('plus','sm')}Einheit hinzufügen</button>
+   ${g?`<div class="sec"><h2>Vorgabe von ${esc(S.settings.trainer||'Trainer')}</h2></div>${guideCard(g)}`:''}
+   <a class="btn block" style="margin-top:12px" href="#/feedback/${ws}">${ic('check','sm')}Wochen-Feedback ausfüllen</a>`;
+},
+historie(){
+  const E=S.entries.filter(e=>e.done).sort((a,b)=>byDate(b,a)); let h='', mo='';
+  for(const e of E){ const m=e.date.slice(0,7); if(m!==mo){ mo=m; const M=E.filter(x=>x.date.slice(0,7)===m); h+=`<div class="sec"><h2>${MON[+m.slice(5)-1]} ${m.slice(0,4)}</h2><span class="small muted">${M.length} Einheiten · ${hm(sum(M,x=>x.minutes))}</span></div>`; } h+=entryItem(e); }
+  return `<div class="row"><a class="iconbtn" href="#/kraft" aria-label="Zurück">${ic('back')}</a><h1 class="grow" style="font-size:1.9rem">Historie</h1><a class="btn sm" href="#/stats">${ic('chart','sm')}Statistik</a></div>
+   ${h||`<div class="empty" style="margin-top:14px">Noch keine abgeschlossenen Einheiten. Sobald du ein Training abschließt, erscheint es hier.</div>`}`;
+},
+/* ---------- Kraft: Pläne / Übungen / Monatsplan ---------- */
+inhalte(){
   const tab=UI.kraftTab;
   const seg=`<div class="seg">${[['plaene','Pläne'],['uebungen','Übungen'],['timer','Timer'],['monat','Monatsplan']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-a="ktab" data-v="${k}">${l}</button>`).join('')}</div>`;
   let h='';
@@ -137,24 +177,25 @@ kraft(){
   } else {
     h=`<div class="sec"><h2>Wochenvorgaben vom Trainer</h2><button class="btn sm" data-a="editGuide" data-id="">${ic('plus','sm')}Woche</button></div>
      <p class="small muted" style="margin-top:-4px">Die Vorgabe der jeweiligen Woche wird beim Anlegen eines Trainings automatisch übernommen.</p>
-     ${[...S.guides].sort((a,b)=>a.from.localeCompare(b.from)).map(g=>`<div style="margin-top:10px">${guideCard(g,true).replace('<a class="btn sm" href="#/kraft" data-a="ktab" data-v="monat">Monatsplan</a>',`<button class="btn sm" data-a="editGuide" data-id="${g.id}">${ic('edit','sm')}</button>`)}</div>`).join('')||`<div class="empty">Keine Vorgaben.</div>`}`;
+     ${[...S.guides].sort((a,b)=>a.from.localeCompare(b.from)).map(g=>`<div style="margin-top:10px">${guideCard(g,true).replace('<a class="btn sm" href="#/inhalte" data-a="ktab" data-v="monat">Monatsplan</a>',`<button class="btn sm" data-a="editGuide" data-id="${g.id}">${ic('edit','sm')}</button>`)}</div>`).join('')||`<div class="empty">Keine Vorgaben.</div>`}`;
   }
-  return `<h1 style="margin-bottom:14px">Training</h1>${seg}${h}`;
+  return `<div class="row" style="margin-bottom:14px"><a class="iconbtn" href="#/kraft" aria-label="Zurück">${ic('back')}</a><h1 class="grow" style="font-size:1.9rem">Trainingsinhalte</h1></div>${seg}${h}`;
 },
 plan(id){
   const p=planById(id); if(!p) return notFound();
   const b=`plans/${p.id}`;
   let last=null;
-  return `<div class="row"><a class="iconbtn" href="#/kraft">${ic('back')}</a><div class="grow"></div>
+  return `<div class="row"><a class="iconbtn" href="#/inhalte">${ic('back')}</a><div class="grow"></div>
     <button class="iconbtn" data-a="sharePlan" data-id="${p.id}" title="Teilen">${ic('share')}</button><button class="iconbtn" data-a="pdfPlan" data-id="${p.id}">${ic('pdf')}</button><button class="iconbtn" data-a="dupPlan" data-id="${p.id}">${ic('copy')}</button><button class="iconbtn" style="color:var(--danger)" data-a="delPlan" data-id="${p.id}">${ic('trash')}</button></div>
    <div class="card" style="margin-top:12px">${inp(b+'/name',p.name,'style="font-size:1.1rem;font-weight:700" placeholder="Name des Plans"')}
      <textarea data-bind="${b}/note" style="margin-top:8px;min-height:3.5rem" placeholder="Beschreibung / Hinweise">${esc(p.note)}</textarea></div>
    <button class="btn pri lg block" style="margin-top:12px" data-a="startPlan" data-id="${p.id}">${ic('play','sm')}Jetzt trainieren</button>
-   ${p.items.some(i=>i.mode==='t')?`<button class="btn block" style="margin-top:8px" data-a="runPlan" data-id="${p.id}">${ic('timer','sm')}Nur Timer für die Zeit-Übungen</button>`:''}
+   ${isCircuit(p.items)?`<button class="btn block" style="margin-top:8px" data-a="runPlan" data-id="${p.id}">${ic('timer','sm')}Nur den Timer für den Zirkel</button>`:''}
    <div class="sec"><h2>Übungen (${p.items.length})</h2></div>
    ${p.items.map((it,i)=>{ const q=`${b}/items/${it.id}`; const hd=it.block&&it.block!==last?`<div class="blockhd">${esc(it.block)}</div>`:''; last=it.block;
      return hd+`<div class="ex"><div class="row"><span class="num">${i+1}</span><b class="grow">${esc(it.name)}</b>
        <button class="iconbtn sm" data-a="moveItem" data-id="${p.id}" data-i="${i}" data-d="-1">${ic('up','sm')}</button><button class="iconbtn sm" data-a="moveItem" data-id="${p.id}" data-i="${i}" data-d="1">${ic('down','sm')}</button><button class="iconbtn sm" data-a="delItem" data-id="${p.id}" data-i="${i}" style="color:var(--danger)">${ic('x','sm')}</button></div>
+       ${exImg(it.name)}
        <div class="planrow"><div><label>Sätze</label>${numinp(q+'/sets',it.sets)}</div>
         ${it.mode==='t'?`<div><label>Sek.</label>${numinp(q+'/time',it.time)}</div>`:`<div><label>Wdh.</label>${numinp(q+'/reps',it.reps)}</div>`}
         ${it.mode==='wr'?`<div><label>kg</label>${numinp(q+'/weight',it.weight)}</div>`:`<div><label>Modus</label><select data-bind="${q}/mode" data-rr>${Object.keys(MODES).map(m=>`<option value="${m}" ${it.mode===m?'selected':''}>${m==='wr'?'kg+Wdh':m==='r'?'Wdh':'Zeit'}</option>`).join('')}</select></div>`}
@@ -164,7 +205,7 @@ plan(id){
 },
 timer(id){
   const t=timerById(id); if(!t) return notFound(); const b=`timers/${t.id}`;
-  return `<div class="row"><a class="iconbtn" href="#/kraft">${ic('back')}</a><div class="grow"></div>
+  return `<div class="row"><a class="iconbtn" href="#/inhalte">${ic('back')}</a><div class="grow"></div>
     <button class="iconbtn" data-a="dupTimer" data-id="${t.id}" title="Duplizieren">${ic('copy')}</button><button class="iconbtn" style="color:var(--danger)" data-a="delTimer" data-id="${t.id}" title="Löschen">${ic('trash')}</button></div>
    <div class="card" style="margin-top:12px">${inp(b+'/name',t.name,'style="font-weight:700;font-size:1.1rem" placeholder="Name des Timers"')}
     <div class="grid g3" style="margin-top:10px">${field('Runden',numinp(b+'/rounds',t.rounds,'data-rr'))}${field('Vorlauf (s)',numinp(b+'/prep',t.prep,'data-rr'))}${field('Serienpause (s)',numinp(b+'/roundRest',t.roundRest,'data-rr'))}</div></div>
@@ -307,6 +348,17 @@ mehr(){
    <p class="tiny muted center" style="margin-top:20px">PoloLog · ${S.exercises.length} Übungen · ${S.entries.length} Trainings · ${S.tournaments.length} Turniere</p>`;
 }
 };
+function weekBlock(ws,title){
+  const t=today(); let h='';
+  for(let i=0;i<7;i++){ const d=addDays(ws,i), E=S.entries.filter(e=>e.date===d).sort(byDate), T=S.tournaments.filter(x=>x.from<=d&&d<=(x.to||x.from));
+    h+=`<div class="day ${d===t?'now':''} ${d<t?'past':''}"><div class="dd"><b>${WD[pdate(d).getDay()]}</b><span>${+d.slice(8)}.${+d.slice(5,7)}.</span></div><div class="dl">
+      ${T.map(x=>`<a class="dchip t-turnier" href="#/turnier/${x.id}">${ic('trophy','sm')}<span>${esc(x.name)}</span></a>`).join('')}
+      ${E.map(e=>`<a class="dchip t-${e.type} ${e.done?'done':''}" href="#/training/${e.id}">${ic(e.done?'check':TYPES[e.type].icon,'sm')}<span>${esc(e.title)}</span>${e.planned&&!e.done?`<small>${e.planned} min</small>`:e.minutes?`<small>${e.minutes} min</small>`:''}</a>`).join('')}
+      ${!E.length&&!T.length?`<button class="dfree" data-a="planDay" data-d="${d}">frei · planen</button>`:''}</div></div>`; }
+  const E=S.entries.filter(e=>e.date>=ws&&e.date<=addDays(ws,6));
+  return `<div class="sec"><h2>${title}</h2><a class="small muted" href="#/woche/${ws}">${E.filter(e=>e.done).length} von ${E.length} erledigt · öffnen</a></div><div class="card week">${h}</div>`;
+}
+const exImg=n=>EX_IMG[n]?`<img class="eximg" src="${EX_IMG[n]}" alt="Start- und Endposition: ${esc(n)}" loading="lazy">`:'';
 const byDate=(a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''));
 const notFound=()=>`<div class="empty">Eintrag nicht gefunden. <a href="#/heute"><u>Zur Übersicht</u></a></div>`;
 const rpeText=n=>['','sehr leicht','leicht','locker','moderat','etwas anstrengend','anstrengend','hart','sehr hart','extrem hart','maximal'][n];
@@ -318,6 +370,7 @@ function exCard(e,it,i){
   const prev=e.items[i-1]; const hd=it.block&&(!prev||prev.block!==it.block)?`<div class="blockhd">${esc(it.block)}</div>`:'';
   return hd+`<div class="ex ${all?'done':''}"><div class="row"><span class="num">${all?ic('check','sm'):i+1}</span><div class="grow"><b>${esc(it.name)}</b><div class="tiny muted">${esc(ftarget(it))}</div></div>
      <button class="iconbtn sm" data-a="delExItem" data-id="${e.id}" data-i="${i}">${ic('x','sm')}</button></div>
+   ${exImg(it.name)}
    ${tg.note?`<div class="hint">${esc(tg.note)}</div>`:''}
    ${ex&&it.mode==='wr'&&(tg.scheme||tg.pct)?`<div class="orm"><label for="orm-${it.id}">Mein 100 % Gewicht (Maximalkraft)</label><div class="unit"><input id="orm-${it.id}" data-bind="exercises/${ex.id}/orm" data-num data-orm inputmode="decimal" value="${esc(fnum(ex.orm))}" placeholder="eintragen"><span>kg</span></div></div>`:''}
    ${lp?`<div class="tiny muted" style="margin-top:4px">Letztes Mal (${fshort(lp.date)}): ${lp.sets.map(s=>fset(s,it.mode)).join(' | ')}</div>`:''}

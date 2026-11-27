@@ -1,5 +1,5 @@
 /* ============ PoloLog – Router, Aktionen, Export/Import ============ */
-const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',turnier:'turniere',spiel:'turniere'};
+const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
 const NAV=[['heute','Heute','home'],['saison','Saison','calendar'],['kraft','Training','dumbbell'],['turniere','Turniere','trophy'],['stats','Statistik','chart']];
 let lastRoute='';
 function route(){ const p=(location.hash||'#/heute').slice(2).split('/'); return views[p[0]]?p:['heute']; }
@@ -12,7 +12,7 @@ function render(){
   $$('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===on));
   const v=$('#view'); v.classList.remove('enter');
   if(key!==lastRoute){ window.scrollTo(0,0); lastRoute=key; void v.offsetWidth; v.classList.add('enter'); } else window.scrollTo(0,y);
-  if(r[0]==='kraft'&&UI.exq) filterEx($('#view'),UI.exq);
+  if(r[0]==='inhalte'&&UI.exq) filterEx($('#view'),UI.exq);
 }
 function buildNav(){
   const link=([k,l,i])=>`<a class="nav" data-nav="${k}" href="#/${k}">${ic(i)}<span>${l}</span></a>`;
@@ -74,6 +74,7 @@ function exSheet(id){
    <div class="grid g2">${field('Kategorie',`<input name="cat" list="cats" value="${esc(e.cat)}"><datalist id="cats">${[...new Set(S.exercises.map(x=>x.cat))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`)}
    ${field('Erfassung',`<select name="mode">${Object.entries(MODES).map(([k,l])=>`<option value="${k}" ${e.mode===k?'selected':''}>${l}</option>`).join('')}</select>`)}</div>
    ${field('Mein 1RM in kg (optional – für %-Vorgaben)',`<input name="orm" inputmode="decimal" value="${esc(fnum(e.orm))}">`)}
+   ${exImg(e.name)}
    ${field('Ausführung / Hinweise',`<textarea name="note">${esc(e.note)}</textarea>`)}
    <div class="row"><button class="btn pri grow" data-a="saveEx">Speichern</button>${id?`<button class="btn danger" data-a="delEx" data-id="${id}">${ic('trash','sm')}</button>`:''}</div>`);
 }
@@ -307,9 +308,9 @@ function trFinish(){
   const min=Math.max(1,Math.round(TR.total/60));
   if(TR.itemId){ const e=entry(TR.entryId), it=e&&e.items.find(i=>i.id===TR.itemId);
     if(it){ const tm=itemTm(it); let k=TR.t.rounds; for(const st of it.sets){ if(k<=0) break; if(!st.done){ st.done=true; if(it.mode==='t'){ if(st.t==null) st.t=tm.work*tm.n; } else if(st.r==null) st.r=tm.n; k--; } } save(); render(); } }
-  else if(TR.entryId){ const e=entry(TR.entryId); if(e){ e.items.filter(i=>i.mode==='t').forEach(it=>it.sets.forEach(st=>{ if(!st.done){ st.done=true; if(st.t==null) st.t=(it.target||{}).time||null; } })); if(!e.minutes) e.minutes=min; save(); render(); } }
+  else if(TR.entryId){ const e=entry(TR.entryId); if(e){ e.items.filter(isTimed).forEach(it=>it.sets.forEach(st=>{ if(!st.done){ st.done=true; if(it.mode==='t'){ if(st.t==null) st.t=(it.target||{}).time||null; } else if(st.r==null) st.r=(it.target||{}).reps||null; } })); if(!e.minutes) e.minutes=min; save(); render(); } }
   $('#run').className='on prep'; $('#rphase').textContent='Geschafft'; $('#rtime').textContent=mmss(TR.total); $('#rinfo').textContent=TR.t.name; $('#rbar').style.setProperty('--p',1);
-  $('#rnext').innerHTML=TR.itemId?'Im Training abgehakt.':TR.entryId?'Die Zeit-Übungen sind im Training abgehakt.':`<button class="btn" style="color:inherit;border-color:currentColor" data-a="trSave">Als Training eintragen</button>`;
+  $('#rnext').innerHTML=TR.itemId?'Im Training abgehakt.':TR.entryId?'Die Übungen sind im Training abgehakt.':`<button class="btn" style="color:inherit;border-color:currentColor" data-a="trSave">Als Training eintragen</button>`;
   $('#rtog').innerHTML=ic('check');
 }
 function trClose(){ clearInterval(TR.iv); TR.done=true; $('#run').className=''; try{ TR.lock&&TR.lock.release(); }catch(e){} TR.lock=null; }
@@ -365,8 +366,17 @@ const A={
  start(){ startSheet(); },
  startPlans(){ sheet('Plan wählen',S.plans.map(p=>`<button class="tile" data-a="startPlan" data-id="${p.id}"><span class="ico t-kraft">${ic('dumbbell')}</span><span class="grow"><b>${esc(p.name)}</b><span class="small muted">${p.items.length} Übungen</span></span>${ic('play','sm')}</button>`).join('<div style="height:8px"></div>')||'<div class="empty">Noch keine Pläne. Lege unter Training einen an.</div>'); },
  startFree(){ const e=newEntry({type:'kraft',title:'Freies Krafttraining'}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); setTimeout(()=>pickSheet('entry:'+e.id),350); },
- startTimers(){ UI.kraftTab='timer'; $('#sheet').classList.remove('on'); go('#/kraft'); },
+ startTimers(){ UI.kraftTab='timer'; $('#sheet').classList.remove('on'); go('#/inhalte'); },
  quick(el){ const e=newEntry({type:el.dataset.type}); S.entries.push(e); save(); $('#sheet').classList.remove('on'); go('#/training/'+e.id); },
+ moveEntry(el){ const e=entry(el.dataset.id), ws=weekStart(e.date), t=today();
+  const days=w=>Array.from({length:7},(_,i)=>addDays(w,i)).map(d=>`<button class="dpick ${d===e.date?'on':''} ${d===t?'now':''}" data-a="moveTo" data-id="${e.id}" data-d="${d}"><b>${WD[pdate(d).getDay()]}</b><span>${+d.slice(8)}.${+d.slice(5,7)}.</span></button>`).join('');
+  sheet('Auf welchen Tag?',`<p class="small muted" style="margin-top:0">${esc(e.title)}</p>
+   <label>Woche vom ${fshort(ws)}</label><div class="dgrid">${days(ws)}</div>
+   <label style="margin-top:14px">Woche danach</label><div class="dgrid">${days(addDays(ws,7))}</div>
+   ${field('Oder ein anderes Datum',`<input type="date" data-in="moveDate" data-id="${e.id}" value="${e.date}">`).replace('class="field"','class="field" style="margin-top:14px"')}`); },
+ moveTo(el){ const e=entry(el.dataset.id); e.date=el.dataset.d; save(); closeSheet(); toast('Verschoben auf '+fdate(e.date)); },
+ planDay(el){ UI.sel=el.dataset.d; entrySheet({date:el.dataset.d}); },
+ runNamed(el){ const e=entry(el.dataset.id), t=S.timers.find(x=>x.name===e.tname); if(!t) return toast('Timer nicht gefunden'); if(!e.startedAt){ e.startedAt=Date.now(); save(); } runTimer(t); },
  // Schnell-Timer: überall erreichbar, frei einstellbar
  quickTimer(){ const q=UI.quick||{n:8,work:30,rest:15,sets:1,rr:60,name:''}, n=(k,l,v)=>field(l,`<input name="${k}" inputmode="numeric" value="${v}" style="text-align:center;font-weight:700">`);
   sheet('Timer einstellen',`<div class="grid g3">${n('n','Intervalle',q.n)}${n('work','Belastung (s)',q.work)}${n('rest','Pause (s)',q.rest)}</div>
@@ -399,7 +409,7 @@ const A={
  // Intervall-Timer
  newTimer(){ const t={id:uid(),name:'Neuer Timer',rounds:3,prep:10,roundRest:60,steps:[mkStep('',40,20)]}; S.timers.push(t); save(); go('#/timer/'+t.id); },
  dupTimer(el){ const t=JSON.parse(JSON.stringify(timerById(el.dataset.id))); t.id=uid(); t.name+=' (Kopie)'; t.steps.forEach(x=>x.id=uid()); S.timers.push(t); save(); go('#/timer/'+t.id); },
- delTimer(el){ if(!confirm('Timer löschen?')) return; S.timers=S.timers.filter(t=>t.id!==el.dataset.id); save(); go('#/kraft'); },
+ delTimer(el){ if(!confirm('Timer löschen?')) return; S.timers=S.timers.filter(t=>t.id!==el.dataset.id); save(); go('#/inhalte'); },
  addStep(el){ const t=timerById(el.dataset.id), l=t.steps[t.steps.length-1]; t.steps.push(mkStep('',l?l.work:40,l?l.rest:20)); save(); render(); },
  delStep(el){ timerById(el.dataset.id).steps.splice(+el.dataset.i,1); save(); render(); },
  runTimer(el){ clearTimeout(saveT); save(); runTimer(timerById(el.dataset.id)); },
@@ -426,7 +436,7 @@ const A={
  selDay(el){ UI.sel=el.dataset.d===UI.sel?null:(el.dataset.d||null); if(UI.sel) UI.month=UI.sel.slice(0,7); render(); },
  month(el){ const [y,m]=UI.month.split('-').map(Number); const d=new Date(y,m-1+ +el.dataset.d,1); UI.month=iso(d).slice(0,7); UI.sel=null; render(); },
  filter(el){ UI.filter=el.dataset.v; render(); },
- ktab(el){ UI.kraftTab=el.dataset.v; if(route()[0]==='kraft') render(); },
+ ktab(el){ UI.kraftTab=el.dataset.v; if(route()[0]==='inhalte') render(); },
  range(el){ UI.range=el.dataset.v; render(); },
  theme(el){ S.settings.theme=el.dataset.v; applyTheme(); save(); render(); },
  // Training
@@ -463,12 +473,12 @@ const A={
  saveEx(){ const v=formVals($('#sheet')); if(!v.name.trim()) return toast('Bitte Namen eingeben');
   let e=exById(v.id); if(!e){ e={id:'c-'+uid(),custom:true}; S.exercises.push(e); }
   Object.assign(e,{name:v.name.trim(),cat:v.cat.trim()||'Eigene',mode:v.mode,orm:num(v.orm),note:v.note}); save(); toast('Übung gespeichert');
-  UI.pickTarget&&route()[0]!=='kraft'?pickSheet(UI.pickTarget):closeSheet(); },
+  UI.pickTarget&&route()[0]!=='inhalte'?pickSheet(UI.pickTarget):closeSheet(); },
  delEx(el){ if(!confirm('Übung aus der Bibliothek löschen? Bereits protokollierte Trainings bleiben erhalten.')) return; S.exercises=S.exercises.filter(e=>e.id!==el.dataset.id); save(); closeSheet(); },
  // Pläne
  newPlan(){ const p={id:uid(),name:'Neuer Plan',note:'',items:[]}; S.plans.push(p); save(); go('#/plan/'+p.id); },
  dupPlan(el){ const p=JSON.parse(JSON.stringify(planById(el.dataset.id))); p.id=uid(); p.name+=' (Kopie)'; p.items.forEach(i=>i.id=uid()); S.plans.push(p); save(); go('#/plan/'+p.id); },
- delPlan(el){ if(!confirm('Plan löschen?')) return; S.plans=S.plans.filter(p=>p.id!==el.dataset.id); save(); go('#/kraft'); },
+ delPlan(el){ if(!confirm('Plan löschen?')) return; S.plans=S.plans.filter(p=>p.id!==el.dataset.id); save(); go('#/inhalte'); },
  moveItem(el){ const a=planById(el.dataset.id).items, i=+el.dataset.i, j=i+ +el.dataset.d; if(j<0||j>=a.length) return; [a[i],a[j]]=[a[j],a[i]]; save(); render(); },
  delItem(el){ planById(el.dataset.id).items.splice(+el.dataset.i,1); save(); render(); },
  startPlan(el){ const p=planById(el.dataset.id); const e=newEntry({type:'kraft',title:p.name,items:itemsFromPlan(p),planId:p.id}); S.entries.push(e); save(); go('#/training/'+e.id); },
@@ -546,6 +556,7 @@ document.addEventListener('change',ev=>{
   const el=ev.target;
   if(el.dataset.bind){ clearTimeout(saveT); save(); if('rr' in el.dataset) render(); }
   if(el.dataset.file) readFiles(el);
+  if(el.dataset.in==='moveDate'&&el.value){ const e=entry(el.dataset.id); e.date=el.value; save(); closeSheet(); toast('Verschoben auf '+fdate(e.date)); }
 });
 document.addEventListener('submit',async ev=>{
   const f=ev.target; if(!f.dataset.form) return; ev.preventDefault();
