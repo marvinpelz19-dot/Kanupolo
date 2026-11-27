@@ -19,6 +19,9 @@ Alle Daten bleiben lokal im Browser (Backup-Export unter *Einstellungen*).
 ## Profile
 Beim Start wählt man ein Profil: das passwortgeschützte Profil von Marvin (mit Plänen, Turnieren, Trainer-Vorgaben) oder ein leeres Gastprofil mit der Übungsbibliothek. Beide speichern getrennt im Browser. Das Passwort ist eine Sperre auf dem Gerät, keine Verschlüsselung; mit `src/owner-lock.json` lässt es sich fest in den Build legen.
 
+## Für das Team
+Der Link mit `?team` am Ende öffnet direkt ein eigenes Profil ohne Konto: Beispielpläne für Einsteiger, Übungsbibliothek, Timer und ein kurzer Wissensbereich. Jedes Gerät speichert nur lokal; die Fotos und Pläne des persönlichen Trainers erscheinen dort nicht.
+
 ## Design
 Rot-weiß mit dem Wappen der Rothe Mühle (aus `maxi-paddel/assets/crest.json`), Überschriften in Barlow Condensed (OFL, eingebettet).
 

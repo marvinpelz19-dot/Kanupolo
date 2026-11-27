@@ -205,6 +205,14 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .exmini b{display:block}.exmini .tiny{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.exmini .grow{min-width:0}
 .backlink{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:.9rem;color:var(--muted)}
 @media(min-width:900px){.stick{top:60px;margin-left:0;margin-right:0;padding-left:0;padding-right:0}#top .clockbtn,#top a[href="#/stats"],#top a[href="#/mehr"]{display:none}}
+.know{margin-top:10px;padding:0}
+.know summary{display:flex;align-items:center;gap:12px;padding:14px 16px;min-height:64px}
+.know summary b{display:block;font-family:var(--display);font-size:1.25rem;line-height:1.15}
+.know .kn{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:1.1rem;flex:none}
+.know[open] .kn{background:var(--red);color:var(--on-red)}
+.know summary::after{content:"+";font-family:var(--display);font-size:1.6rem;color:var(--red);line-height:1}
+.know[open] summary::after{content:"–"}
+.kbody{padding:0 16px 14px;line-height:1.55}.kbody p{margin:0 0 10px}.kbody ul,.kbody ol{margin:0 0 10px;padding-left:1.25rem}.kbody li{margin-bottom:6px}
 /* Anstrengung */
 .rpe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rpe button{min-height:48px;font-family:var(--display);font-size:1.3rem;border-radius:10px;border:1px solid var(--rule);font-weight:600;background:color-mix(in srgb,var(--red) calc(var(--i)*7%),var(--card));transition:transform var(--micro) var(--ease-out)}
@@ -688,21 +696,106 @@ function wfLabel(ws){ const g=guideFor(ws), d=pdate(ws), mon=['January','Februar
 function wfGet(ws){ const w=S.weekly[ws]=S.weekly[ws]||{}; if(w.label==null) w.label=wfLabel(ws); w.scores=w.scores||{}; if(w.comments==null) w.comments=''; return w; }
 /* ---- Zustand ---- */
 let S;
-function guestState(){
-  return {version:1,seedV:99,
-    settings:{name:'',trainer:'',trainerPhone:'',trainerMail:'',lang:'de',theme:'light',goals:'',restDefault:90},
-    exercises:seedExercises(), plans:[], guides:[], entries:[], tournaments:[], weekly:{},
-    timers:[{id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}]};
-}
-function freshState(){
-  if(PROFILE==='guest') return guestState();
-  const exercises = seedExercises();
+/* ---- Beispielpläne für eigene Profile (Einsteiger, 18–22 Jahre) ---- */
+const H='Etwa 2 Wiederholungen in Reserve lassen (Anstrengung 7–8 von 10).';
+const GUEST_PLANS=[
+ {name:'Einsteiger · Ganzkörper A', note:'Für die ersten 8–12 Wochen, 2–3× pro Woche im Wechsel mit Ganzkörper B, dazwischen mindestens ein Tag Pause. Erst die Technik lernen, dann steigern: Schaffst du in allen Sätzen die obere Wiederholungszahl sauber, nimm beim nächsten Mal etwas mehr Gewicht. '+H, items:[
+  ['Goblet Squat',3,10,null,90,'Kurzhantel vor der Brust, Knie folgen den Fußspitzen, Rücken gerade','Beine'],
+  ['Romanian Deadlift',3,10,null,90,'Hüfte nach hinten schieben, Rücken gerade, Stange nah am Bein','Beine'],
+  ['Dumbbell Chest Press',3,10,null,90,'Schulterblätter zusammen, Hanteln kontrolliert senken','Drücken'],
+  ['Seated Cable Row',3,10,null,90,'Erst Schulterblätter zurück, dann Ellbogen eng zum Körper ziehen','Ziehen'],
+  ['Dumbbell Shoulder Press',2,10,null,90,'Rumpf fest, nicht ins Hohlkreuz ausweichen','Drücken'],
+  ['Face Pull',3,15,null,60,'Ausgleich für die Schulter: leicht, sauber, am Ende nach außen rotieren','Ausgleich'],
+  ['Plank',3,40,null,45,'Kopf bis Ferse eine Linie, Bauch und Gesäß fest','Rumpf','t']]},
+ {name:'Einsteiger · Ganzkörper B', note:'Gegenstück zu Ganzkörper A. Gleiche Regeln: saubere Technik, 2 Wiederholungen in Reserve, langsam steigern.', items:[
+  ['Trap Bar Deadlift',3,8,null,120,'Brust raus, Rücken gerade, aus den Beinen drücken. Ohne Trap Bar: Romanian Deadlift','Beine'],
+  ['Bulgarian Split Squat',3,8,null,90,'8 Wdh. je Bein, hinteren Fuß auf die Bank, Oberkörper aufrecht','Beine'],
+  ['Push-Up',3,10,null,90,'Körper wie ein Brett. Zu schwer: Hände erhöht. Zu leicht: Füße erhöht','Drücken'],
+  ['Lat Pulldown',3,10,null,90,'Zur oberen Brust ziehen, Schultern weg von den Ohren','Ziehen'],
+  ['Dumbbell Row',3,10,null,60,'10 Wdh. je Seite, Rücken gerade, Ellbogen nah am Körper','Ziehen'],
+  ['External Rotator (rotator cuff)',3,15,null,45,'Ausgleich: Ellbogen am Körper, sehr leichtes Gewicht oder Band','Ausgleich'],
+  ['Dead Bug',3,10,null,45,'Lendenwirbelsäule bleibt am Boden, langsam bewegen','Rumpf','r'],
+  ['Side Plank',3,30,null,30,'30 s je Seite, Hüfte hoch','Rumpf','t']]},
+ {name:'Muskelaufbau · Oberkörper', note:'Für alle, die die Grundübungen sicher beherrschen. Drücken und Ziehen sind gleich stark vertreten, am Ende Ausgleich für die Schulter. 6–12 Wiederholungen, 60–120 s Pause, jede Muskelgruppe 2× pro Woche. '+H, items:[
+  ['Bench Press',4,8,null,120,'Bei schweren Sätzen mit Sicherung oder in der Ablage','Drücken'],
+  ['Barbell Row (Bent-Over Row)',4,8,null,120,'Rücken gerade, Stange zum Bauchnabel','Ziehen'],
+  ['Dumbbell Shoulder Press',3,10,null,90,'','Drücken'],
+  ['Lat Pulldown',3,10,null,90,'Oder Klimmzüge, wenn 8 saubere gehen','Ziehen'],
+  ['Triceps Pushdown',2,12,null,60,'','Arme'],
+  ['Hammer Curl',2,12,null,60,'','Arme'],
+  ['Face Pull',3,15,null,60,'Ausgleich: hintere Schulter und Außenrotatoren','Ausgleich'],
+  ['External Rotator (rotator cuff)',2,15,null,45,'Leicht und kontrolliert','Ausgleich']]},
+ {name:'Muskelaufbau · Unterkörper und Rumpf', note:'Zweiter Tag zum Oberkörper-Plan. Kraft aus Beinen und Rumpf überträgt sich im Boot auf jeden Schlag und jeden Wurf.', items:[
+  ['Back Squat',4,8,null,120,'Tiefe nur so weit, wie der Rücken gerade bleibt','Beine'],
+  ['Romanian Deadlift',3,10,null,120,'','Beine'],
+  ['Reverse Lunge',3,10,null,90,'10 Wdh. je Bein','Beine'],
+  ['Hip Thrust',3,10,null,90,'Oben kurz halten, Gesäß anspannen','Beine'],
+  ['Calf Raise',3,12,null,60,'','Beine'],
+  ['Pallof Press',3,10,null,45,'10 Wdh. je Seite: Rumpf hält gegen die Drehung, wie im Zweikampf','Rumpf'],
+  ['Knee Raise',3,10,null,60,'Im Hang, ohne Schwung','Rumpf','r'],
+  ['Back Extension (on bench)',3,12,null,60,'Unterer Rücken, langsam und ohne Überstrecken','Rumpf','r']]},
+ {name:'Ausgleich · Schulter und Rumpf (20 min)', note:'Kurzes Programm für gesunde Schultern, 2–3× pro Woche, auch nach dem Wassertraining oder zu Hause mit Band. Paddeln und Werfen stärken vor allem die ziehenden und nach innen drehenden Muskeln. Diese Übungen trainieren die Gegenspieler. Leicht, langsam, sauber.', items:[
+  ['External Rotator (rotator cuff)',3,15,null,30,'Je Seite, Ellbogen am Körper','Schulter'],
+  ['Internal Rotator (rotator cuff)',2,15,null,30,'Je Seite, nur leicht','Schulter'],
+  ['Face Pull',3,15,null,45,'','Schulter'],
+  ['Rear Delt Fly',3,12,null,45,'Leichte Hanteln, Schultern tief','Schulter'],
+  ['Bird Dog',3,8,null,30,'8 Wdh. je Seite, Becken bleibt ruhig','Rumpf','r'],
+  ['Side Plank',3,30,null,30,'30 s je Seite','Rumpf','t'],
+  ['Dead Bug',3,10,null,30,'','Rumpf','r']]},
+ {name:'TRX · Grundlagen-Zirkel', note:'6 Übungen im Kreis, 40 s Belastung und 20 s Wechsel, 3 Runden, 2 min Pause zwischen den Runden. Je schräger der Körper, desto schwerer. Über „Ganzen Zirkel mit Timer starten“ läuft alles automatisch.', items:
+  [['TRX Squat','Band mittel'],['TRX Row','Band mittel'],['TRX Chest Press','Band lang'],['TRX Hamstring Curl','Band lang, Fersen in den Schlaufen'],['TRX Plank','Band lang, Füße in den Schlaufen'],['TRX Y Raise','Band mittel, wenig Schräglage']].map(([n,c],i,a)=>[n,3,40,null,i===a.length-1?120:20,c,'','t'])},
+ {name:'Explosiv · Wurfkraft mit Medizinball', note:'Für Schnellkraft: wenige, maximal schnelle Wiederholungen und lange Pausen. Nur ausgeruht trainieren, am besten zu Beginn einer Einheit nach dem Aufwärmen. Ball 2–4 kg. Qualität geht vor Menge: Wird die Bewegung langsamer, ist der Satz vorbei.', items:[
+  ['Box Jump',4,5,null,90,'Leise landen, herunter steigen statt springen','Sprung','r'],
+  ['MB Chest Pass',4,6,null,90,'Explosiv gegen die Wand oder zum Partner','Wurf','r'],
+  ['MB Rotational Throw',4,6,null,90,'6 Würfe je Seite, die Kraft kommt aus Hüfte und Rumpf','Wurf','r'],
+  ['MB Slam',4,6,null,90,'Ganzkörper-Streckung, dann mit voller Kraft auf den Boden','Wurf','r']]}];
+const WISSEN=[
+ {t:'So startest du',s:'In vier Schritten zur ersten eigenen Trainingswoche',b:[
+  ['p','Die App speichert alles nur auf deinem Gerät. Es gibt kein Konto, niemand sieht deine Einträge.'],
+  ['ol',['Unter Training → Alle Trainingsinhalte findest du Beispielpläne. Öffne einen und tippe auf „Jetzt trainieren“.','Im Training hakst du jeden Satz ab und trägst Gewicht und Wiederholungen ein. Der Pausen-Timer startet von selbst.','Plane deine Woche: Training → Diese Woche → Einheit hinzufügen. Per Tipp auf das Datum verschiebst du eine Einheit.','Trag nach jedem Training die Anstrengung (1–10) ein. In der Statistik siehst du, wie du dich entwickelst.']],
+  ['p','Eigene Übungen und Pläne kannst du jederzeit ergänzen. Über Einstellungen → Backup sicherst du deine Daten.']]},
+ {t:'Was im Jahr wann zählt',s:'Die Phasen einer Kanupolo-Saison',b:[
+  ['p','Nicht alles lässt sich gleichzeitig verbessern. Deshalb hat jede Phase einen Schwerpunkt.'],
+  ['ul',['Herbst bis Jahresende, Aufbau: Technik im Kraftraum lernen, Muskeln aufbauen, Grundlagenausdauer, viel Ballgefühl und Paddeltechnik.','Januar bis März, Kraft und Schnellkraft: schwerere Lasten mit wenigen Wiederholungen, danach explosive Übungen und Sprints im Boot.','Saison, Erhalt: 1–2 kurze Krafteinheiten pro Woche reichen, um das Niveau zu halten. Am Spieltag sollst du frisch sein.','Nach der Saison, Übergang: 2–4 Wochen locker bewegen, andere Sportarten, Kopf frei bekommen.']],
+  ['p','Mit 18 bis 22 lohnt sich der Aufbau besonders: Der Körper reagiert in diesem Alter stark auf Krafttraining, und saubere Technik hält ein Sportlerleben lang.']]},
+ {t:'Muskelaufbau: die fünf Stellschrauben',s:'Was wirklich zählt, wenn du stärker und kräftiger werden willst',b:[
+  ['ol',['Nah an die Grenze: Die letzten Wiederholungen eines Satzes müssen schwer sein. Lass etwa 1–3 Wiederholungen in Reserve.','Genug Sätze: Als Einsteiger etwa 6–10 harte Sätze pro Muskelgruppe und Woche, später mehr.','Regelmäßig: Jede Muskelgruppe zweimal pro Woche bringt mehr als einmal sehr viel.','Steigern: Schaffst du die obere Wiederholungszahl in allen Sätzen sauber, erhöhe das Gewicht um den kleinsten Schritt.','Erholen: Muskeln wachsen in der Pause. Schlaf (8 Stunden und mehr) und genug Eiweiß (etwa 1,6–2,2 g pro kg Körpergewicht am Tag) gehören dazu.']],
+  ['p','Der Wiederholungsbereich ist dabei weniger wichtig als oft gedacht: 6 bis 15 Wiederholungen funktionieren gut, solange der Satz anstrengend ist. In den ersten Wochen wirst du vor allem deshalb stärker, weil Nerven und Muskeln besser zusammenarbeiten. Sichtbarer Muskelaufbau braucht einige Wochen Geduld.']]},
+ {t:'Warum Ausgleichsübungen?',s:'Gesunde Schultern für Paddler und Werfer',b:[
+  ['p','Paddeln und Werfen beanspruchen immer wieder dieselben Muskeln: Latissimus, Brust und die Muskeln, die den Arm nach innen drehen. Sie werden stark und oft auch kurz. Ihre Gegenspieler bekommen im Sport selbst wenig ab: die Außenrotatoren der Schulter, die hintere Schulter und die Muskeln zwischen den Schulterblättern.'],
+  ['p','Wird dieser Unterschied zu groß, sitzt der Oberarmkopf schlechter im Gelenk. Das ist eine häufige Ursache für Schulterbeschwerden in Wurf- und Paddelsportarten.'],
+  ['ul',['In jede Krafteinheit 1–2 Ausgleichsübungen einbauen, zum Beispiel Face Pull und Außenrotation.','Leichte Last, 12–20 saubere Wiederholungen. Es geht um Kontrolle, nicht um Gewicht.','Drücken und Ziehen im Kraftraum in ähnlichem Umfang trainieren.','Den Rumpf in beide Richtungen kräftigen, auch gegen die Drehung (Pallof Press, Side Plank).']],
+  ['p','Der Plan „Ausgleich · Schulter und Rumpf“ fasst das in 20 Minuten zusammen.']]},
+ {t:'Technik, Aufwärmen, Sicherheit',s:'Damit Training stärker macht und nicht verletzt',b:[
+  ['ul',['Aufwärmen: 5–10 Minuten locker bewegen, dann 1–2 leichte Aufwärmsätze der ersten Übung.','Technik vor Gewicht: Eine neue Übung zuerst mit wenig Last lernen, am besten zeigt sie dir jemand Erfahrenes.','Schwere Sätze beim Bankdrücken und bei Kniebeugen nur mit Sicherung oder in der Ablage.','Anstrengung ist gewollt, Schmerz nicht: Bei stechendem oder plötzlichem Schmerz den Satz abbrechen.','Die App ersetzt keinen Trainer und keinen Arzt. Bei Beschwerden oder nach Verletzungen vorher abklären lassen.']]]},
+ {t:'Belastung und Erholung steuern',s:'Anstrengung 1 bis 10, Pausentage und leichte Wochen',b:[
+  ['p','Trag nach jeder Einheit ein, wie anstrengend sie war. 1 ist sehr leicht, 10 ist alles gegeben. Die meisten Krafteinheiten sollten bei 7–8 liegen.'],
+  ['ul',['Dieselbe Muskelgruppe braucht nach einer harten Einheit etwa 48 Stunden.','Polo-Training und Spiele haben Vorrang. Vor einem Turnier das Krafttraining reduzieren, nicht streichen.','Alle 4–6 Wochen eine leichtere Woche einplanen: gleiche Übungen, etwa halb so viele Sätze.','Warnzeichen für zu viel: schlechter Schlaf, anhaltende Müdigkeit, sinkende Leistung, wenig Lust. Dann zwei, drei Tage rausnehmen.']],
+  ['p','In der Statistik siehst du Minuten und Belastung pro Woche. Steigere von Woche zu Woche in kleinen Schritten statt in Sprüngen.']]},
+ {t:'Beispielwoche für Einsteiger',s:'So passen Kraft, Wasser und Erholung zusammen',b:[
+  ['ul',['Montag: Ganzkörper A','Dienstag: Wassertraining','Mittwoch: Ausgleich Schulter und Rumpf (20 min) oder frei','Donnerstag: Ganzkörper B','Freitag: Wassertraining','Samstag: locker laufen oder Rad, 30–45 min, oder Spiel','Sonntag: frei']],
+  ['p','Zwei Krafteinheiten pro Woche reichen am Anfang völlig. Wer nach 8–12 Wochen mehr möchte, wechselt auf die Muskelaufbau-Pläne für Ober- und Unterkörper.']]}];
+function mkPlans(defs,exercises){
   const byName = Object.fromEntries(exercises.map(e=>[e.name,e]));
-  const plans = SEED_PLANS.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme,tm,weight])=>{
+  return defs.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme,tm,weight])=>{
     const ex=byName[n]; if(!ex) console.warn('Seed: Übung fehlt',n);
     const m=mode||ex.mode;
     return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:weight||null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{}),...(tm?{tm}:{})};
   })}));
+}
+function guestState(){
+  const exercises=seedExercises();
+  return {version:1,seedV:99,gV:1,
+    settings:{name:'',trainer:'',trainerPhone:'',trainerMail:'',lang:'de',theme:'light',goals:'',restDefault:90},
+    exercises, plans:mkPlans(GUEST_PLANS,exercises), guides:[], entries:[], tournaments:[], weekly:{},
+    timers:[{id:uid(),name:'Zirkel · 6 Übungen, 40/20, 3 Runden',rounds:3,prep:10,roundRest:120,steps:Array.from({length:6},(_,i)=>mkStep('Übung '+(i+1),40,20))},
+      {id:uid(),name:'Jede Minute · 10 Runden',rounds:10,prep:10,roundRest:40,steps:[mkStep('Belastung',20,0)]},
+      {id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}]};
+}
+function freshState(){
+  if(PROFILE==='guest') return guestState();
+  const exercises = seedExercises();
+  const plans = mkPlans(SEED_PLANS,exercises);
   const st={version:1,seedV:10,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
     exercises, plans, guides:[...SEED_GUIDES,...DEC_GUIDES].map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments(), weekly:{}};
@@ -745,6 +838,12 @@ function migrate(){
   const f=freshState();
   for(const k of ['settings','exercises','plans','guides','timers','entries','tournaments','weekly']) if(S[k]==null) S[k]=f[k];
   S.settings={...f.settings,...S.settings};
+  if(PROFILE==='guest'&&(S.gV||0)<1){ // Beispielpläne und Timer für bestehende eigene Profile nachreichen
+    for(const x of f.exercises) if(!S.exercises.some(e=>e.name===x.name)) S.exercises.push(x);
+    for(const pl of f.plans) if(!S.plans.some(x=>x.name===pl.name)){ pl.items.forEach(it=>{ const ex=S.exercises.find(e=>e.name===it.name); if(ex) it.exId=ex.id; }); S.plans.push(pl); }
+    for(const t of f.timers) if(!S.timers.some(x=>x.name===t.name)) S.timers.push(t);
+    S.gV=1; save();
+  }
   if(PROFILE!=='owner') return;
   if((S.seedV||1)<2){ // neuer TRX-Zirkel Woche 2: Plan, Timer und Training für den 13.11.
     const up=(list,name)=>{ const n=f[list].find(x=>x.name===name), i=S[list].findIndex(x=>x.name===name); if(i>=0){ n.id=S[list][i].id; S[list][i]=n; } else S[list].push(n); };
@@ -932,6 +1031,12 @@ heute(){
       if(!S.settings.trainer) return '';
       return `<a class="item" style="margin-top:12px;--c:var(--ink)" href="#/feedback/${ws}"><div class="grow"><div class="ttl">Wochen-Feedback${S.settings.trainer?' für '+esc(S.settings.trainer):''}</div><div class="small muted">${n===WF.length?'Ausgefüllt, bereit zum Senden':n?n+' von '+WF.length+' bewertet':'5 Bewertungen von 1 bis 5, als PDF senden'}</div></div>${n===WF.length?`<span class="tick">${ic('check')}</span>`:ic('right')}</a>`; })()}
    ${g?`<div class="sec"><h2>Diese Woche von ${esc(S.settings.trainer)}</h2></div>${guideCard(g)}`:''}
+   ${PROFILE==='guest'&&!S.settings.hideIntro?`<div class="sec"><h2>So startest du</h2><button class="small muted" data-a="hideIntro">Ausblenden</button></div>
+   <div class="tiles">
+    <a class="tile" href="#/inhalte" data-a="ktab" data-v="plaene"><span class="ico t-kraft">${ic('dumbbell')}</span><span class="grow"><b>Beispielpläne ansehen</b><span class="small muted">${S.plans.length} Pläne für Einsteiger, Muskelaufbau, Ausgleich, TRX</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/woche/${ws}"><span class="ico">${ic('calendar')}</span><span class="grow"><b>Meine Woche planen</b><span class="small muted">Einheiten anlegen und per Tipp aufs Datum verschieben</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen in fünf Minuten</b><span class="small muted">Was wann wichtig ist und warum Ausgleich zählt</span></span>${ic('right','sm')}</a>
+   </div>`:''}
    ${weekBlock(ws,'Diese Woche')}
    ${S.entries.some(e=>e.date>we&&e.date<=addDays(we,7))?weekBlock(addDays(ws,7),'Nächste Woche'):''}
    ${nt?`<div class="sec"><h2>Nächster Termin</h2><a class="small muted" href="#/turniere">Alle Turniere</a></div>${tournItem(nt)}`:''}`;
@@ -1014,6 +1119,7 @@ kraft(){
    <div class="sec"><h2>Alles Weitere</h2></div>
    <div class="tiles">
     <a class="tile" href="#/inhalte"><span class="ico">${ic('dumbbell')}</span><span class="grow"><b>Alle Trainingsinhalte</b><span class="small muted">${S.plans.length} Pläne, ${S.exercises.length} Übungen, ${S.timers.length} Timer, Monatsplan</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen</b><span class="small muted">Trainingslehre kurz erklärt: Phasen, Muskelaufbau, Ausgleich</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/historie"><span class="ico">${ic('list')}</span><span class="grow"><b>Historie</b><span class="small muted">${hist} absolvierte Einheiten</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/feedback/${ws}"><span class="ico">${ic('check')}</span><span class="grow"><b>Wochen-Feedback</b><span class="small muted">Bewertung 1 bis 5 als PDF${S.settings.trainer?' für '+esc(S.settings.trainer):''}</span></span>${ic('right','sm')}</a>
    </div>`;
@@ -1116,6 +1222,14 @@ feedback(ws){
    <div class="sec"><h2>Einheiten dieser Woche</h2></div>
    ${E.map(entryItem).join('')||`<div class="empty">Keine Einheiten in dieser Woche.</div>`}`;
 },
+wissen(){
+  const el=([k,v])=>k==='p'?`<p>${esc(v)}</p>`:`<${k}>${v.map(x=>`<li>${esc(x)}</li>`).join('')}</${k}>`;
+  return `<div class="row" style="margin-bottom:6px"><a class="iconbtn" href="#/kraft" data-a="back" aria-label="Zurück">${ic('back')}</a><h1 class="grow" style="font-size:1.9rem">Wissen</h1></div>
+   <p class="muted" style="margin:0 0 12px">Trainingslehre kurz erklärt, für Kanupolo-Spielerinnen und -Spieler am Anfang ihres Krafttrainings.</p>
+   ${WISSEN.map((w,i)=>`<details class="card know" ${i===0&&PROFILE==='guest'&&!S.entries.length?'open':''}><summary><span class="kn">${i+1}</span><span class="grow"><b>${esc(w.t)}</b><span class="small muted">${esc(w.s)}</span></span></summary><div class="kbody">${w.b.map(el).join('')}</div></details>`).join('')}
+   <p class="tiny muted" style="margin-top:16px">Die Hinweise folgen gängigen Empfehlungen der Trainingslehre und ersetzen keine persönliche Betreuung durch Trainer, Physiotherapie oder Arzt.</p>
+   <a class="btn pri block" style="margin-top:12px" href="#/inhalte" data-a="ktab" data-v="plaene">${ic('dumbbell','sm')}Zu den Plänen</a>`;
+},
 /* ---------- Turniere ---------- */
 turniere(){
   const t=today(); const list=[...S.tournaments].sort((a,b)=>a.from.localeCompare(b.from));
@@ -1210,8 +1324,8 @@ mehr(){
   const s=S.settings, b='settings';
   return `<h1>Einstellungen & Daten</h1>
    <div class="sec"><h2>Profil</h2></div>
-   <div class="card"><div class="row">${ic(PROFILE==='owner'?'lock':'user')}<div class="grow"><b>${PROFILE==='owner'?OWNER_NAME:'Gastprofil'}</b><div class="small muted">${PROFILE==='owner'?'Mein Profil, mit Passwort geschützt':'Leere Version, Daten nur auf diesem Gerät'}</div></div></div>
-     <div class="row wrap" style="margin-top:12px"><button class="btn sm" data-a="logout">${ic('logout','sm')}Abmelden / Profil wechseln</button>${PROFILE==='owner'&&!OWNER_LOCK?`<button class="btn sm" data-a="pwSheet">${ic('lock','sm')}Passwort ändern</button><button class="btn sm" data-a="copyLock">Passwort-Code kopieren</button>`:''}</div></div>
+   <div class="card"><div class="row">${ic(PROFILE==='owner'?'lock':'user')}<div class="grow"><b>${PROFILE==='owner'?OWNER_NAME:(S.settings.name?esc(S.settings.name)+' · eigenes Profil':'Eigenes Profil')}</b><div class="small muted">${PROFILE==='owner'?'Mein Profil, mit Passwort geschützt':'Kein Konto nötig, alle Daten bleiben auf diesem Gerät'}</div></div></div>
+     <div class="row wrap" style="margin-top:12px"><button class="btn sm" data-a="logout">${ic('logout','sm')}Abmelden / Profil wechseln</button><button class="btn sm" data-a="teamLink">${ic('share','sm')}App-Link fürs Team teilen</button>${PROFILE==='owner'&&!OWNER_LOCK?`<button class="btn sm" data-a="pwSheet">${ic('lock','sm')}Passwort ändern</button><button class="btn sm" data-a="copyLock">Passwort-Code kopieren</button>`:''}</div></div>
    <div class="sec"><h2>Profil & Trainer</h2></div>
    <div class="card"><div class="grid g2">${field('Mein Name',inp(b+'/name',s.name))}${field('Trainer',inp(b+'/trainer',s.trainer))}${field('WhatsApp-Nr. Trainer (mit +Land)',inp(b+'/trainerPhone',s.trainerPhone,'placeholder="+33…" inputmode="tel"'))}${field('E-Mail Trainer',inp(b+'/trainerMail',s.trainerMail,'type="email"'))}
      ${field('Sprache für Feedback',`<select data-bind="${b}/lang"><option value="en" ${s.lang==='en'?'selected':''}>English</option><option value="fr" ${s.lang==='fr'?'selected':''}>Français</option><option value="de" ${s.lang==='de'?'selected':''}>Deutsch</option></select>`)}${field('Standard-Pause (Sek.)',numinp(b+'/restDefault',s.restDefault))}</div>
@@ -1241,7 +1355,7 @@ function weekBlock(ws,title){
   const E=S.entries.filter(e=>e.date>=ws&&e.date<=addDays(ws,6));
   return `<div class="sec"><h2>${title}</h2><a class="small muted" href="#/woche/${ws}">${E.filter(e=>e.done).length} von ${E.length} erledigt · öffnen</a></div><div class="card week">${h}</div>`;
 }
-const exImg=n=>EX_IMG[n]?`<img class="eximg ${EX_ILL.includes(n)?'ill':''}" src="${EX_IMG[n]}" alt="${EX_ILL.includes(n)?'Zeichnung':'Start- und Endposition'}: ${esc(n)}" loading="lazy">`:'';
+const exImg=n=>PROFILE==='owner'&&EX_IMG[n]?`<img class="eximg ${EX_ILL.includes(n)?'ill':''}" src="${EX_IMG[n]}" alt="${EX_ILL.includes(n)?'Zeichnung':'Start- und Endposition'}: ${esc(n)}" loading="lazy">`:'';
 const exTips=ex=>ex&&ex.note?`<details class="tips"><summary>Tipps zur Ausführung</summary><p>${esc(ex.note)}</p></details>`:'';
 const byDate=(a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''));
 const notFound=()=>`<div class="empty">Eintrag nicht gefunden. <a href="#/heute"><u>Zur Übersicht</u></a></div>`;
@@ -1301,7 +1415,7 @@ function lineChart(pts,unit){
 }
 
 /* ============ PoloLog – Router, Aktionen, Export/Import ============ */
-const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
+const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',wissen:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
 const NAV=[['heute','Heute','home'],['saison','Saison','calendar'],['kraft','Training','dumbbell'],['turniere','Turniere','trophy'],['stats','Statistik','chart']];
 let lastRoute='';
 function route(){ const p=(location.hash||'#/heute').slice(2).split('/'); return views[p[0]]?p:['heute']; }
@@ -1634,7 +1748,8 @@ function gate(html){ $('#gate').innerHTML=`<div class="gatebox">${crestSvg('gcre
 function gateHome(){
   gate(`<p class="muted">Wer trainiert?</p><div class="tiles">
    <button class="tile pri" data-a="gateOwner"><span class="ico">${ic('lock')}</span><span class="grow"><b>${OWNER_NAME}</b><span class="small muted">Mein Profil mit Plänen, Turnieren und Vorgaben</span></span>${ic('right','sm')}</button>
-   <button class="tile" data-a="gateGuest"><span class="ico">${ic('user')}</span><span class="grow"><b>Gastprofil</b><span class="small muted">Leere Version zum Selbstplanen, alle Übungen inklusive</span></span>${ic('right','sm')}</button></div>`);
+   <button class="tile" data-a="gateGuest"><span class="ico">${ic('user')}</span><span class="grow"><b>Eigenes Profil</b><span class="small muted">Eigene Trainings planen, Beispielpläne, Timer und Wissen. Ohne Konto</span></span>${ic('right','sm')}</button></div>
+   <p class="small muted" style="margin-top:16px">Alles, was du einträgst, bleibt auf diesem Gerät. Niemand sonst kann es sehen.</p>`);
 }
 function gateLogin(msg){
   const has=!!lockGet();
@@ -1653,10 +1768,17 @@ async function doLogin(form){
   else { if(v.pw1.length<4) return gateLogin('Mindestens 4 Zeichen.'); if(v.pw1!==v.pw2) return gateLogin('Die beiden Eingaben sind verschieden.'); await lockSet(v.pw1); }
   startApp('owner');
 }
-function startApp(profile){
+function startApp(profile,keepRoute){
   PROFILE=profile; KEY=KEYS[profile]; ls.set(SESSION,profile);
   load(); applyTheme(); buildNav(); $('#gate').classList.remove('on'); $('#gate').innerHTML='';
-  lastRoute=''; if(location.hash&&location.hash!=='#/heute') location.hash='#/heute'; else render();
+  lastRoute=''; if(!keepRoute&&location.hash&&location.hash!=='#/heute') location.hash='#/heute'; else render();
+  if(profile==='guest'&&!S.settings.onboarded) setTimeout(welcomeSheet,250);
+}
+function welcomeSheet(){
+  sheet('Willkommen bei PoloLog',`<form data-form="welcome"><p style="margin-top:0">Dein Trainingsplaner für Kraft, Wasser und Turniere. Du brauchst kein Konto: Alles bleibt auf diesem Gerät.</p>
+   ${field('Wie heißt du?','<input name="name" autocomplete="given-name" placeholder="Vorname">')}
+   <ul class="small muted" style="padding-left:1.1rem;margin:4px 0 14px"><li>Fertige Beispielpläne für den Einstieg</li><li>Über 200 Übungen, eigene lassen sich ergänzen</li><li>Timer für Sätze, Pausen und Zirkel</li><li>Kurzes Wissen zur Trainingslehre</li></ul>
+   <button class="btn pri lg block" type="submit">Los geht's</button></form>`);
 }
 
 /* ---- Aktionen ---- */
@@ -1664,6 +1786,10 @@ const A={
  closeSheet,
  back(el,ev){ if(UI.depth>0){ ev.preventDefault(); history.back(); } },
  openEx(el){ UI.openEx[el.dataset.it]=true; render(); },
+ hideIntro(){ S.settings.hideIntro=true; save(); render(); },
+ teamLink(){ const url=location.origin+location.pathname+'?team', text='PoloLog: Trainingsplaner für Kraft, Wasser und Turniere. Einfach öffnen, kein Konto nötig, alles bleibt auf deinem Handy.';
+  if(!location.protocol.startsWith('http')) return toast('Der Link funktioniert nur aus der Online-Version der App');
+  navigator.share?navigator.share({title:'PoloLog',text,url}).catch(()=>{}):copyText(text+' '+url); },
  gateOwner(){ gateLogin(); }, gateGuest(){ startApp('guest'); }, gateBack(){ gateHome(); },
  logout(){ clearTimeout(saveT); save(); ls.del(SESSION); stopRest(); S=null; $('#sheet').classList.remove('on'); $('#view').innerHTML=''; gateHome(); },
  pwSheet(){ sheet('Passwort ändern',`<form data-form="newpw">${field('Neues Passwort','<input name="pw1" type="password" autocomplete="new-password" required minlength="4">')}${field('Wiederholen','<input name="pw2" type="password" autocomplete="new-password" required minlength="4">')}<button class="btn pri block" type="submit">Speichern</button></form>`); },
@@ -1866,6 +1992,7 @@ document.addEventListener('change',ev=>{
 document.addEventListener('submit',async ev=>{
   const f=ev.target; if(!f.dataset.form) return; ev.preventDefault();
   if(f.dataset.form==='login') return doLogin(f);
+  if(f.dataset.form==='welcome'){ S.settings.name=formVals(f).name.trim(); S.settings.onboarded=true; save(); return closeSheet(); }
   if(f.dataset.form==='newpw'){ const v=formVals(f); if(v.pw1.length<4||v.pw1!==v.pw2) return toast('Eingaben prüfen: gleich und mindestens 4 Zeichen'); await lockSet(v.pw1); closeSheet(); toast('Passwort geändert'); }
 });
 window.addEventListener('pagehide',()=>{ clearTimeout(saveT); save(); });
@@ -1885,7 +2012,8 @@ window.addEventListener('hashchange',()=>{ UI.depth=(UI.depth||0)+1; if($('#shee
 window.addEventListener('afterprint',()=>{ $('#print').innerHTML=''; });
 { // Start: gemerktes Profil öffnen, sonst Profilauswahl
   const sess=ls.get(SESSION);
-  if(sess==='guest'||(sess==='owner'&&lockGet())) startApp(sess); else gateHome();
+  const team=/[?&](team|gast)\b/.test(location.search);
+  if(sess==='guest'||(sess==='owner'&&lockGet())) startApp(sess,true); else if(team) startApp('guest'); else gateHome();
 }
 if(location.protocol.startsWith('http')){ // als App installierbar, wenn die Seite gehostet ist
   const add=(rel,href)=>{ const l=document.createElement('link'); l.rel=rel; l.href=href; document.head.appendChild(l); };

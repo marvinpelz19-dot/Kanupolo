@@ -51,6 +51,12 @@ heute(){
       if(!S.settings.trainer) return '';
       return `<a class="item" style="margin-top:12px;--c:var(--ink)" href="#/feedback/${ws}"><div class="grow"><div class="ttl">Wochen-Feedback${S.settings.trainer?' für '+esc(S.settings.trainer):''}</div><div class="small muted">${n===WF.length?'Ausgefüllt, bereit zum Senden':n?n+' von '+WF.length+' bewertet':'5 Bewertungen von 1 bis 5, als PDF senden'}</div></div>${n===WF.length?`<span class="tick">${ic('check')}</span>`:ic('right')}</a>`; })()}
    ${g?`<div class="sec"><h2>Diese Woche von ${esc(S.settings.trainer)}</h2></div>${guideCard(g)}`:''}
+   ${PROFILE==='guest'&&!S.settings.hideIntro?`<div class="sec"><h2>So startest du</h2><button class="small muted" data-a="hideIntro">Ausblenden</button></div>
+   <div class="tiles">
+    <a class="tile" href="#/inhalte" data-a="ktab" data-v="plaene"><span class="ico t-kraft">${ic('dumbbell')}</span><span class="grow"><b>Beispielpläne ansehen</b><span class="small muted">${S.plans.length} Pläne für Einsteiger, Muskelaufbau, Ausgleich, TRX</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/woche/${ws}"><span class="ico">${ic('calendar')}</span><span class="grow"><b>Meine Woche planen</b><span class="small muted">Einheiten anlegen und per Tipp aufs Datum verschieben</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen in fünf Minuten</b><span class="small muted">Was wann wichtig ist und warum Ausgleich zählt</span></span>${ic('right','sm')}</a>
+   </div>`:''}
    ${weekBlock(ws,'Diese Woche')}
    ${S.entries.some(e=>e.date>we&&e.date<=addDays(we,7))?weekBlock(addDays(ws,7),'Nächste Woche'):''}
    ${nt?`<div class="sec"><h2>Nächster Termin</h2><a class="small muted" href="#/turniere">Alle Turniere</a></div>${tournItem(nt)}`:''}`;
@@ -133,6 +139,7 @@ kraft(){
    <div class="sec"><h2>Alles Weitere</h2></div>
    <div class="tiles">
     <a class="tile" href="#/inhalte"><span class="ico">${ic('dumbbell')}</span><span class="grow"><b>Alle Trainingsinhalte</b><span class="small muted">${S.plans.length} Pläne, ${S.exercises.length} Übungen, ${S.timers.length} Timer, Monatsplan</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen</b><span class="small muted">Trainingslehre kurz erklärt: Phasen, Muskelaufbau, Ausgleich</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/historie"><span class="ico">${ic('list')}</span><span class="grow"><b>Historie</b><span class="small muted">${hist} absolvierte Einheiten</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/feedback/${ws}"><span class="ico">${ic('check')}</span><span class="grow"><b>Wochen-Feedback</b><span class="small muted">Bewertung 1 bis 5 als PDF${S.settings.trainer?' für '+esc(S.settings.trainer):''}</span></span>${ic('right','sm')}</a>
    </div>`;
@@ -235,6 +242,14 @@ feedback(ws){
    <div class="sec"><h2>Einheiten dieser Woche</h2></div>
    ${E.map(entryItem).join('')||`<div class="empty">Keine Einheiten in dieser Woche.</div>`}`;
 },
+wissen(){
+  const el=([k,v])=>k==='p'?`<p>${esc(v)}</p>`:`<${k}>${v.map(x=>`<li>${esc(x)}</li>`).join('')}</${k}>`;
+  return `<div class="row" style="margin-bottom:6px"><a class="iconbtn" href="#/kraft" data-a="back" aria-label="Zurück">${ic('back')}</a><h1 class="grow" style="font-size:1.9rem">Wissen</h1></div>
+   <p class="muted" style="margin:0 0 12px">Trainingslehre kurz erklärt, für Kanupolo-Spielerinnen und -Spieler am Anfang ihres Krafttrainings.</p>
+   ${WISSEN.map((w,i)=>`<details class="card know" ${i===0&&PROFILE==='guest'&&!S.entries.length?'open':''}><summary><span class="kn">${i+1}</span><span class="grow"><b>${esc(w.t)}</b><span class="small muted">${esc(w.s)}</span></span></summary><div class="kbody">${w.b.map(el).join('')}</div></details>`).join('')}
+   <p class="tiny muted" style="margin-top:16px">Die Hinweise folgen gängigen Empfehlungen der Trainingslehre und ersetzen keine persönliche Betreuung durch Trainer, Physiotherapie oder Arzt.</p>
+   <a class="btn pri block" style="margin-top:12px" href="#/inhalte" data-a="ktab" data-v="plaene">${ic('dumbbell','sm')}Zu den Plänen</a>`;
+},
 /* ---------- Turniere ---------- */
 turniere(){
   const t=today(); const list=[...S.tournaments].sort((a,b)=>a.from.localeCompare(b.from));
@@ -329,8 +344,8 @@ mehr(){
   const s=S.settings, b='settings';
   return `<h1>Einstellungen & Daten</h1>
    <div class="sec"><h2>Profil</h2></div>
-   <div class="card"><div class="row">${ic(PROFILE==='owner'?'lock':'user')}<div class="grow"><b>${PROFILE==='owner'?OWNER_NAME:'Gastprofil'}</b><div class="small muted">${PROFILE==='owner'?'Mein Profil, mit Passwort geschützt':'Leere Version, Daten nur auf diesem Gerät'}</div></div></div>
-     <div class="row wrap" style="margin-top:12px"><button class="btn sm" data-a="logout">${ic('logout','sm')}Abmelden / Profil wechseln</button>${PROFILE==='owner'&&!OWNER_LOCK?`<button class="btn sm" data-a="pwSheet">${ic('lock','sm')}Passwort ändern</button><button class="btn sm" data-a="copyLock">Passwort-Code kopieren</button>`:''}</div></div>
+   <div class="card"><div class="row">${ic(PROFILE==='owner'?'lock':'user')}<div class="grow"><b>${PROFILE==='owner'?OWNER_NAME:(S.settings.name?esc(S.settings.name)+' · eigenes Profil':'Eigenes Profil')}</b><div class="small muted">${PROFILE==='owner'?'Mein Profil, mit Passwort geschützt':'Kein Konto nötig, alle Daten bleiben auf diesem Gerät'}</div></div></div>
+     <div class="row wrap" style="margin-top:12px"><button class="btn sm" data-a="logout">${ic('logout','sm')}Abmelden / Profil wechseln</button><button class="btn sm" data-a="teamLink">${ic('share','sm')}App-Link fürs Team teilen</button>${PROFILE==='owner'&&!OWNER_LOCK?`<button class="btn sm" data-a="pwSheet">${ic('lock','sm')}Passwort ändern</button><button class="btn sm" data-a="copyLock">Passwort-Code kopieren</button>`:''}</div></div>
    <div class="sec"><h2>Profil & Trainer</h2></div>
    <div class="card"><div class="grid g2">${field('Mein Name',inp(b+'/name',s.name))}${field('Trainer',inp(b+'/trainer',s.trainer))}${field('WhatsApp-Nr. Trainer (mit +Land)',inp(b+'/trainerPhone',s.trainerPhone,'placeholder="+33…" inputmode="tel"'))}${field('E-Mail Trainer',inp(b+'/trainerMail',s.trainerMail,'type="email"'))}
      ${field('Sprache für Feedback',`<select data-bind="${b}/lang"><option value="en" ${s.lang==='en'?'selected':''}>English</option><option value="fr" ${s.lang==='fr'?'selected':''}>Français</option><option value="de" ${s.lang==='de'?'selected':''}>Deutsch</option></select>`)}${field('Standard-Pause (Sek.)',numinp(b+'/restDefault',s.restDefault))}</div>
@@ -360,7 +375,7 @@ function weekBlock(ws,title){
   const E=S.entries.filter(e=>e.date>=ws&&e.date<=addDays(ws,6));
   return `<div class="sec"><h2>${title}</h2><a class="small muted" href="#/woche/${ws}">${E.filter(e=>e.done).length} von ${E.length} erledigt · öffnen</a></div><div class="card week">${h}</div>`;
 }
-const exImg=n=>EX_IMG[n]?`<img class="eximg ${EX_ILL.includes(n)?'ill':''}" src="${EX_IMG[n]}" alt="${EX_ILL.includes(n)?'Zeichnung':'Start- und Endposition'}: ${esc(n)}" loading="lazy">`:'';
+const exImg=n=>PROFILE==='owner'&&EX_IMG[n]?`<img class="eximg ${EX_ILL.includes(n)?'ill':''}" src="${EX_IMG[n]}" alt="${EX_ILL.includes(n)?'Zeichnung':'Start- und Endposition'}: ${esc(n)}" loading="lazy">`:'';
 const exTips=ex=>ex&&ex.note?`<details class="tips"><summary>Tipps zur Ausführung</summary><p>${esc(ex.note)}</p></details>`:'';
 const byDate=(a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''));
 const notFound=()=>`<div class="empty">Eintrag nicht gefunden. <a href="#/heute"><u>Zur Übersicht</u></a></div>`;

@@ -193,6 +193,14 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .exmini b{display:block}.exmini .tiny{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.exmini .grow{min-width:0}
 .backlink{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:.9rem;color:var(--muted)}
 @media(min-width:900px){.stick{top:60px;margin-left:0;margin-right:0;padding-left:0;padding-right:0}#top .clockbtn,#top a[href="#/stats"],#top a[href="#/mehr"]{display:none}}
+.know{margin-top:10px;padding:0}
+.know summary{display:flex;align-items:center;gap:12px;padding:14px 16px;min-height:64px}
+.know summary b{display:block;font-family:var(--display);font-size:1.25rem;line-height:1.15}
+.know .kn{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:1.1rem;flex:none}
+.know[open] .kn{background:var(--red);color:var(--on-red)}
+.know summary::after{content:"+";font-family:var(--display);font-size:1.6rem;color:var(--red);line-height:1}
+.know[open] summary::after{content:"–"}
+.kbody{padding:0 16px 14px;line-height:1.55}.kbody p{margin:0 0 10px}.kbody ul,.kbody ol{margin:0 0 10px;padding-left:1.25rem}.kbody li{margin-bottom:6px}
 /* Anstrengung */
 .rpe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rpe button{min-height:48px;font-family:var(--display);font-size:1.3rem;border-radius:10px;border:1px solid var(--rule);font-weight:600;background:color-mix(in srgb,var(--red) calc(var(--i)*7%),var(--card));transition:transform var(--micro) var(--ease-out)}

@@ -1,5 +1,5 @@
 /* ============ PoloLog – Router, Aktionen, Export/Import ============ */
-const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
+const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',wissen:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
 const NAV=[['heute','Heute','home'],['saison','Saison','calendar'],['kraft','Training','dumbbell'],['turniere','Turniere','trophy'],['stats','Statistik','chart']];
 let lastRoute='';
 function route(){ const p=(location.hash||'#/heute').slice(2).split('/'); return views[p[0]]?p:['heute']; }
@@ -332,7 +332,8 @@ function gate(html){ $('#gate').innerHTML=`<div class="gatebox">${crestSvg('gcre
 function gateHome(){
   gate(`<p class="muted">Wer trainiert?</p><div class="tiles">
    <button class="tile pri" data-a="gateOwner"><span class="ico">${ic('lock')}</span><span class="grow"><b>${OWNER_NAME}</b><span class="small muted">Mein Profil mit Plänen, Turnieren und Vorgaben</span></span>${ic('right','sm')}</button>
-   <button class="tile" data-a="gateGuest"><span class="ico">${ic('user')}</span><span class="grow"><b>Gastprofil</b><span class="small muted">Leere Version zum Selbstplanen, alle Übungen inklusive</span></span>${ic('right','sm')}</button></div>`);
+   <button class="tile" data-a="gateGuest"><span class="ico">${ic('user')}</span><span class="grow"><b>Eigenes Profil</b><span class="small muted">Eigene Trainings planen, Beispielpläne, Timer und Wissen. Ohne Konto</span></span>${ic('right','sm')}</button></div>
+   <p class="small muted" style="margin-top:16px">Alles, was du einträgst, bleibt auf diesem Gerät. Niemand sonst kann es sehen.</p>`);
 }
 function gateLogin(msg){
   const has=!!lockGet();
@@ -351,10 +352,17 @@ async function doLogin(form){
   else { if(v.pw1.length<4) return gateLogin('Mindestens 4 Zeichen.'); if(v.pw1!==v.pw2) return gateLogin('Die beiden Eingaben sind verschieden.'); await lockSet(v.pw1); }
   startApp('owner');
 }
-function startApp(profile){
+function startApp(profile,keepRoute){
   PROFILE=profile; KEY=KEYS[profile]; ls.set(SESSION,profile);
   load(); applyTheme(); buildNav(); $('#gate').classList.remove('on'); $('#gate').innerHTML='';
-  lastRoute=''; if(location.hash&&location.hash!=='#/heute') location.hash='#/heute'; else render();
+  lastRoute=''; if(!keepRoute&&location.hash&&location.hash!=='#/heute') location.hash='#/heute'; else render();
+  if(profile==='guest'&&!S.settings.onboarded) setTimeout(welcomeSheet,250);
+}
+function welcomeSheet(){
+  sheet('Willkommen bei PoloLog',`<form data-form="welcome"><p style="margin-top:0">Dein Trainingsplaner für Kraft, Wasser und Turniere. Du brauchst kein Konto: Alles bleibt auf diesem Gerät.</p>
+   ${field('Wie heißt du?','<input name="name" autocomplete="given-name" placeholder="Vorname">')}
+   <ul class="small muted" style="padding-left:1.1rem;margin:4px 0 14px"><li>Fertige Beispielpläne für den Einstieg</li><li>Über 200 Übungen, eigene lassen sich ergänzen</li><li>Timer für Sätze, Pausen und Zirkel</li><li>Kurzes Wissen zur Trainingslehre</li></ul>
+   <button class="btn pri lg block" type="submit">Los geht's</button></form>`);
 }
 
 /* ---- Aktionen ---- */
@@ -362,6 +370,10 @@ const A={
  closeSheet,
  back(el,ev){ if(UI.depth>0){ ev.preventDefault(); history.back(); } },
  openEx(el){ UI.openEx[el.dataset.it]=true; render(); },
+ hideIntro(){ S.settings.hideIntro=true; save(); render(); },
+ teamLink(){ const url=location.origin+location.pathname+'?team', text='PoloLog: Trainingsplaner für Kraft, Wasser und Turniere. Einfach öffnen, kein Konto nötig, alles bleibt auf deinem Handy.';
+  if(!location.protocol.startsWith('http')) return toast('Der Link funktioniert nur aus der Online-Version der App');
+  navigator.share?navigator.share({title:'PoloLog',text,url}).catch(()=>{}):copyText(text+' '+url); },
  gateOwner(){ gateLogin(); }, gateGuest(){ startApp('guest'); }, gateBack(){ gateHome(); },
  logout(){ clearTimeout(saveT); save(); ls.del(SESSION); stopRest(); S=null; $('#sheet').classList.remove('on'); $('#view').innerHTML=''; gateHome(); },
  pwSheet(){ sheet('Passwort ändern',`<form data-form="newpw">${field('Neues Passwort','<input name="pw1" type="password" autocomplete="new-password" required minlength="4">')}${field('Wiederholen','<input name="pw2" type="password" autocomplete="new-password" required minlength="4">')}<button class="btn pri block" type="submit">Speichern</button></form>`); },
@@ -564,6 +576,7 @@ document.addEventListener('change',ev=>{
 document.addEventListener('submit',async ev=>{
   const f=ev.target; if(!f.dataset.form) return; ev.preventDefault();
   if(f.dataset.form==='login') return doLogin(f);
+  if(f.dataset.form==='welcome'){ S.settings.name=formVals(f).name.trim(); S.settings.onboarded=true; save(); return closeSheet(); }
   if(f.dataset.form==='newpw'){ const v=formVals(f); if(v.pw1.length<4||v.pw1!==v.pw2) return toast('Eingaben prüfen: gleich und mindestens 4 Zeichen'); await lockSet(v.pw1); closeSheet(); toast('Passwort geändert'); }
 });
 window.addEventListener('pagehide',()=>{ clearTimeout(saveT); save(); });
@@ -583,7 +596,8 @@ window.addEventListener('hashchange',()=>{ UI.depth=(UI.depth||0)+1; if($('#shee
 window.addEventListener('afterprint',()=>{ $('#print').innerHTML=''; });
 { // Start: gemerktes Profil öffnen, sonst Profilauswahl
   const sess=ls.get(SESSION);
-  if(sess==='guest'||(sess==='owner'&&lockGet())) startApp(sess); else gateHome();
+  const team=/[?&](team|gast)\b/.test(location.search);
+  if(sess==='guest'||(sess==='owner'&&lockGet())) startApp(sess,true); else if(team) startApp('guest'); else gateHome();
 }
 if(location.protocol.startsWith('http')){ // als App installierbar, wenn die Seite gehostet ist
   const add=(rel,href)=>{ const l=document.createElement('link'); l.rel=rel; l.href=href; document.head.appendChild(l); };

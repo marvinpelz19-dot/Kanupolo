@@ -332,21 +332,106 @@ function wfLabel(ws){ const g=guideFor(ws), d=pdate(ws), mon=['January','Februar
 function wfGet(ws){ const w=S.weekly[ws]=S.weekly[ws]||{}; if(w.label==null) w.label=wfLabel(ws); w.scores=w.scores||{}; if(w.comments==null) w.comments=''; return w; }
 /* ---- Zustand ---- */
 let S;
-function guestState(){
-  return {version:1,seedV:99,
-    settings:{name:'',trainer:'',trainerPhone:'',trainerMail:'',lang:'de',theme:'light',goals:'',restDefault:90},
-    exercises:seedExercises(), plans:[], guides:[], entries:[], tournaments:[], weekly:{},
-    timers:[{id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}]};
-}
-function freshState(){
-  if(PROFILE==='guest') return guestState();
-  const exercises = seedExercises();
+/* ---- Beispielpläne für eigene Profile (Einsteiger, 18–22 Jahre) ---- */
+const H='Etwa 2 Wiederholungen in Reserve lassen (Anstrengung 7–8 von 10).';
+const GUEST_PLANS=[
+ {name:'Einsteiger · Ganzkörper A', note:'Für die ersten 8–12 Wochen, 2–3× pro Woche im Wechsel mit Ganzkörper B, dazwischen mindestens ein Tag Pause. Erst die Technik lernen, dann steigern: Schaffst du in allen Sätzen die obere Wiederholungszahl sauber, nimm beim nächsten Mal etwas mehr Gewicht. '+H, items:[
+  ['Goblet Squat',3,10,null,90,'Kurzhantel vor der Brust, Knie folgen den Fußspitzen, Rücken gerade','Beine'],
+  ['Romanian Deadlift',3,10,null,90,'Hüfte nach hinten schieben, Rücken gerade, Stange nah am Bein','Beine'],
+  ['Dumbbell Chest Press',3,10,null,90,'Schulterblätter zusammen, Hanteln kontrolliert senken','Drücken'],
+  ['Seated Cable Row',3,10,null,90,'Erst Schulterblätter zurück, dann Ellbogen eng zum Körper ziehen','Ziehen'],
+  ['Dumbbell Shoulder Press',2,10,null,90,'Rumpf fest, nicht ins Hohlkreuz ausweichen','Drücken'],
+  ['Face Pull',3,15,null,60,'Ausgleich für die Schulter: leicht, sauber, am Ende nach außen rotieren','Ausgleich'],
+  ['Plank',3,40,null,45,'Kopf bis Ferse eine Linie, Bauch und Gesäß fest','Rumpf','t']]},
+ {name:'Einsteiger · Ganzkörper B', note:'Gegenstück zu Ganzkörper A. Gleiche Regeln: saubere Technik, 2 Wiederholungen in Reserve, langsam steigern.', items:[
+  ['Trap Bar Deadlift',3,8,null,120,'Brust raus, Rücken gerade, aus den Beinen drücken. Ohne Trap Bar: Romanian Deadlift','Beine'],
+  ['Bulgarian Split Squat',3,8,null,90,'8 Wdh. je Bein, hinteren Fuß auf die Bank, Oberkörper aufrecht','Beine'],
+  ['Push-Up',3,10,null,90,'Körper wie ein Brett. Zu schwer: Hände erhöht. Zu leicht: Füße erhöht','Drücken'],
+  ['Lat Pulldown',3,10,null,90,'Zur oberen Brust ziehen, Schultern weg von den Ohren','Ziehen'],
+  ['Dumbbell Row',3,10,null,60,'10 Wdh. je Seite, Rücken gerade, Ellbogen nah am Körper','Ziehen'],
+  ['External Rotator (rotator cuff)',3,15,null,45,'Ausgleich: Ellbogen am Körper, sehr leichtes Gewicht oder Band','Ausgleich'],
+  ['Dead Bug',3,10,null,45,'Lendenwirbelsäule bleibt am Boden, langsam bewegen','Rumpf','r'],
+  ['Side Plank',3,30,null,30,'30 s je Seite, Hüfte hoch','Rumpf','t']]},
+ {name:'Muskelaufbau · Oberkörper', note:'Für alle, die die Grundübungen sicher beherrschen. Drücken und Ziehen sind gleich stark vertreten, am Ende Ausgleich für die Schulter. 6–12 Wiederholungen, 60–120 s Pause, jede Muskelgruppe 2× pro Woche. '+H, items:[
+  ['Bench Press',4,8,null,120,'Bei schweren Sätzen mit Sicherung oder in der Ablage','Drücken'],
+  ['Barbell Row (Bent-Over Row)',4,8,null,120,'Rücken gerade, Stange zum Bauchnabel','Ziehen'],
+  ['Dumbbell Shoulder Press',3,10,null,90,'','Drücken'],
+  ['Lat Pulldown',3,10,null,90,'Oder Klimmzüge, wenn 8 saubere gehen','Ziehen'],
+  ['Triceps Pushdown',2,12,null,60,'','Arme'],
+  ['Hammer Curl',2,12,null,60,'','Arme'],
+  ['Face Pull',3,15,null,60,'Ausgleich: hintere Schulter und Außenrotatoren','Ausgleich'],
+  ['External Rotator (rotator cuff)',2,15,null,45,'Leicht und kontrolliert','Ausgleich']]},
+ {name:'Muskelaufbau · Unterkörper und Rumpf', note:'Zweiter Tag zum Oberkörper-Plan. Kraft aus Beinen und Rumpf überträgt sich im Boot auf jeden Schlag und jeden Wurf.', items:[
+  ['Back Squat',4,8,null,120,'Tiefe nur so weit, wie der Rücken gerade bleibt','Beine'],
+  ['Romanian Deadlift',3,10,null,120,'','Beine'],
+  ['Reverse Lunge',3,10,null,90,'10 Wdh. je Bein','Beine'],
+  ['Hip Thrust',3,10,null,90,'Oben kurz halten, Gesäß anspannen','Beine'],
+  ['Calf Raise',3,12,null,60,'','Beine'],
+  ['Pallof Press',3,10,null,45,'10 Wdh. je Seite: Rumpf hält gegen die Drehung, wie im Zweikampf','Rumpf'],
+  ['Knee Raise',3,10,null,60,'Im Hang, ohne Schwung','Rumpf','r'],
+  ['Back Extension (on bench)',3,12,null,60,'Unterer Rücken, langsam und ohne Überstrecken','Rumpf','r']]},
+ {name:'Ausgleich · Schulter und Rumpf (20 min)', note:'Kurzes Programm für gesunde Schultern, 2–3× pro Woche, auch nach dem Wassertraining oder zu Hause mit Band. Paddeln und Werfen stärken vor allem die ziehenden und nach innen drehenden Muskeln. Diese Übungen trainieren die Gegenspieler. Leicht, langsam, sauber.', items:[
+  ['External Rotator (rotator cuff)',3,15,null,30,'Je Seite, Ellbogen am Körper','Schulter'],
+  ['Internal Rotator (rotator cuff)',2,15,null,30,'Je Seite, nur leicht','Schulter'],
+  ['Face Pull',3,15,null,45,'','Schulter'],
+  ['Rear Delt Fly',3,12,null,45,'Leichte Hanteln, Schultern tief','Schulter'],
+  ['Bird Dog',3,8,null,30,'8 Wdh. je Seite, Becken bleibt ruhig','Rumpf','r'],
+  ['Side Plank',3,30,null,30,'30 s je Seite','Rumpf','t'],
+  ['Dead Bug',3,10,null,30,'','Rumpf','r']]},
+ {name:'TRX · Grundlagen-Zirkel', note:'6 Übungen im Kreis, 40 s Belastung und 20 s Wechsel, 3 Runden, 2 min Pause zwischen den Runden. Je schräger der Körper, desto schwerer. Über „Ganzen Zirkel mit Timer starten“ läuft alles automatisch.', items:
+  [['TRX Squat','Band mittel'],['TRX Row','Band mittel'],['TRX Chest Press','Band lang'],['TRX Hamstring Curl','Band lang, Fersen in den Schlaufen'],['TRX Plank','Band lang, Füße in den Schlaufen'],['TRX Y Raise','Band mittel, wenig Schräglage']].map(([n,c],i,a)=>[n,3,40,null,i===a.length-1?120:20,c,'','t'])},
+ {name:'Explosiv · Wurfkraft mit Medizinball', note:'Für Schnellkraft: wenige, maximal schnelle Wiederholungen und lange Pausen. Nur ausgeruht trainieren, am besten zu Beginn einer Einheit nach dem Aufwärmen. Ball 2–4 kg. Qualität geht vor Menge: Wird die Bewegung langsamer, ist der Satz vorbei.', items:[
+  ['Box Jump',4,5,null,90,'Leise landen, herunter steigen statt springen','Sprung','r'],
+  ['MB Chest Pass',4,6,null,90,'Explosiv gegen die Wand oder zum Partner','Wurf','r'],
+  ['MB Rotational Throw',4,6,null,90,'6 Würfe je Seite, die Kraft kommt aus Hüfte und Rumpf','Wurf','r'],
+  ['MB Slam',4,6,null,90,'Ganzkörper-Streckung, dann mit voller Kraft auf den Boden','Wurf','r']]}];
+const WISSEN=[
+ {t:'So startest du',s:'In vier Schritten zur ersten eigenen Trainingswoche',b:[
+  ['p','Die App speichert alles nur auf deinem Gerät. Es gibt kein Konto, niemand sieht deine Einträge.'],
+  ['ol',['Unter Training → Alle Trainingsinhalte findest du Beispielpläne. Öffne einen und tippe auf „Jetzt trainieren“.','Im Training hakst du jeden Satz ab und trägst Gewicht und Wiederholungen ein. Der Pausen-Timer startet von selbst.','Plane deine Woche: Training → Diese Woche → Einheit hinzufügen. Per Tipp auf das Datum verschiebst du eine Einheit.','Trag nach jedem Training die Anstrengung (1–10) ein. In der Statistik siehst du, wie du dich entwickelst.']],
+  ['p','Eigene Übungen und Pläne kannst du jederzeit ergänzen. Über Einstellungen → Backup sicherst du deine Daten.']]},
+ {t:'Was im Jahr wann zählt',s:'Die Phasen einer Kanupolo-Saison',b:[
+  ['p','Nicht alles lässt sich gleichzeitig verbessern. Deshalb hat jede Phase einen Schwerpunkt.'],
+  ['ul',['Herbst bis Jahresende, Aufbau: Technik im Kraftraum lernen, Muskeln aufbauen, Grundlagenausdauer, viel Ballgefühl und Paddeltechnik.','Januar bis März, Kraft und Schnellkraft: schwerere Lasten mit wenigen Wiederholungen, danach explosive Übungen und Sprints im Boot.','Saison, Erhalt: 1–2 kurze Krafteinheiten pro Woche reichen, um das Niveau zu halten. Am Spieltag sollst du frisch sein.','Nach der Saison, Übergang: 2–4 Wochen locker bewegen, andere Sportarten, Kopf frei bekommen.']],
+  ['p','Mit 18 bis 22 lohnt sich der Aufbau besonders: Der Körper reagiert in diesem Alter stark auf Krafttraining, und saubere Technik hält ein Sportlerleben lang.']]},
+ {t:'Muskelaufbau: die fünf Stellschrauben',s:'Was wirklich zählt, wenn du stärker und kräftiger werden willst',b:[
+  ['ol',['Nah an die Grenze: Die letzten Wiederholungen eines Satzes müssen schwer sein. Lass etwa 1–3 Wiederholungen in Reserve.','Genug Sätze: Als Einsteiger etwa 6–10 harte Sätze pro Muskelgruppe und Woche, später mehr.','Regelmäßig: Jede Muskelgruppe zweimal pro Woche bringt mehr als einmal sehr viel.','Steigern: Schaffst du die obere Wiederholungszahl in allen Sätzen sauber, erhöhe das Gewicht um den kleinsten Schritt.','Erholen: Muskeln wachsen in der Pause. Schlaf (8 Stunden und mehr) und genug Eiweiß (etwa 1,6–2,2 g pro kg Körpergewicht am Tag) gehören dazu.']],
+  ['p','Der Wiederholungsbereich ist dabei weniger wichtig als oft gedacht: 6 bis 15 Wiederholungen funktionieren gut, solange der Satz anstrengend ist. In den ersten Wochen wirst du vor allem deshalb stärker, weil Nerven und Muskeln besser zusammenarbeiten. Sichtbarer Muskelaufbau braucht einige Wochen Geduld.']]},
+ {t:'Warum Ausgleichsübungen?',s:'Gesunde Schultern für Paddler und Werfer',b:[
+  ['p','Paddeln und Werfen beanspruchen immer wieder dieselben Muskeln: Latissimus, Brust und die Muskeln, die den Arm nach innen drehen. Sie werden stark und oft auch kurz. Ihre Gegenspieler bekommen im Sport selbst wenig ab: die Außenrotatoren der Schulter, die hintere Schulter und die Muskeln zwischen den Schulterblättern.'],
+  ['p','Wird dieser Unterschied zu groß, sitzt der Oberarmkopf schlechter im Gelenk. Das ist eine häufige Ursache für Schulterbeschwerden in Wurf- und Paddelsportarten.'],
+  ['ul',['In jede Krafteinheit 1–2 Ausgleichsübungen einbauen, zum Beispiel Face Pull und Außenrotation.','Leichte Last, 12–20 saubere Wiederholungen. Es geht um Kontrolle, nicht um Gewicht.','Drücken und Ziehen im Kraftraum in ähnlichem Umfang trainieren.','Den Rumpf in beide Richtungen kräftigen, auch gegen die Drehung (Pallof Press, Side Plank).']],
+  ['p','Der Plan „Ausgleich · Schulter und Rumpf“ fasst das in 20 Minuten zusammen.']]},
+ {t:'Technik, Aufwärmen, Sicherheit',s:'Damit Training stärker macht und nicht verletzt',b:[
+  ['ul',['Aufwärmen: 5–10 Minuten locker bewegen, dann 1–2 leichte Aufwärmsätze der ersten Übung.','Technik vor Gewicht: Eine neue Übung zuerst mit wenig Last lernen, am besten zeigt sie dir jemand Erfahrenes.','Schwere Sätze beim Bankdrücken und bei Kniebeugen nur mit Sicherung oder in der Ablage.','Anstrengung ist gewollt, Schmerz nicht: Bei stechendem oder plötzlichem Schmerz den Satz abbrechen.','Die App ersetzt keinen Trainer und keinen Arzt. Bei Beschwerden oder nach Verletzungen vorher abklären lassen.']]]},
+ {t:'Belastung und Erholung steuern',s:'Anstrengung 1 bis 10, Pausentage und leichte Wochen',b:[
+  ['p','Trag nach jeder Einheit ein, wie anstrengend sie war. 1 ist sehr leicht, 10 ist alles gegeben. Die meisten Krafteinheiten sollten bei 7–8 liegen.'],
+  ['ul',['Dieselbe Muskelgruppe braucht nach einer harten Einheit etwa 48 Stunden.','Polo-Training und Spiele haben Vorrang. Vor einem Turnier das Krafttraining reduzieren, nicht streichen.','Alle 4–6 Wochen eine leichtere Woche einplanen: gleiche Übungen, etwa halb so viele Sätze.','Warnzeichen für zu viel: schlechter Schlaf, anhaltende Müdigkeit, sinkende Leistung, wenig Lust. Dann zwei, drei Tage rausnehmen.']],
+  ['p','In der Statistik siehst du Minuten und Belastung pro Woche. Steigere von Woche zu Woche in kleinen Schritten statt in Sprüngen.']]},
+ {t:'Beispielwoche für Einsteiger',s:'So passen Kraft, Wasser und Erholung zusammen',b:[
+  ['ul',['Montag: Ganzkörper A','Dienstag: Wassertraining','Mittwoch: Ausgleich Schulter und Rumpf (20 min) oder frei','Donnerstag: Ganzkörper B','Freitag: Wassertraining','Samstag: locker laufen oder Rad, 30–45 min, oder Spiel','Sonntag: frei']],
+  ['p','Zwei Krafteinheiten pro Woche reichen am Anfang völlig. Wer nach 8–12 Wochen mehr möchte, wechselt auf die Muskelaufbau-Pläne für Ober- und Unterkörper.']]}];
+function mkPlans(defs,exercises){
   const byName = Object.fromEntries(exercises.map(e=>[e.name,e]));
-  const plans = SEED_PLANS.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme,tm,weight])=>{
+  return defs.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme,tm,weight])=>{
     const ex=byName[n]; if(!ex) console.warn('Seed: Übung fehlt',n);
     const m=mode||ex.mode;
     return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:weight||null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{}),...(tm?{tm}:{})};
   })}));
+}
+function guestState(){
+  const exercises=seedExercises();
+  return {version:1,seedV:99,gV:1,
+    settings:{name:'',trainer:'',trainerPhone:'',trainerMail:'',lang:'de',theme:'light',goals:'',restDefault:90},
+    exercises, plans:mkPlans(GUEST_PLANS,exercises), guides:[], entries:[], tournaments:[], weekly:{},
+    timers:[{id:uid(),name:'Zirkel · 6 Übungen, 40/20, 3 Runden',rounds:3,prep:10,roundRest:120,steps:Array.from({length:6},(_,i)=>mkStep('Übung '+(i+1),40,20))},
+      {id:uid(),name:'Jede Minute · 10 Runden',rounds:10,prep:10,roundRest:40,steps:[mkStep('Belastung',20,0)]},
+      {id:uid(),name:'Tabata · 8 × 20/10',rounds:8,prep:10,roundRest:10,steps:[mkStep('Belastung',20,0)]}]};
+}
+function freshState(){
+  if(PROFILE==='guest') return guestState();
+  const exercises = seedExercises();
+  const plans = mkPlans(SEED_PLANS,exercises);
   const st={version:1,seedV:10,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
     exercises, plans, guides:[...SEED_GUIDES,...DEC_GUIDES].map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments(), weekly:{}};
@@ -389,6 +474,12 @@ function migrate(){
   const f=freshState();
   for(const k of ['settings','exercises','plans','guides','timers','entries','tournaments','weekly']) if(S[k]==null) S[k]=f[k];
   S.settings={...f.settings,...S.settings};
+  if(PROFILE==='guest'&&(S.gV||0)<1){ // Beispielpläne und Timer für bestehende eigene Profile nachreichen
+    for(const x of f.exercises) if(!S.exercises.some(e=>e.name===x.name)) S.exercises.push(x);
+    for(const pl of f.plans) if(!S.plans.some(x=>x.name===pl.name)){ pl.items.forEach(it=>{ const ex=S.exercises.find(e=>e.name===it.name); if(ex) it.exId=ex.id; }); S.plans.push(pl); }
+    for(const t of f.timers) if(!S.timers.some(x=>x.name===t.name)) S.timers.push(t);
+    S.gV=1; save();
+  }
   if(PROFILE!=='owner') return;
   if((S.seedV||1)<2){ // neuer TRX-Zirkel Woche 2: Plan, Timer und Training für den 13.11.
     const up=(list,name)=>{ const n=f[list].find(x=>x.name===name), i=S[list].findIndex(x=>x.name===name); if(i>=0){ n.id=S[list][i].id; S[list][i]=n; } else S[list].push(n); };
