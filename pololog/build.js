@@ -10,7 +10,7 @@ const lock=fs.existsSync(lockFile)?JSON.stringify(JSON.parse(fs.readFileSync(loc
 // Übungsfotos (Start/Ende) aus src/assets/ex, Zuordnung über index.json
 const exDir=p.join(src,'assets/ex'), exIdx=JSON.parse(fs.readFileSync(p.join(exDir,'index.json'),'utf8')), exImg={};
 for(const n in exIdx) exImg[n]='data:image/jpeg;base64,'+fs.readFileSync(p.join(exDir,exIdx[n])).toString('base64');
-const js=`const CREST=${JSON.stringify(crest)};\nconst EX_IMG=${JSON.stringify(exImg)};\n`+['core.js','views.js','actions.js'].map(r).join('\n').replace('/*LOCK*/null',()=>lock);
+const js=`const CREST=${JSON.stringify(crest)};\nconst EX_IMG=${JSON.stringify(exImg)};\nconst EX_ILL=${JSON.stringify(Object.keys(exIdx).filter(n=>exIdx[n].startsWith('ill-')))};\n`+['core.js','views.js','actions.js'].map(r).join('\n').replace('/*LOCK*/null',()=>lock);
 const html=r('index.tpl.html').replace('/*CSS*/',()=>r('styles.css').replace('/*FONT*/',()=>fontCss)).replace('/*JS*/',()=>js);
 fs.writeFileSync(p.join(__dirname,'index.html'),html);
 console.log('index.html',(html.length/1024).toFixed(1)+' kB');

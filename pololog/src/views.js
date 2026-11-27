@@ -358,7 +358,8 @@ function weekBlock(ws,title){
   const E=S.entries.filter(e=>e.date>=ws&&e.date<=addDays(ws,6));
   return `<div class="sec"><h2>${title}</h2><a class="small muted" href="#/woche/${ws}">${E.filter(e=>e.done).length} von ${E.length} erledigt · öffnen</a></div><div class="card week">${h}</div>`;
 }
-const exImg=n=>EX_IMG[n]?`<img class="eximg" src="${EX_IMG[n]}" alt="Start- und Endposition: ${esc(n)}" loading="lazy">`:'';
+const exImg=n=>EX_IMG[n]?`<img class="eximg ${EX_ILL.includes(n)?'ill':''}" src="${EX_IMG[n]}" alt="${EX_ILL.includes(n)?'Zeichnung':'Start- und Endposition'}: ${esc(n)}" loading="lazy">`:'';
+const exTips=ex=>ex&&ex.note?`<details class="tips"><summary>Tipps zur Ausführung</summary><p>${esc(ex.note)}</p></details>`:'';
 const byDate=(a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''));
 const notFound=()=>`<div class="empty">Eintrag nicht gefunden. <a href="#/heute"><u>Zur Übersicht</u></a></div>`;
 const rpeText=n=>['','sehr leicht','leicht','locker','moderat','etwas anstrengend','anstrengend','hart','sehr hart','extrem hart','maximal'][n];
@@ -372,6 +373,7 @@ function exCard(e,it,i){
      <button class="iconbtn sm" data-a="delExItem" data-id="${e.id}" data-i="${i}">${ic('x','sm')}</button></div>
    ${exImg(it.name)}
    ${tg.note?`<div class="hint">${esc(tg.note)}</div>`:''}
+   ${exTips(ex)}
    ${ex&&it.mode==='wr'&&(tg.scheme||tg.pct)?`<div class="orm"><label for="orm-${it.id}">Mein 100 % Gewicht (Maximalkraft)</label><div class="unit"><input id="orm-${it.id}" data-bind="exercises/${ex.id}/orm" data-num data-orm inputmode="decimal" value="${esc(fnum(ex.orm))}" placeholder="eintragen"><span>kg</span></div></div>`:''}
    ${lp?`<div class="tiny muted" style="margin-top:4px">Letztes Mal (${fshort(lp.date)}): ${lp.sets.map(s=>fset(s,it.mode)).join(' | ')}</div>`:''}
    ${it.sets.map((s,j)=>{ const l=lp&&(lp.sets[j]||lp.sets[lp.sets.length-1])||{}; const q=`${p}/sets/${j}`; const sc=tg.scheme&&tg.scheme[j%tg.scheme.length];

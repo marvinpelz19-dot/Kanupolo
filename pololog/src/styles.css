@@ -182,6 +182,11 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .dpick:active{transform:scale(.92)}
 .dpick b{font-family:var(--display);font-size:1.2rem}.dpick span{font-size:.7rem;color:var(--muted)}
 .dpick.now{border-color:var(--red)}.dpick.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}.dpick.on span{color:inherit}
+.eximg.ill{aspect-ratio:auto;object-fit:contain;max-width:210px;background:#fff}
+.tips{margin-top:8px;font-size:.86rem}
+.tips summary{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border:1px solid var(--rule);border-radius:999px;color:var(--ink);font-weight:600}
+.tips summary::after{content:"+";margin-left:.4rem;color:var(--red);font-weight:700}.tips[open] summary::after{content:"–"}
+.tips p{margin:8px 2px 0;line-height:1.5}
 /* Anstrengung */
 .rpe{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
 .rpe button{aspect-ratio:1;border-radius:10px;border:1px solid var(--rule);font-weight:600;background:color-mix(in srgb,var(--red) calc(var(--i)*7%),var(--card));transition:transform var(--micro) var(--ease-out)}

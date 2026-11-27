@@ -32,10 +32,41 @@ const LIB = {
   'TRX Unterkörper':['TRX Reverse Lunge|r','TRX Squat|r','TRX Assisted Lunge|r','TRX Split Squat|r','TRX Single-Leg Squat|r','TRX Hamstring Curl|r','TRX Hip Hinge|r','TRX Glute Bridge|r','TRX Lateral Lunge|r'],
   'TRX Core':['TRX Spider|r','TRX Standing Fallout|r','TRX Plank|t','TRX Side Plank|t','TRX Pike|r','TRX Knee Tuck|r','TRX Mountain Climber|t','TRX Body Saw|r','TRX Side Crunch|r','TRX Atomic Push-Up|r']
 };
+// Ausführungstipps für die TRX-Übungen (werden als Hinweis an der Übung gespeichert)
+const TRX_TIPS={
+ 'TRX Row':'Band mittel, Blick zum Anker. Körper wie ein Brett, Schulterblätter zuerst zusammenziehen, Ellbogen eng am Körper zu den Rippen. Langsam ablassen. Füße weiter nach vorn = schwerer.',
+ 'TRX Push-Up':'Band lang, Füße in den Schlaufen, Hände unter den Schultern. Rumpf fest, kein Hohlkreuz, Brust bis knapp über den Boden. Leichter: Hände in den Griffen im Stand.',
+ 'TRX Chest Press':'Band lang, Rücken zum Anker, Arme gestreckt vor der Brust. Körper als Linie absenken, Ellbogen etwa 45° zum Körper. Bänder dürfen die Arme nicht berühren.',
+ 'TRX T Fly':'Band mittel, Blick zum Anker. Arme fast gestreckt seitlich zum T öffnen, Schulterblätter zusammen. Schultern weg von den Ohren, nicht aus dem Rücken schwingen.',
+ 'TRX Biceps Curl':'Band mittel, Blick zum Anker, Handflächen nach oben. Oberarme bleiben ruhig auf Schulterhöhe, nur die Ellbogen beugen, Griffe zur Stirn.',
+ 'TRX Triceps Extension':'Band mittel bis lang, Rücken zum Anker. Ellbogen zeigen nach vorn und bleiben stehen, Hände zur Stirn, dann strecken. Rumpf fest.',
+ 'TRX Y Raise':'Band mittel, Blick zum Anker. Gestreckte Arme schräg nach oben zum Y heben, Daumen nach hinten. Wenig Schräglage wählen, die Übung ist schwerer als sie aussieht.',
+ 'TRX Face Pull':'Band mittel, Blick zum Anker. Ellbogen hoch und weit, Griffe zu den Schläfen ziehen, am Ende nach außen rotieren. Schulterblätter aktiv.',
+ 'TRX Shoulder External Rotation':'Band mittel, Blick zum Anker, Ellbogen auf Schulterhöhe und 90° gebeugt. Unterarme kontrolliert nach hinten-oben rotieren. Sehr wenig Schräglage, schmerzfrei bleiben.',
+ 'TRX Shoulder Internal Rotation':'Band mittel, Ellbogen auf Schulterhöhe und 90° gebeugt. Unterarme kontrolliert nach vorn-unten rotieren. Sehr leichter Widerstand, kleiner Bewegungsweg.',
+ 'TRX Squat':'Band mittel, Blick zum Anker, Arme lang. Gesäß nach hinten-unten, Gewicht auf den Fersen, Knie über den Fußspitzen. Nur so viel ziehen wie nötig.',
+ 'TRX Reverse Lunge':'Band mittel, Blick zum Anker. Ein Bein weit nach hinten, hinteres Knie Richtung Boden, vorderes Knie über dem Fuß. Aus dem vorderen Bein hochdrücken.',
+ 'TRX Assisted Lunge':'Band mittel, Blick zum Anker. Ausfallschritt mit leichter Unterstützung über die Griffe, Oberkörper aufrecht, hinteres Knie Richtung Boden.',
+ 'TRX Split Squat':'Band mittel, Schrittstellung. Senkrecht absenken, Gewicht auf dem vorderen Bein, Griffe nur zum Ausbalancieren. Seite wechseln.',
+ 'TRX Single-Leg Squat':'Band mittel, Blick zum Anker. Auf einem Bein nach hinten absetzen, freies Bein nach vorn. Knie stabil über dem Fuß, mit den Armen nur so viel helfen wie nötig.',
+ 'TRX Hamstring Curl':'Band lang, Rückenlage, Fersen in den Schlaufen. Hüfte anheben und oben lassen, Fersen zum Gesäß ziehen, langsam strecken. Nicht ins Hohlkreuz fallen.',
+ 'TRX Hip Hinge':'Band mittel, Blick zum Anker. Hüfte nach hinten schieben, Rücken gerade, Knie leicht gebeugt, Arme lang. Aus Gesäß und Beinrückseite aufrichten.',
+ 'TRX Glute Bridge':'Band lang, Rückenlage, Fersen in den Schlaufen, Knie 90°. Hüfte bis zur Linie Knie–Schulter heben, oben kurz anspannen, kontrolliert ablassen.',
+ 'TRX Lateral Lunge':'Band mittel, Blick zum Anker. Weiter Schritt zur Seite, Gesäß nach hinten, anderes Bein bleibt gestreckt. Aus dem gebeugten Bein zurückdrücken.',
+ 'TRX Plank':'Band lang, Füße in den Schlaufen, Unterarme oder Hände am Boden. Kopf bis Ferse eine Linie, Bauch und Gesäß fest, nicht durchhängen.',
+ 'TRX Side Plank':'Band lang, Füße versetzt in den Schlaufen, auf einem Unterarm seitlich stützen. Hüfte hoch, Körper eine Linie, nicht nach vorn kippen.',
+ 'TRX Pike':'Band lang, Füße in den Schlaufen, Liegestützposition. Hüfte mit gestreckten Beinen zur Decke heben, Schultern über den Händen, langsam zurück.',
+ 'TRX Knee Tuck':'Band lang, Füße in den Schlaufen, Liegestützposition. Beide Knie zur Brust ziehen, Hüfte ruhig, langsam zurück ohne Hohlkreuz.',
+ 'TRX Mountain Climber':'Band lang, Füße in den Schlaufen, Liegestützposition. Knie im Wechsel zur Brust, Hüfte bleibt tief und ruhig, Schultern über den Händen.',
+ 'TRX Body Saw':'Band lang, Füße in den Schlaufen, Unterarmstütz. Den ganzen Körper aus den Schultern vor und zurück schieben, Rumpf bleibt starr.',
+ 'TRX Side Crunch':'Band lang, Füße in den Schlaufen, Liegestütz oder Unterarmstütz. Beide Knie seitlich zu einem Ellbogen ziehen, Seite wechseln, Schultern bleiben parallel zum Boden.',
+ 'TRX Atomic Push-Up':'Band lang, Füße in den Schlaufen. Ein Liegestütz, dann beide Knie zur Brust ziehen, zurück strecken. Tempo erst steigern, wenn die Hüfte ruhig bleibt.',
+ 'TRX Spider':'Band lang, Füße in den Schlaufen, Liegestützposition. Ein Knie außen zum gleichseitigen Ellbogen führen, Seiten kontrolliert wechseln, Hüfte nicht aufdrehen.',
+ 'TRX Standing Fallout':'Band mittel bis lang, Rücken zum Anker, Arme gestreckt vor dem Körper. Mit gestreckten Armen nach vorn lehnen, bis die Arme neben den Ohren sind, Rumpf fest, zurückziehen.'};
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 function seedExercises(){
   const out=[];
-  for(const cat in LIB) for(const e of LIB[cat]){ const [name,mode]=e.split('|'); out.push({id:'x-'+slug(name),name,cat,mode:mode||'wr',note:'',orm:null}); }
+  for(const cat in LIB) for(const e of LIB[cat]){ const [name,mode]=e.split('|'); out.push({id:'x-'+slug(name),name,cat,mode:mode||'wr',note:TRX_TIPS[name]||'',orm:null}); }
   return out;
 }
 // TRX-Zirkel Woche 2 (9.–15.11.): [Übung, Pause danach s, Hinweis, Block]
@@ -316,7 +347,7 @@ function freshState(){
     const m=mode||ex.mode;
     return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:weight||null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{}),...(tm?{tm}:{})};
   })}));
-  const st={version:1,seedV:8,
+  const st={version:1,seedV:9,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
     exercises, plans, guides:[...SEED_GUIDES,...DEC_GUIDES].map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments(), weekly:{}};
   seedW2Entry(st); seedPlanEntry(st,N16,N16DAY,'Kraft – Dynamic','kraft',90); seedW4(st); seedD1(st); return st;
@@ -400,6 +431,10 @@ function migrate(){
   if(S.seedV<8){ // Taktiklehrgang Bayreuth gestrichen (nur Braunschweig)
     S.tournaments=S.tournaments.filter(x=>!(x.from==='2027-02-20'&&/Bayreuth/.test(x.ort||'')&&!x.games.length));
     S.seedV=8; save();
+  }
+  if(S.seedV<9){ // Ausführungstipps für TRX-Übungen ergänzen (eigene Notizen bleiben)
+    for(const e of S.exercises) if(TRX_TIPS[e.name]&&!e.note) e.note=TRX_TIPS[e.name];
+    S.seedV=9; save();
   }
 }
 let saveWarned=false;
