@@ -14,3 +14,8 @@ const js=`const CREST=${JSON.stringify(crest)};\nconst EX_IMG=${JSON.stringify(e
 const html=r('index.tpl.html').replace('/*CSS*/',()=>r('styles.css').replace('/*FONT*/',()=>fontCss)).replace('/*JS*/',()=>js);
 fs.writeFileSync(p.join(__dirname,'index.html'),html);
 console.log('index.html',(html.length/1024).toFixed(1)+' kB');
+// team.html: nur das eigene Profil, ohne Übungsfotos des Trainers und ohne Passwort-Code
+const teamJs=`const CREST=${JSON.stringify(crest)};\nconst EX_IMG={};\nconst EX_ILL=[];\n`+['core.js','views.js','actions.js'].map(r).join('\n').replace('/*TEAM*/false',()=>'true');
+const team=r('index.tpl.html').replace('/*CSS*/',()=>r('styles.css').replace('/*FONT*/',()=>fontCss)).replace('/*JS*/',()=>teamJs);
+fs.writeFileSync(p.join(__dirname,'team.html'),team);
+console.log('team.html',(team.length/1024).toFixed(1)+' kB');

@@ -597,7 +597,7 @@ window.addEventListener('afterprint',()=>{ $('#print').innerHTML=''; });
 { // Start: gemerktes Profil öffnen, sonst Profilauswahl
   const sess=ls.get(SESSION);
   const team=/[?&](team|gast)\b/.test(location.search);
-  if(sess==='guest'||(sess==='owner'&&lockGet())) startApp(sess,true); else if(team) startApp('guest'); else gateHome();
+  if(TEAM_ONLY) startApp('guest',true); else if(sess==='guest'||(sess==='owner'&&lockGet())) startApp(sess,true); else if(team) startApp('guest'); else gateHome();
 }
 if(location.protocol.startsWith('http')){ // als App installierbar, wenn die Seite gehostet ist
   const add=(rel,href)=>{ const l=document.createElement('link'); l.rel=rel; l.href=href; document.head.appendChild(l); };
