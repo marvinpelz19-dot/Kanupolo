@@ -1,5 +1,5 @@
 /* ============ PoloLog – Router, Aktionen, Export/Import ============ */
-const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',wissen:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
+const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',wissen:'kraft',rechner:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
 const NAV=[['heute','Heute','home'],['saison','Saison','calendar'],['kraft','Training','dumbbell'],['turniere','Turniere','trophy'],['stats','Statistik','chart']];
 let lastRoute='';
 function route(){ const p=(location.hash||'#/heute').slice(2).split('/'); return views[p[0]]?p:['heute']; }
@@ -370,6 +370,17 @@ const A={
  closeSheet,
  back(el,ev){ if(UI.depth>0){ ev.preventDefault(); history.back(); } },
  openEx(el){ UI.openEx[el.dataset.it]=true; render(); },
+ calcSet(el){ const c=calcGet(); c[el.dataset.k]=isNaN(+el.dataset.v)?el.dataset.v:+el.dataset.v; save(); render(); },
+ calcPlan(){ clearTimeout(saveT); const c=calcGet(), sp=c.level==='neu'?50:60;
+  for(const [n] of CALC){ const ex=S.exercises.find(e=>e.name===n), m=ex&&est1rm(c.vals[ex.id]); if(m) ex.orm=m; }
+  const old=S.entries.filter(e=>e.gen&&!e.done&&!e.items.some(i=>i.sets.some(x=>x.done)));
+  if(old.length&&!confirm(old.length+' noch offene Einheiten aus einem früheren Grundlagenplan werden ersetzt. Fortfahren?')) return;
+  S.entries=S.entries.filter(e=>!old.includes(e));
+  const defs=mkPlans(GUEST_PLANS.filter(x=>/^DKV /.test(x.name)),S.exercises), offs=c.perWeek==3?[0,2,4]:[0,3];
+  for(let w=0;w<c.weeks;w++) offs.forEach((o,k)=>{ const items=itemsFromPlan(defs[k]);
+    items.forEach(it=>{ const ex=exById(it.exId); if(it.mode==='wr'&&ex&&ex.orm&&CALC.some(([n])=>n===it.name)) it.target.weight=pctWeight(ex.orm,sp)+2.5*w; });
+    S.entries.push(newEntry({type:'kraft',gen:true,date:addDays(c.start,7*w+o),title:`Grundlagenplan · Einheit ${k+1} · Woche ${w+1}`,planned:70,items,plan:`Woche ${w+1} von ${c.weeks}. Pflichtübungen: 3 × 10 mit dem vorgeschlagenen Gewicht${w?' (2,5 kg mehr als letzte Woche)':''}. Schaffst du die Vorgabe zweimal in Folge nicht: Gewicht halten, 3 × 8.`})); });
+  save(); toast(c.perWeek*c.weeks+' Einheiten angelegt'); go('#/woche/'+weekStart(c.start)); },
  hideIntro(){ S.settings.hideIntro=true; save(); render(); },
  teamLink(){ const url=location.origin+location.pathname+'?team', text='PoloLog: Trainingsplaner für Kraft, Wasser und Turniere. Einfach öffnen, kein Konto nötig, alles bleibt auf deinem Handy.';
   if(!location.protocol.startsWith('http')) return toast('Der Link funktioniert nur aus der Online-Version der App');

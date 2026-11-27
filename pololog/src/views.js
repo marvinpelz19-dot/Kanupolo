@@ -54,6 +54,7 @@ heute(){
    ${PROFILE==='guest'&&!S.settings.hideIntro?`<div class="sec"><h2>So startest du</h2><button class="small muted" data-a="hideIntro">Ausblenden</button></div>
    <div class="tiles">
     <a class="tile" href="#/inhalte" data-a="ktab" data-v="plaene"><span class="ico t-kraft">${ic('dumbbell')}</span><span class="grow"><b>Beispielpläne ansehen</b><span class="small muted">${S.plans.length} Pläne: DKV-Grundlagenplan, Einsteiger, Muskelaufbau, Ausgleich, TRX</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/rechner"><span class="ico t-kraft">${ic('chart')}</span><span class="grow"><b>Kraftrechner und Grundlagenplan</b><span class="small muted">Gewichte berechnen und einen Plan für 6 Wochen anlegen lassen</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/woche/${ws}"><span class="ico">${ic('calendar')}</span><span class="grow"><b>Meine Woche planen</b><span class="small muted">Einheiten anlegen und per Tipp aufs Datum verschieben</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen in fünf Minuten</b><span class="small muted">Was wann wichtig ist und warum Ausgleich zählt</span></span>${ic('right','sm')}</a>
    </div>`:''}
@@ -139,6 +140,7 @@ kraft(){
    <div class="sec"><h2>Alles Weitere</h2></div>
    <div class="tiles">
     <a class="tile" href="#/inhalte"><span class="ico">${ic('dumbbell')}</span><span class="grow"><b>Alle Trainingsinhalte</b><span class="small muted">${S.plans.length} Pläne, ${S.exercises.length} Übungen, ${S.timers.length} Timer, Monatsplan</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/rechner"><span class="ico t-kraft">${ic('chart')}</span><span class="grow"><b>Kraftrechner</b><span class="small muted">Maximalkraft eintragen, Trainingsgewichte berechnen, Grundlagenplan erstellen</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen</b><span class="small muted">Kleine Wissensdatenbank: Muskelaufbau, Kraft, Periodisierung, Ausgleich</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/historie"><span class="ico">${ic('list')}</span><span class="grow"><b>Historie</b><span class="small muted">${hist} absolvierte Einheiten</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/feedback/${ws}"><span class="ico">${ic('check')}</span><span class="grow"><b>Wochen-Feedback</b><span class="small muted">Bewertung 1 bis 5 als PDF${S.settings.trainer?' für '+esc(S.settings.trainer):''}</span></span>${ic('right','sm')}</a>
@@ -241,6 +243,30 @@ feedback(ws){
    <p class="small muted center">${done} von ${WF.length} bewertet. Die PDF sieht aus wie Maxims Bogen und enthält zusätzlich deine Einheiten der Woche.</p>
    <div class="sec"><h2>Einheiten dieser Woche</h2></div>
    ${E.map(entryItem).join('')||`<div class="empty">Keine Einheiten in dieser Woche.</div>`}`;
+},
+rechner(){
+  const c=calcGet(), b='settings/calc', neu=c.level==='neu', sp=neu?50:60;
+  const rows=CALC.map(([n,de])=>{ const ex=S.exercises.find(e=>e.name===n); if(!ex) return ''; const v=c.vals[ex.id]||{}, m=est1rm(v);
+    return `<div class="card calc"><b>${esc(de)}</b>
+     <div class="grid g2" style="margin-top:8px"><div class="unit"><input data-bind="${b}/vals/${ex.id}/w" data-num data-rr inputmode="decimal" value="${esc(fnum(v.w))}" placeholder="Gewicht" aria-label="Gewicht ${esc(de)}"><span>kg</span></div>
+      <div class="unit"><input data-bind="${b}/vals/${ex.id}/r" data-num data-rr inputmode="numeric" value="${esc(fnum(v.r))}" placeholder="${neu?'10':'1'}" aria-label="Wiederholungen ${esc(de)}"><span>Wdh</span></div></div>
+     ${m?`<div class="cres"><span>Maximalkraft etwa</span><b>${fnum(m)} kg</b></div>
+      <div class="cpct">${[50,60,70,80,85,90].map(q=>`<div class="${q===sp?'on':''}"><small>${q} %</small>${fnum(pctWeight(m,q))}</div>`).join('')}</div>`:`<div class="tiny muted" style="margin-top:6px">Noch kein Wert. Ohne Wert trägst du das Gewicht später im Training selbst ein.</div>`}</div>`; }).join('');
+  const days=c.perWeek==3?'Montag, Mittwoch, Freitag':'Montag und Donnerstag';
+  return `<div class="row" style="margin-bottom:6px"><a class="iconbtn" href="#/kraft" data-a="back" aria-label="Zurück">${ic('back')}</a><h1 class="grow" style="font-size:1.9rem">Kraftrechner</h1></div>
+   <p class="muted" style="margin:0 0 12px">Trag ein, was du schaffst. Die App schätzt daraus deine Maximalkraft, rechnet die Trainingsgewichte aus und legt dir den Grundlagenplan in den Kalender.</p>
+   <div class="sec" style="margin-top:8px"><h2>1. Wo stehst du?</h2></div>
+   <div class="seg">${[['neu','Neu im Kraftraum'],['erfahren','Schon Erfahrung']].map(([k,l])=>`<button class="${c.level===k?'on':''}" data-a="calcSet" data-k="level" data-v="${k}">${l}</button>`).join('')}</div>
+   <p class="small" style="margin:10px 2px 0">${neu?'Mach keinen Maximaltest. Nimm ein Gewicht, das du etwa 10-mal sauber schaffst, und trag Gewicht und Wiederholungen ein. Lass dir neue Übungen zuerst zeigen. Dein Plan startet bewusst leicht bei 50 %.':'Trag dein bestes Ergebnis ein: entweder dein Maximum (1 Wiederholung) oder ein schweres Gewicht mit der geschafften Wiederholungszahl. Dein Plan startet wie im DKV-Grundlagenplan bei 60 %.'}</p>
+   <div class="sec"><h2>2. Deine Werte</h2></div>
+   ${rows}
+   <p class="tiny muted" style="margin:8px 2px 0">Geschätzt nach der Epley-Formel (Gewicht × (1 + Wiederholungen ÷ 30)), gerundet auf 2,5 kg. Am genauesten bei 3 bis 10 Wiederholungen. Es ist ein Richtwert, kein Messwert.</p>
+   <div class="sec"><h2>3. Grundlagenplan erstellen</h2></div>
+   <div class="card"><label>Einheiten pro Woche</label><div class="seg">${[[2,'2 Einheiten'],[3,'3 Einheiten']].map(([k,l])=>`<button class="${c.perWeek==k?'on':''}" data-a="calcSet" data-k="perWeek" data-v="${k}">${l}</button>`).join('')}</div>
+    <div class="grid g2" style="margin-top:10px">${field('Start',`<input type="date" data-bind="${b}/start" data-rr value="${c.start}">`)}${field('Dauer',`<select data-bind="${b}/weeks" data-num data-rr>${[4,6,8].map(n=>`<option value="${n}" ${c.weeks==n?'selected':''}>${n} Wochen</option>`).join('')}</select>`)}</div>
+    <p class="small muted" style="margin:0 0 10px">${c.perWeek*c.weeks} Einheiten, jeweils ${days}. Start bei ${sp} % mit 3 × 10, jede Woche 2,5 kg mehr. Die Tage kannst du danach per Tipp aufs Datum verschieben.</p>
+    <button class="btn pri lg block" data-a="calcPlan">${ic('calendar','sm')}Plan in den Kalender legen</button></div>
+   <p class="tiny muted" style="margin-top:14px">Grundlage: DKV-Grundlagenplan (Tim Below). Schaffst du die Vorgabe zweimal in Folge nicht, bleib beim Gewicht und geh auf 3 × 8. Details stehen unter Wissen → Periodisierung und Erholung.</p>`;
 },
 wissen(){
   const el=([k,v])=>k==='p'?`<p>${esc(v)}</p>`:k==='table'?`<div class="tablewrap ktab"><table>${v.map((r,i)=>`<tr>${r.map(c=>i?`<td>${esc(c)}</td>`:`<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</table></div>`:`<${k}>${v.map(x=>`<li>${esc(x)}</li>`).join('')}</${k}>`;

@@ -202,6 +202,14 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .know[open] summary::after{content:"–"}
 .kbody{padding:0 16px 14px;line-height:1.55}.kbody p{margin:0 0 10px}.kbody ul,.kbody ol{margin:0 0 10px;padding-left:1.25rem}.kbody li{margin-bottom:6px}
 .ktab{margin:0 0 12px}.ktab table{font-size:.82rem}.ktab th,.ktab td{white-space:normal;text-align:left;padding:.45rem .5rem;vertical-align:top}.ktab td:first-child,.ktab th:first-child{font-weight:600}
+.calc{margin-top:10px}.calc .unit{position:relative}.calc input{text-align:center;font-weight:700;font-size:1.05rem;padding-right:2.4rem}
+.calc .unit span{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.74rem;color:var(--muted);pointer-events:none}
+.cres{display:flex;align-items:baseline;justify-content:space-between;margin-top:12px;font-size:.88rem;color:var(--muted)}
+.cres b{font-family:var(--display);font-size:1.9rem;line-height:1;color:var(--red)}
+.cpct{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:8px}
+.cpct div{text-align:center;padding:6px 0;border-radius:var(--r-in);background:var(--paper-2);font-weight:700;font-size:.92rem;font-variant-numeric:tabular-nums}
+.cpct small{display:block;font-weight:400;font-size:.68rem;color:var(--muted)}
+.cpct div.on{background:var(--ink);color:var(--paper)}.cpct div.on small{color:inherit}
 /* Anstrengung */
 .rpe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rpe button{min-height:48px;font-family:var(--display);font-size:1.3rem;border-radius:10px;border:1px solid var(--rule);font-weight:600;background:color-mix(in srgb,var(--red) calc(var(--i)*7%),var(--card));transition:transform var(--micro) var(--ease-out)}

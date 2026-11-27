@@ -463,6 +463,11 @@ const WISSEN=[
  {t:'Beispielwoche für Einsteiger',s:'So passen Kraft, Wasser und Erholung zusammen',b:[
   ['ul',['Montag: Ganzkörper A','Dienstag: Wassertraining','Mittwoch: Ausgleich Schulter und Rumpf (20 min) oder frei','Donnerstag: Ganzkörper B','Freitag: Wassertraining','Samstag: locker laufen oder Rad, 30–45 min, oder Spiel','Sonntag: frei']],
   ['p','Zwei Krafteinheiten pro Woche reichen am Anfang völlig. Wer nach 8–12 Wochen mehr möchte, wechselt auf die Muskelaufbau-Pläne für Ober- und Unterkörper.']]}];
+// Kraftrechner: Übungen, für die ein Maximalgewicht sinnvoll ist (Name in der Bibliothek, deutsche Bezeichnung)
+const CALC=[['Bankziehen (Langhantel)','Bankziehen, Langhantel'],['Bench Press','Bankdrücken, Langhantel'],['Dumbbell Row','Rudern einarmig (Gewicht einer Hantel)'],['Dumbbell Chest Press','Bankdrücken, Kurzhantel (Gewicht einer Hantel)'],['Pull-Over (lying on bench)','Überzüge'],['Back Squat','Kniebeuge'],['Box Squat','Box-Kniebeuge'],['Forward Lunge','Ausfallschritte (Zusatzgewicht gesamt)']];
+const est1rm=v=>v&&v.w>0?Math.round(epley(v.w,Math.min(v.r||1,12))*2)/2:null;
+const nextMonday=()=>{ const t=today(), ws=weekStart(t); return t===ws?t:addDays(ws,7); };
+const calcGet=()=>{ const c=S.settings.calc=S.settings.calc||{}; c.vals=c.vals||{}; c.level=c.level||'neu'; c.perWeek=c.perWeek||2; c.weeks=c.weeks||6; if(!c.start||c.start<today()) c.start=nextMonday(); return c; };
 function mkPlans(defs,exercises){
   const byName = Object.fromEntries(exercises.map(e=>[e.name,e]));
   return defs.map(p=>({id:uid(),name:p.name,note:p.note,items:p.items.map(([n,sets,reps,pct,rest,note,block,mode,scheme,tm,weight])=>{
