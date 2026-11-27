@@ -210,6 +210,21 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .cpct div{text-align:center;padding:6px 0;border-radius:var(--r-in);background:var(--paper-2);font-weight:700;font-size:.92rem;font-variant-numeric:tabular-nums}
 .cpct small{display:block;font-weight:400;font-size:.68rem;color:var(--muted)}
 .cpct div.on{background:var(--ink);color:var(--paper)}.cpct div.on small{color:inherit}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.pcard{display:flex;flex-direction:column;gap:2px;padding:14px;border:1.5px solid var(--ink);border-radius:var(--r-card);background:var(--card);min-height:138px;transition:transform var(--micro) var(--ease-out)}
+.pcard:active{transform:scale(.97)}
+.pcard .tiny{color:var(--red);font-weight:600}.pcard b{font-family:var(--display);font-size:1.45rem;line-height:1.05}
+.pcard .pgo{margin-top:auto;display:inline-flex;align-items:center;gap:5px;font-weight:600;font-size:.88rem;padding-top:8px}
+.norm{margin-top:10px}.norm .unit{position:relative;width:118px;flex:none}.norm input{text-align:center;font-weight:700;font-size:1.05rem;padding-right:2.6rem}
+.norm .unit span{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.74rem;color:var(--muted);pointer-events:none}
+.nbar{position:relative;height:12px;border-radius:99px;background:var(--paper-2);margin:16px 0 26px}
+.nbar i{display:block;height:100%;border-radius:99px;background:var(--muted)}
+.norm.l1 .nbar i{background:var(--ink)}.norm.l2 .nbar i{background:var(--ok)}
+.nbar .mk{position:absolute;top:-4px;width:2px;height:20px;background:var(--ink)}.nbar .mk.z{background:var(--red)}
+.nbar .mk em{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-style:normal;font-size:.72rem;font-weight:600;white-space:nowrap}.nbar .mk.z em{color:var(--red)}
+.nstat{display:flex;align-items:center;gap:6px;font-weight:600;font-size:.92rem}.norm.l2 .nstat{color:var(--ok)}.norm.l-1 .nstat{color:var(--muted);font-weight:400}
+.nsum{display:flex;align-items:center;gap:14px;margin-top:10px;padding:14px 16px;border-radius:var(--r-card);background:var(--ink);color:var(--paper)}
+.nsum b{font-family:var(--display);font-size:2.2rem;line-height:1;white-space:nowrap}.nsum span{font-size:.9rem}.nsum.ok{background:var(--ok);color:#fff}
 /* Anstrengung */
 .rpe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rpe button{min-height:48px;font-family:var(--display);font-size:1.3rem;border-radius:10px;border:1px solid var(--rule);font-weight:600;background:color-mix(in srgb,var(--red) calc(var(--i)*7%),var(--card));transition:transform var(--micro) var(--ease-out)}

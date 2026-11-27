@@ -334,29 +334,29 @@ function wfGet(ws){ const w=S.weekly[ws]=S.weekly[ws]||{}; if(w.label==null) w.l
 /* ---- Zustand ---- */
 let S;
 /* ---- Beispielpläne für eigene Profile (Einsteiger, 18–22 Jahre) ---- */
-const H='Etwa 2 Wiederholungen in Reserve lassen (Anstrengung 7–8 von 10).';
-const DKV='Aus dem DKV-Grundlagenplan (Kanupolo Basisplan, Tim Below, Bundestrainer Nachwuchs). Ziele: Muskelaufbau, Kraftaufbau, Prävention und Ausgleich. 2–3 Einheiten pro Woche, 60–80 min, Einheit insgesamt etwa Anstrengung 8. ';
-const DKVP='Pflichtübung mit Wiederholungsschema 10 – 8 – 6 – 4 – 3: Start mit etwa 60 % deines Maximalgewichts und 3 × 10. Jede Woche 2,5 kg mehr. Schaffst du die Vorgabe in zwei Einheiten in Folge nicht, gehst du auf die nächste Stufe (3 × 8), das Gewicht bleibt. ';
+const H='Hör auf, wenn noch etwa zwei Wiederholungen gegangen wären.';
+const GP='Der Grundlagenplan für Kanupolo: Muskeln aufbauen, stärker werden und die Schultern gesund halten. Zwei bis drei Einheiten pro Woche, jede dauert 60 bis 80 Minuten und soll sich insgesamt wie eine 8 von 10 anfühlen. ';
+const GPP='Pflichtübung. Du startest mit etwa 60 % deines Maximalgewichts und 3 × 10. Jede Woche kommen 2,5 kg drauf. Klappt die Vorgabe zweimal hintereinander nicht, bleibt das Gewicht und du gehst auf 3 × 8, später auf 6, 4 und 3. ';
 const GUEST_PLANS=[
- {name:'DKV Grundlagenplan · Einheit 1', note:DKV+'Übungen mit Stern im Original sind Pflicht und folgen dem Schema 10 – 8 – 6 – 4 – 3, die anderen sind Zusatzübungen mit fester Vorgabe. Kadenz 2/0/X heißt: 2 s ablassen, keine Pause unten, so schnell wie möglich hoch.', items:[
-  ['Bankziehen (Langhantel)',3,10,null,120,DKVP+'Kadenz 2/0/X. Füße nicht einklemmen! Die Stange mindestens bis 10 cm unter die Bank ablassen.','Pflicht'],
-  ['Bench Press',3,10,null,120,DKVP+'Bankdrücken mit der Langhantel, Zielbereich später 80–85 %. Kadenz 2/0/X. Voller Bewegungsumfang, leichte Dehnung in der untersten Position.','Pflicht'],
-  ['Dumbbell Row',3,10,null,30,DKVP+'Rudern einarmig. Kadenz 2/0/X. Die 30 s Pause gelten zwischen den Sätzen und beim Seitenwechsel.','Pflicht'],
+ {name:'Grundlagenplan · Einheit 1', note:GP+'Die Pflichtübungen steigerst du Woche für Woche, die Zusatzübungen haben eine feste Vorgabe. Kadenz 2/0/X heißt: 2 Sekunden ablassen, unten nicht warten, so schnell wie möglich hoch.', items:[
+  ['Bankziehen (Langhantel)',3,10,null,120,GPP+'Kadenz 2/0/X. Füße nicht einklemmen! Die Stange mindestens bis 10 cm unter die Bank ablassen.','Pflicht'],
+  ['Bench Press',3,10,null,120,GPP+'Bankdrücken mit der Langhantel, Zielbereich später 80–85 %. Kadenz 2/0/X. Voller Bewegungsumfang, leichte Dehnung in der untersten Position.','Pflicht'],
+  ['Dumbbell Row',3,10,null,30,GPP+'Rudern einarmig. Kadenz 2/0/X. Die 30 s Pause gelten zwischen den Sätzen und beim Seitenwechsel.','Pflicht'],
   ['Box Squat',3,8,null,120,'Box-Kniebeuge, Anstrengung 7. Kadenz 3/0/2 bis 2/0/X. Die Box so stellen, dass du sie in der gewünschten Tiefe nur kurz berührst.','Zusatz'],
   ['Hanging Leg Raise',3,4,null,90,'Beinheben hängend, leicht. Anstrengung 8. Kadenz 3/0/1: 3 s ablassen, 1 s heben.','Zusatz','r']]},
- {name:'DKV Grundlagenplan · Einheit 2', note:DKV+'Zweite Einheit der Woche mit Zug von oben, Kurzhanteln und Ausgleich für die Schulter.', items:[
-  ['Pull-Up',3,10,null,120,DKVP+'Klimmzug oder Latzug, voller Bewegungsumfang. Sind Klimmzüge noch nicht möglich, ist der Latzug die bessere Wahl als Klimmzüge mit Gummiband.','Pflicht','r'],
-  ['Dumbbell Chest Press',3,10,null,120,DKVP+'Bankdrücken mit Kurzhanteln, Anstrengung 8. Kadenz 2/0/2. Voller Bewegungsumfang, leichte Dehnung unten.','Pflicht'],
+ {name:'Grundlagenplan · Einheit 2', note:GP+'Die zweite Einheit der Woche: Ziehen von oben, Kurzhanteln und am Ende etwas für die Schulter.', items:[
+  ['Pull-Up',3,10,null,120,GPP+'Klimmzug oder Latzug, voller Bewegungsumfang. Sind Klimmzüge noch nicht möglich, ist der Latzug die bessere Wahl als Klimmzüge mit Gummiband.','Pflicht','r'],
+  ['Dumbbell Chest Press',3,10,null,120,GPP+'Bankdrücken mit Kurzhanteln, Anstrengung 8. Kadenz 2/0/2. Voller Bewegungsumfang, leichte Dehnung unten.','Pflicht'],
   ['Triceps Pushdown',3,5,null,30,'Trizepsstrecken mit Band, Anstrengung 9. Kadenz 2/0/2. Pause zwischen den Sätzen und beim Seitenwechsel.','Zusatz'],
   ['Forward Lunge',3,8,null,120,'Ausfallschritte, 8 Wdh. pro Seite, Anstrengung 8. Kadenz 2/0/2.','Zusatz'],
-  ['Face Pull',3,8,null,60,'Facepulls mit Außenrotation, Anstrengung 9. Ausgleich für die Schulter, im Plan als wichtig markiert.','Pflicht · Ausgleich']]},
- {name:'DKV Grundlagenplan · Einheit 3', note:DKV+'Dritte Einheit, falls du dreimal pro Woche trainierst. Bankziehen hier bewusst leichter.', items:[
-  ['Bankziehen (Langhantel)',3,10,null,120,DKVP+'Hier leicht, Zielbereich später 80–85 %. Füße nicht einklemmen, Stange weit ablassen.','Pflicht'],
-  ['Bench Press',3,10,null,120,DKVP+'Bankdrücken mit der Langhantel. Kadenz 2/0/X, voller Bewegungsumfang.','Pflicht'],
-  ['Pull-Over (lying on bench)',3,10,null,120,DKVP+'Überzüge: Arme fast gestreckt, weit hinter den Kopf, Rippen unten lassen.','Pflicht'],
+  ['Face Pull',3,8,null,60,'Facepulls mit Außenrotation, Anstrengung 9. Der Ausgleich für die Schulter, bitte nicht weglassen.','Pflicht · Ausgleich']]},
+ {name:'Grundlagenplan · Einheit 3', note:GP+'Nur wenn du dreimal pro Woche in den Kraftraum gehst. Das Bankziehen bleibt hier bewusst leicht.', items:[
+  ['Bankziehen (Langhantel)',3,10,null,120,GPP+'Hier leicht, Zielbereich später 80–85 %. Füße nicht einklemmen, Stange weit ablassen.','Pflicht'],
+  ['Bench Press',3,10,null,120,GPP+'Bankdrücken mit der Langhantel. Kadenz 2/0/X, voller Bewegungsumfang.','Pflicht'],
+  ['Pull-Over (lying on bench)',3,10,null,120,GPP+'Überzüge: Arme fast gestreckt, weit hinter den Kopf, Rippen unten lassen.','Pflicht'],
   ['Back Squat',3,8,null,120,'Kniebeuge, Anstrengung 8.','Zusatz'],
   ['Hanging Leg Raise',3,8,null,90,'Beinheben hängend, Anstrengung 9.','Zusatz','r']]},
- {name:'Einsteiger · Ganzkörper A', note:'Für die ersten 8–12 Wochen, 2–3× pro Woche im Wechsel mit Ganzkörper B, dazwischen mindestens ein Tag Pause. Erst die Technik lernen, dann steigern: Schaffst du in allen Sätzen die obere Wiederholungszahl sauber, nimm beim nächsten Mal etwas mehr Gewicht. '+H, items:[
+ {name:'Einsteiger · Ganzkörper A', note:'Für alle, die noch nie im Kraftraum waren. Die ersten 8 bis 12 Wochen im Wechsel mit Ganzkörper B, zwei- bis dreimal pro Woche und nie an zwei Tagen hintereinander. Lern zuerst die Bewegung. Wenn alle Sätze sauber laufen, nimmst du beim nächsten Mal etwas mehr Gewicht. '+H, items:[
   ['Goblet Squat',3,10,null,90,'Kurzhantel vor der Brust, Knie folgen den Fußspitzen, Rücken gerade','Beine'],
   ['Romanian Deadlift',3,10,null,90,'Hüfte nach hinten schieben, Rücken gerade, Stange nah am Bein','Beine'],
   ['Dumbbell Chest Press',3,10,null,90,'Schulterblätter zusammen, Hanteln kontrolliert senken','Drücken'],
@@ -364,7 +364,7 @@ const GUEST_PLANS=[
   ['Dumbbell Shoulder Press',2,10,null,90,'Rumpf fest, nicht ins Hohlkreuz ausweichen','Drücken'],
   ['Face Pull',3,15,null,60,'Ausgleich für die Schulter: leicht, sauber, am Ende nach außen rotieren','Ausgleich'],
   ['Plank',3,40,null,45,'Kopf bis Ferse eine Linie, Bauch und Gesäß fest','Rumpf','t']]},
- {name:'Einsteiger · Ganzkörper B', note:'Gegenstück zu Ganzkörper A. Gleiche Regeln: saubere Technik, 2 Wiederholungen in Reserve, langsam steigern.', items:[
+ {name:'Einsteiger · Ganzkörper B', note:'Das Gegenstück zu Ganzkörper A, mit denselben Regeln: sauber bewegen, zwei Wiederholungen übrig lassen, in kleinen Schritten steigern.', items:[
   ['Trap Bar Deadlift',3,8,null,120,'Brust raus, Rücken gerade, aus den Beinen drücken. Ohne Trap Bar: Romanian Deadlift','Beine'],
   ['Bulgarian Split Squat',3,8,null,90,'8 Wdh. je Bein, hinteren Fuß auf die Bank, Oberkörper aufrecht','Beine'],
   ['Push-Up',3,10,null,90,'Körper wie ein Brett. Zu schwer: Hände erhöht. Zu leicht: Füße erhöht','Drücken'],
@@ -373,7 +373,7 @@ const GUEST_PLANS=[
   ['External Rotator (rotator cuff)',3,15,null,45,'Ausgleich: Ellbogen am Körper, sehr leichtes Gewicht oder Band','Ausgleich'],
   ['Dead Bug',3,10,null,45,'Lendenwirbelsäule bleibt am Boden, langsam bewegen','Rumpf','r'],
   ['Side Plank',3,30,null,30,'30 s je Seite, Hüfte hoch','Rumpf','t']]},
- {name:'Muskelaufbau · Oberkörper', note:'Für alle, die die Grundübungen sicher beherrschen. Drücken und Ziehen sind gleich stark vertreten, am Ende Ausgleich für die Schulter. 6–12 Wiederholungen, 60–120 s Pause, jede Muskelgruppe 2× pro Woche. '+H, items:[
+ {name:'Muskelaufbau · Oberkörper', note:'Wenn Bankdrücken, Rudern und Klimmzug sicher sitzen. Es wird genauso viel gezogen wie gedrückt, zum Schluss kommt die Schulter dran. Zusammen mit dem Unterkörper-Plan trainierst du jede Muskelgruppe zweimal pro Woche. '+H, items:[
   ['Bench Press',4,8,null,120,'Bei schweren Sätzen mit Sicherung oder in der Ablage','Drücken'],
   ['Barbell Row (Bent-Over Row)',4,8,null,120,'Rücken gerade, Stange zum Bauchnabel','Ziehen'],
   ['Dumbbell Shoulder Press',3,10,null,90,'','Drücken'],
@@ -382,7 +382,7 @@ const GUEST_PLANS=[
   ['Hammer Curl',2,12,null,60,'','Arme'],
   ['Face Pull',3,15,null,60,'Ausgleich: hintere Schulter und Außenrotatoren','Ausgleich'],
   ['External Rotator (rotator cuff)',2,15,null,45,'Leicht und kontrolliert','Ausgleich']]},
- {name:'Muskelaufbau · Unterkörper und Rumpf', note:'Zweiter Tag zum Oberkörper-Plan. Kraft aus Beinen und Rumpf überträgt sich im Boot auf jeden Schlag und jeden Wurf.', items:[
+ {name:'Muskelaufbau · Unterkörper und Rumpf', note:'Der zweite Tag zum Oberkörper-Plan. Im Boot kommt die Kraft für Schlag und Wurf aus Beinen und Rumpf, auch wenn man es von außen nicht sieht.', items:[
   ['Back Squat',4,8,null,120,'Tiefe nur so weit, wie der Rücken gerade bleibt','Beine'],
   ['Romanian Deadlift',3,10,null,120,'','Beine'],
   ['Reverse Lunge',3,10,null,90,'10 Wdh. je Bein','Beine'],
@@ -391,7 +391,7 @@ const GUEST_PLANS=[
   ['Pallof Press',3,10,null,45,'10 Wdh. je Seite: Rumpf hält gegen die Drehung, wie im Zweikampf','Rumpf'],
   ['Knee Raise',3,10,null,60,'Im Hang, ohne Schwung','Rumpf','r'],
   ['Back Extension (on bench)',3,12,null,60,'Unterer Rücken, langsam und ohne Überstrecken','Rumpf','r']]},
- {name:'Ausgleich · Schulter und Rumpf (20 min)', note:'Kurzes Programm für gesunde Schultern, 2–3× pro Woche, auch nach dem Wassertraining oder zu Hause mit Band. Paddeln und Werfen stärken vor allem die ziehenden und nach innen drehenden Muskeln. Diese Übungen trainieren die Gegenspieler. Leicht, langsam, sauber.', items:[
+ {name:'Ausgleich · Schulter und Rumpf (20 min)', note:'20 Minuten für die Schultern, zwei- bis dreimal pro Woche. Geht nach dem Wassertraining oder zu Hause mit einem Band. Paddeln und Werfen machen die Muskeln stark, die ziehen und den Arm nach innen drehen. Hier sind die Gegenspieler dran. Wenig Gewicht, langsam bewegen.', items:[
   ['External Rotator (rotator cuff)',3,15,null,30,'Je Seite, Ellbogen am Körper','Schulter'],
   ['Internal Rotator (rotator cuff)',2,15,null,30,'Je Seite, nur leicht','Schulter'],
   ['Face Pull',3,15,null,45,'','Schulter'],
@@ -399,70 +399,98 @@ const GUEST_PLANS=[
   ['Bird Dog',3,8,null,30,'8 Wdh. je Seite, Becken bleibt ruhig','Rumpf','r'],
   ['Side Plank',3,30,null,30,'30 s je Seite','Rumpf','t'],
   ['Dead Bug',3,10,null,30,'','Rumpf','r']]},
- {name:'TRX · Grundlagen-Zirkel', note:'6 Übungen im Kreis, 40 s Belastung und 20 s Wechsel, 3 Runden, 2 min Pause zwischen den Runden. Je schräger der Körper, desto schwerer. Über „Ganzen Zirkel mit Timer starten“ läuft alles automatisch.', items:
+ {name:'TRX · Grundlagen-Zirkel', note:'Sechs Übungen im Kreis: 40 Sekunden arbeiten, 20 Sekunden wechseln, drei Runden mit je 2 Minuten Pause. Je schräger du stehst, desto schwerer wird es. Tipp auf „Ganzen Zirkel mit Timer starten“, dann sagt dir die App, was dran ist.', items:
   [['TRX Squat','Band mittel'],['TRX Row','Band mittel'],['TRX Chest Press','Band lang'],['TRX Hamstring Curl','Band lang, Fersen in den Schlaufen'],['TRX Plank','Band lang, Füße in den Schlaufen'],['TRX Y Raise','Band mittel, wenig Schräglage']].map(([n,c],i,a)=>[n,3,40,null,i===a.length-1?120:20,c,'','t'])},
- {name:'Explosiv · Wurfkraft mit Medizinball', note:'Für Schnellkraft: wenige, maximal schnelle Wiederholungen und lange Pausen. Nur ausgeruht trainieren, am besten zu Beginn einer Einheit nach dem Aufwärmen. Ball 2–4 kg. Qualität geht vor Menge: Wird die Bewegung langsamer, ist der Satz vorbei.', items:[
+ {name:'Explosiv · Wurfkraft mit Medizinball', note:'Hier geht es um Tempo. Wenige Würfe, jeder so schnell wie möglich, dazwischen lange Pausen. Mach das nur ausgeruht, am besten direkt nach dem Aufwärmen, mit einem Ball von 2 bis 4 kg. Sobald die Würfe langsamer werden, ist der Satz vorbei.', items:[
   ['Box Jump',4,5,null,90,'Leise landen, herunter steigen statt springen','Sprung','r'],
   ['MB Chest Pass',4,6,null,90,'Explosiv gegen die Wand oder zum Partner','Wurf','r'],
   ['MB Rotational Throw',4,6,null,90,'6 Würfe je Seite, die Kraft kommt aus Hüfte und Rumpf','Wurf','r'],
   ['MB Slam',4,6,null,90,'Ganzkörper-Streckung, dann mit voller Kraft auf den Boden','Wurf','r']]}];
 const WISSEN=[
- {t:'So startest du',s:'In vier Schritten zur ersten eigenen Trainingswoche',b:[
-  ['p','Die App speichert alles nur auf deinem Gerät. Es gibt kein Konto, niemand sieht deine Einträge.'],
-  ['ol',['Unter Training → Alle Trainingsinhalte findest du Beispielpläne. Öffne einen und tippe auf „Jetzt trainieren“.','Im Training hakst du jeden Satz ab und trägst Gewicht und Wiederholungen ein. Der Pausen-Timer startet von selbst.','Plane deine Woche: Training → Diese Woche → Einheit hinzufügen. Per Tipp auf das Datum verschiebst du eine Einheit.','Trag nach jedem Training die Anstrengung (1–10) ein. In der Statistik siehst du, wie du dich entwickelst.']],
-  ['p','Eigene Übungen und Pläne kannst du jederzeit ergänzen. Über Einstellungen → Backup sicherst du deine Daten.']]},
+ {t:'So startest du',s:'In ein paar Minuten zur ersten Trainingswoche',b:[
+  ['p','Du brauchst kein Konto. Was du einträgst, liegt nur auf deinem Handy, und außer dir sieht es niemand.'],
+  ['ol',['Such dir auf der Startseite einen Grundlagenplan aus und tipp auf „Jetzt trainieren“.','Hak im Training jeden Satz ab und trag Gewicht und Wiederholungen ein. Die Pause läuft dann von allein.','Wenn du magst, lässt du dir im Kraftrechner einen Plan für mehrere Wochen in den Kalender legen. Einzelne Tage verschiebst du mit einem Tipp aufs Datum.','Trag nach dem Training ein, wie anstrengend es war. In der Statistik siehst du später, wie es sich entwickelt.']],
+  ['p','Ein Hinweis noch: Wenn du die Browserdaten löschst, sind deine Einträge weg. Unter Einstellungen kannst du ein Backup speichern.']]},
+ {t:'Wie viel sollte ich trainieren?',s:'Vom Einstieg bis zum Kader-Umfang',b:[
+  ['p','Kurze Antwort für den Einstieg: zweimal Kraft und zwei- bis dreimal aufs Wasser. Das sind vier bis sechs Stunden pro Woche, und damit kommst du in den ersten Monaten richtig weit.'],
+  ['ul',['Erste 3 Monate: 2 Krafteinheiten (je 60 bis 80 min) plus dein normales Wassertraining.','Danach: eine dritte Krafteinheit oder die 20 Minuten Ausgleich für die Schulter dazunehmen.','Steigere in kleinen Schritten. Etwa 10 % mehr pro Woche sind eine gute Obergrenze.','Mindestens ein Tag pro Woche bleibt komplett frei.']],
+  ['p','Zum Vergleich, wohin die Reise gehen kann: So sieht der Wochenumfang im U21-Kader über das Jahr aus, in Minuten pro Woche.'],
+  ['table',[['Zeitraum','Gesamt','Athletik','Im Boot'],['Okt – Nov','320','215','105'],['Nov – Dez','480','265','215'],['Dez – Feb','535','320','215'],['Feb – Mrz','535','220','315'],['Mrz – Apr','555','215','340'],['Apr – Mai','640','185','455'],['Mai – Jun','655','130','525'],['Jun – Aug','670','105','565'],['Aug – Sep','510','50','460']]],
+  ['p','Man sieht den roten Faden: Im Winter ist viel Athletik dabei, über die Hälfte der Zeit. Zum Sommer hin wandert fast alles ins Boot, und kurz vor dem Saisonhöhepunkt wird es insgesamt weniger, damit du frisch bist.'],
+  ['p','Das sind Kaderwerte. Als Einsteiger musst du da nicht hin, schon gar nicht sofort. Nimm sie als Richtung.']]},
  {t:'Was im Jahr wann zählt',s:'Die Phasen einer Kanupolo-Saison',b:[
-  ['p','Nicht alles lässt sich gleichzeitig verbessern. Deshalb hat jede Phase einen Schwerpunkt.'],
-  ['ul',['Herbst bis Jahresende, Aufbau: Technik im Kraftraum lernen, Muskeln aufbauen, Grundlagenausdauer, viel Ballgefühl und Paddeltechnik.','Januar bis März, Kraft und Schnellkraft: schwerere Lasten mit wenigen Wiederholungen, danach explosive Übungen und Sprints im Boot.','Saison, Erhalt: 1–2 kurze Krafteinheiten pro Woche reichen, um das Niveau zu halten. Am Spieltag sollst du frisch sein.','Nach der Saison, Übergang: 2–4 Wochen locker bewegen, andere Sportarten, Kopf frei bekommen.']],
-  ['p','Mit 18 bis 22 lohnt sich der Aufbau besonders: Der Körper reagiert in diesem Alter stark auf Krafttraining, und saubere Technik hält ein Sportlerleben lang.']]},
- {t:'Muskelaufbau: die fünf Stellschrauben',s:'Was wirklich zählt, wenn du stärker und kräftiger werden willst',b:[
-  ['ol',['Nah an die Grenze: Die letzten Wiederholungen eines Satzes müssen schwer sein. Lass etwa 1–3 Wiederholungen in Reserve.','Genug Sätze: Der DKV-Vortrag nennt 20–25 Sätze pro Muskel und Woche als Optimum für Muskelaufbau. Wer neu anfängt, startet deutlich darunter und steigert über Wochen.','Regelmäßig: Jede Muskelgruppe zweimal pro Woche bringt mehr als einmal sehr viel.','Steigern: Schaffst du die obere Wiederholungszahl in allen Sätzen sauber, erhöhe das Gewicht um den kleinsten Schritt.','Erholen: Muskeln wachsen in der Pause. Schlaf (8 Stunden und mehr) und genug Eiweiß (etwa 1,6–2,2 g pro kg Körpergewicht am Tag) gehören dazu.']],
-  ['p','Der Wiederholungsbereich ist dabei weniger wichtig als oft gedacht: 6 bis 15 Wiederholungen funktionieren gut, solange der Satz anstrengend ist. In den ersten Wochen wirst du vor allem deshalb stärker, weil Nerven und Muskeln besser zusammenarbeiten. Sichtbarer Muskelaufbau braucht einige Wochen Geduld.']]},
- {t:'Muskelaufbau, Kraftaufbau, Schnellkraft',s:'Die Übersicht aus dem DKV-Vortrag',b:[
-  ['p','Drei Trainingsziele, drei verschiedene Rezepte. Die Werte stammen aus dem Vortrag zum DKV-Grundlagenplan (Tim Below, Bundestrainer Nachwuchs) und sind als grobe Orientierung gedacht.'],
+  ['p','Alles gleichzeitig verbessern klappt nicht. Deshalb hat jede Phase im Kraftraum ihren Schwerpunkt.'],
+  ['ul',['Oktober bis Februar: Aufbau. Muskelaufbau und allgemeine Athletik stehen vorn. Das ist die Zeit für den Grundlagenplan.','Ab Dezember, deutlich ab Februar: Maximalkraft kommt dazu. Schwerere Gewichte, weniger Wiederholungen, dafür weniger Muskelaufbau.','Ab März und April: Schnellkraft. Explosive Übungen, während die Zeit im Boot stark zunimmt.','Mai bis August: Die Athletik wird Schritt für Schritt weniger. Ein bis zwei kurze Einheiten halten, was du aufgebaut hast.','Kurz vor dem Saisonhöhepunkt: nur noch wenig allgemeine Athletik. Jetzt zählen Spiel und Frische.']],
+  ['p','Zwischen 18 und 22 lohnt sich der Aufbau besonders. Der Körper reagiert in dem Alter stark auf Krafttraining, und eine saubere Technik hast du dann für immer.']]},
+ {t:'Die Kadernormen',s:'Wo du mit deinen Kraftwerten stehst',b:[
+  ['p','Für vier Kraftwerte gibt es Normen: Bankdrücken, Bankziehen, Klimmzüge und Toes to Bar. Zu jedem Wert gehören zwei Marken, die Mindestnorm und die Zielvorgabe.'],
+  ['table',[['','Herren','Herren U21','Damen','Damen U21'],['Bankdrücken (kg pro kg)','1,05 / 1,41','0,93 / 1,28','0,67 / 0,95','0,58 / 0,81'],['Bankziehen (kg pro kg)','1,03 / 1,25','0,93 / 1,20','0,81 / 1,01','0,69 / 0,88'],['Klimmzüge','12 / 22','9 / 18','2 / 12','1 / 6'],['Toes to Bar','4 / 15','1 / 11','2 / 11','1 / 3']]],
+  ['p','Die erste Zahl ist die Mindestnorm, die zweite die Zielvorgabe. Bei Bankdrücken und Bankziehen zählt das Gewicht im Verhältnis zu deinem Körpergewicht. Wer 75 kg wiegt und als U21-Spieler 0,93 schaffen will, braucht also rund 70 kg.'],
+  ['ul',['Für eine Kadernominierung müssen mindestens 3 der 4 Mindestnormen stehen.','Einen Anspruch auf eine Nominierung gibt das nicht.','Die Normen werden schrittweise eingeführt: bis November 2027 als Orientierung, danach verbindlich.']],
+  ['p','Im Norm-Check trägst du deine Werte ein und siehst sofort, wo du stehst und wie viel bis zur nächsten Marke fehlt.']]},
+ {t:'Muskelaufbau: worauf es ankommt',s:'Fünf Dinge, die den Unterschied machen',b:[
+  ['ol',['Es muss schwer werden. Die letzten Wiederholungen eines Satzes kosten Überwindung. Hör auf, wenn noch ein bis drei gegangen wären.','Genug Sätze. Für den Muskelaufbau gelten 20 bis 25 Sätze pro Muskel und Woche als sehr guter Wert. Wer gerade anfängt, startet mit deutlich weniger und legt über Wochen nach.','Regelmäßig. Zweimal pro Woche denselben Muskel zu trainieren bringt mehr als einmal sehr viel.','Steigern. Laufen alle Sätze sauber mit der oberen Wiederholungszahl, kommt das nächste Mal die kleinste Scheibe mehr drauf.','Erholen. Der Muskel wächst in der Pause. Dazu gehören acht Stunden Schlaf und genug Eiweiß, etwa 1,6 bis 2,2 g pro Kilo Körpergewicht am Tag.']],
+  ['p','In den ersten Wochen wirst du schnell stärker, ohne dass man viel sieht. Das liegt daran, dass Nerven und Muskeln besser zusammenarbeiten. Sichtbare Muskeln brauchen ein paar Wochen länger.']]},
+ {t:'Muskelaufbau, Kraftaufbau, Schnellkraft',s:'Die drei Ziele im Überblick',b:[
+  ['p','Drei Ziele, drei verschiedene Rezepte. Nimm die Zahlen als grobe Orientierung.'],
   ['table',[['','Muskelaufbau','Kraftaufbau','Schnellkraft'],['Wiederholungen','5–25','unter 6–8','unter 6–8'],['Last (% vom Maximum)','(30) 50–85 %','über 85 %','30–85 %'],['Anstrengung (1–10)','8–10','8–10','4–7'],['Sätze pro Muskel und Woche','20–25','10–15','10–25'],['Pause (min)','1–3','über 3','über 3'],['Einheiten pro Woche','3–5','3–5','3–6'],['Übungen','Ganzkörper + Isolation','Ganzkörper','Ganzkörper'],['Kadenz','2/0/X bis 3/0/2','2/0/X','2/0/X']]],
-  ['p','Kadenz liest du so: Sekunden ablassen / Sekunden Pause unten / Sekunden hoch. 2/0/X heißt 2 s ablassen, keine Pause, so schnell wie möglich hoch. 3/0/2 heißt 3 s ablassen, 2 s hoch.'],
-  ['p','Zum Erhalten von Muskeln und Kraft reichen schon wenige Sätze pro Woche. Das ist wichtig in der Saison.']]},
- {t:'Wie viele Wiederholungen und Sätze?',s:'Warum der Muskel ermüden muss',b:[
-  ['p','Für den Muskelaufbau ist entscheidend, wie häufig alle Muskelfasern ausbelastet werden. Die großen, schnellen Fasern schaltet der Körper erst zu, wenn es wirklich schwer wird.'],
-  ['ul',['Sehr hohes Gewicht mit weniger als 5 Wiederholungen ist für Muskelaufbau nicht optimal.','Mittleres Gewicht mit mittlerer Wiederholungszahl funktioniert, ebenso leichtes Gewicht mit vielen Wiederholungen. Wichtig ist, dass der Muskel am Ende ermüdet.','Das geht mit Verbundübungen und mit Isolationsübungen.','Mehr Sätze bedeuten häufigere Ausbelastung und damit einen größeren Reiz.']],
-  ['p','So zählst du Sätze: 3 Sätze Klimmzüge, 4 Sätze Bankziehen und 3 Sätze einarmiges Rudern ergeben 10 Sätze für Latissimus und Bizeps.'],
-  ['p','Die alte Einteilung „1–5 Kraft, 6–12 Muskelaufbau, 15+ Ausdauer“ ist zu streng: Muskelaufbau gelingt über einen breiten Bereich von etwa 5 bis über 20 Wiederholungen.']]},
- {t:'Was gehört in den Kraftraum, was aufs Wasser?',s:'Maximalkraft, Schnellkraft und Kraftausdauer',b:[
-  ['ul',['Maximalkraft und Schnellkraft: wenige Wiederholungen (1–5). Sie müssen im Kraftraum trainiert werden, weil die Belastung im Boot meist nicht hoch genug ist.','Kraftausdauer: 15 und mehr Wiederholungen. Sie wird fast ausschließlich auf dem Wasser trainiert, weil das spezifischer ist als im Kraftraum.']],
-  ['p','Die Trainingsziele im Kraftraum sind deshalb: Grundlage (Muskelaufbau), Leistungssteigerung (Maximalkraft und Schnellkraft) und Ausgleich (Rotatoren, unterer Rücken, Beine).']]},
- {t:'Verbund- oder Isolationsübung?',s:'Übungen passend zum Ziel auswählen',b:[
-  ['p','Übungen sollten zu Trainingsziel und Voraussetzungen passen: Zeit, Erfahrung, vorhandene Geräte.'],
-  ['ul',['Verbundübungen (z. B. Bankziehen, Kniebeuge, Klimmzug): bilden sportartspezifische Bewegungen häufig besser ab, eignen sich besser für Maximal- und Schnellkraft und trainieren viele Muskeln gleichzeitig.','Isolationsübungen (z. B. Trizepsstrecken, Außenrotation): sehr guter Fokus auf einzelne Muskeln und weniger Herz-Kreislauf-Belastung. Sie gehen gut als Supersatz oder mit kürzeren Pausen.']]]},
- {t:'Voller Bewegungsumfang',s:'Kraft ist spezifisch',b:[
-  ['p','Kraft entwickelt sich genau dort, wo du sie trainierst: im Gelenkwinkel, in der Geschwindigkeit und in der Übung.'],
-  ['ul',['Im Kanurennsport können Teilbewegungen sinnvoll sein.','Torwürfe im Kanupolo erfordern meist den vollen Bewegungsumfang.','Deshalb: Wer im vollen Bewegungsumfang maximale Leistung bringen will, trainiert auch im vollen Bewegungsumfang.']],
-  ['p','Praktisch heißt das: beim Bankziehen die Stange weit ablassen, beim Bankdrücken die leichte Dehnung unten mitnehmen, Klimmzüge aus dem gestreckten Arm.']]},
- {t:'Periodisierung und Erholung',s:'Warum auch leichte Einheiten wichtig sind',b:[
-  ['p','Ein Trainingsreiz macht dich zuerst müde. In der Erholung baut der Körper wieder auf und legt etwas obendrauf: die Superkompensation. Kommt der nächste Reiz zum richtigen Zeitpunkt, steigt die Leistung Schritt für Schritt. Kommt er zu früh und zu hart, sinkt sie. Kommt lange nichts, fällt sie auf das Ausgangsniveau zurück.'],
-  ['ul',['Periodisierung erlaubt, Bewegungen häufiger auszuführen: mehr Kraftreiz ohne Überlastung.','Auch leichte Einheiten sind wichtig.']],
-  ['p','So steigerst du im DKV-Grundlagenplan (Beispiel Bankziehen, Maximum 50 kg):'],
+  ['p','Die Kadenz liest du so: Sekunden beim Ablassen, Pause unten, Sekunden beim Hochgehen. 2/0/X heißt 2 Sekunden ablassen, nicht warten, so schnell wie möglich hoch. Bei 3/0/2 lässt du 3 Sekunden ab und gehst in 2 Sekunden hoch.'],
+  ['p','Um Muskeln und Kraft nur zu halten, genügen schon wenige Sätze pro Woche. Das ist die gute Nachricht für die Saison.']]},
+ {t:'Wie viele Wiederholungen und Sätze?',s:'Warum der Muskel müde werden muss',b:[
+  ['p','Ein Muskel wächst, wenn möglichst oft alle seine Fasern gefordert werden. Die großen, schnellen Fasern schaltet der Körper erst dazu, wenn es richtig schwer wird.'],
+  ['ul',['Sehr schwer mit weniger als 5 Wiederholungen ist für den Muskelaufbau nicht ideal.','Mittleres Gewicht mit mittlerer Wiederholungszahl funktioniert. Leichtes Gewicht mit vielen Wiederholungen auch, solange der Muskel am Ende müde ist.','Ob Verbund- oder Isolationsübung, ist dafür zweitrangig.','Mehr Sätze heißen: öfter ausbelastet, größerer Reiz.']],
+  ['p','So zählst du: 3 Sätze Klimmzüge, 4 Sätze Bankziehen und 3 Sätze einarmiges Rudern sind zusammen 10 Sätze für Latissimus und Bizeps.'],
+  ['p','Die alte Faustregel „1 bis 5 für Kraft, 6 bis 12 für Muskeln, ab 15 Ausdauer“ ist zu streng. Muskeln wachsen in einem breiten Bereich, etwa von 5 bis über 20 Wiederholungen.']]},
+ {t:'Was gehört in den Kraftraum, was aufs Wasser?',s:'Maximalkraft, Schnellkraft, Kraftausdauer',b:[
+  ['ul',['Maximalkraft und Schnellkraft brauchen wenige, schwere Wiederholungen (1 bis 5). Das geht fast nur im Kraftraum, denn im Boot ist die Belastung dafür meist zu niedrig.','Kraftausdauer heißt 15 Wiederholungen und mehr. Die holst du dir am besten auf dem Wasser, weil es dort genau die Bewegung ist, die du brauchst.']],
+  ['p','Im Kraftraum bleiben damit drei Aufgaben: die Grundlage legen (Muskelaufbau), die Leistung steigern (Maximal- und Schnellkraft) und ausgleichen (Rotatoren, unterer Rücken, Beine).']]},
+ {t:'Verbund- oder Isolationsübung?',s:'Welche Übung wofür',b:[
+  ['p','Welche Übung passt, hängt vom Ziel ab und davon, was du mitbringst: Zeit, Erfahrung, Geräte.'],
+  ['ul',['Verbundübungen wie Bankziehen, Kniebeuge oder Klimmzug trainieren viele Muskeln auf einmal. Sie sind näher an den Bewegungen im Sport und die bessere Wahl für Maximal- und Schnellkraft.','Isolationsübungen wie Trizepsstrecken oder Außenrotation treffen einen einzelnen Muskel sehr gezielt und belasten den Kreislauf weniger. Deshalb gehen sie gut als Supersatz oder mit kurzen Pausen.']]]},
+ {t:'Voller Bewegungsumfang',s:'Kraft entsteht dort, wo du sie trainierst',b:[
+  ['p','Kraft ist spezifisch. Sie hängt am Gelenkwinkel, an der Geschwindigkeit und an der Übung.'],
+  ['ul',['Im Kanurennsport können Teilbewegungen sinnvoll sein.','Ein Torwurf im Kanupolo geht dagegen meist über den ganzen Bewegungsweg.','Also trainierst du auch über den ganzen Weg.']],
+  ['p','Im Kraftraum heißt das: beim Bankziehen die Stange weit ablassen, beim Bankdrücken die leichte Dehnung unten mitnehmen, Klimmzüge aus dem gestreckten Arm beginnen.']]},
+ {t:'Periodisierung und Erholung',s:'Warum auch leichte Einheiten zählen',b:[
+  ['p','Ein Training macht dich erst einmal müde. In der Erholung baut der Körper wieder auf und legt ein kleines Stück obendrauf. Das nennt man Superkompensation. Kommt der nächste Reiz im richtigen Moment, wirst du Schritt für Schritt besser. Kommt er zu früh und zu hart, geht es bergab. Und wenn lange nichts kommt, landest du wieder am Anfang.'],
+  ['p','Wer sein Training in Stufen plant, kann eine Bewegung häufiger üben, ohne sich zu überlasten. Leichte Einheiten gehören deshalb dazu.'],
+  ['p','So läuft die Steigerung im Grundlagenplan, hier am Bankziehen mit 50 kg Maximum:'],
   ['table',[['Woche','Gewicht','Wiederholungen','Anstrengung'],['1 (60 %)','30 kg','10, 10, 10','8'],['2','32,5 kg','10, 10, 10','9'],['3','35 kg','10, 10, 9','10'],['4','35 kg','10, 9, 9','10'],['5','35 kg','8, 8, 8','8'],['6','37,5 kg','8, 8, 8','9']]],
-  ['p','Die Regel dahinter: Hast du die Vorgabe in zwei Einheiten in Folge nicht geschafft, gehst du einen Wiederholungsbereich tiefer (10 – 8 – 6 – 4 – 3), das Gewicht bleibt. Dann steigerst du wieder.']]},
- {t:'Konzentrisch, exzentrisch, isometrisch',s:'Die drei Arbeitsweisen des Muskels und was sie bringen',b:[
-  ['ul',['Konzentrisch: Der Muskel verkürzt sich und überwindet die Last, zum Beispiel das Hochdrücken beim Bankdrücken oder das Hochziehen beim Klimmzug.','Exzentrisch: Der Muskel wird unter Spannung länger und bremst die Last, zum Beispiel das Ablassen der Hantel oder das langsame Herunterlassen beim Klimmzug.','Isometrisch: Der Muskel hält die Spannung ohne Bewegung, zum Beispiel Plank oder das Halten im Hang.']],
-  ['p','Was bringt welche Arbeitsweise?'],
-  ['ul',['Konzentrisch, vor allem schnell ausgeführt: verbessert Ansteuerung und Schnellkraft. Daher das X in der Kadenz 2/0/X: so schnell wie möglich hoch. Diese Phase ist am nächsten an Wurf und Paddelschlag.','Exzentrisch: Du bist beim Bremsen stärker als beim Heben und kannst deshalb mehr Last kontrollieren. Das setzt einen starken Reiz für Kraft und Muskelaufbau und belastet Sehnen und Bindegewebe kräftigend. Es macht aber auch mehr Muskelkater und braucht längere Erholung.','Isometrisch: verbessert Stabilität und Kraft in genau der gehaltenen Position, wichtig für Rumpf und Schulter im Zweikampf.']],
-  ['p','Für den Einstieg reicht es, jede Wiederholung kontrolliert abzulassen (etwa 2–3 s) und zügig zu heben. Betontes exzentrisches Training mit Lasten über dem eigenen Maximum ist etwas für Fortgeschrittene und gehört nur mit Sicherung und Anleitung ins Programm.']]},
- {t:'Warum Ausgleichsübungen?',s:'Gesunde Schultern für Paddler und Werfer',b:[
-  ['p','Paddeln und Werfen beanspruchen immer wieder dieselben Muskeln: Latissimus, Brust und die Muskeln, die den Arm nach innen drehen. Sie werden stark und oft auch kurz. Ihre Gegenspieler bekommen im Sport selbst wenig ab: die Außenrotatoren der Schulter, die hintere Schulter und die Muskeln zwischen den Schulterblättern.'],
-  ['p','Wird dieser Unterschied zu groß, sitzt der Oberarmkopf schlechter im Gelenk. Das ist eine häufige Ursache für Schulterbeschwerden in Wurf- und Paddelsportarten.'],
-  ['ul',['In jede Krafteinheit 1–2 Ausgleichsübungen einbauen, zum Beispiel Face Pull und Außenrotation.','Leichte Last, 12–20 saubere Wiederholungen. Es geht um Kontrolle, nicht um Gewicht.','Drücken und Ziehen im Kraftraum in ähnlichem Umfang trainieren.','Den Rumpf in beide Richtungen kräftigen, auch gegen die Drehung (Pallof Press, Side Plank).']],
-  ['p','Der Plan „Ausgleich · Schulter und Rumpf“ fasst das in 20 Minuten zusammen.']]},
+  ['p','In Woche 3 und 4 hat es zweimal nicht für 3 × 10 gereicht. Dann bleibt das Gewicht, und es geht mit 3 × 8 weiter. Die Stufen sind 10, 8, 6, 4 und 3 Wiederholungen.']]},
+ {t:'Konzentrisch, exzentrisch, isometrisch',s:'Wie ein Muskel arbeitet und was das jeweils bringt',b:[
+  ['ul',['Konzentrisch: Der Muskel wird kürzer und bewegt das Gewicht. Das ist das Hochdrücken beim Bankdrücken oder das Hochziehen beim Klimmzug.','Exzentrisch: Der Muskel wird unter Spannung länger und bremst das Gewicht, etwa wenn du die Hantel ablässt oder dich beim Klimmzug langsam herunterlässt.','Isometrisch: Der Muskel hält, ohne dass sich etwas bewegt. Plank, oder das Hängen an der Stange.']],
+  ['p','Und was hast du davon?'],
+  ['ul',['Konzentrisch und schnell: Das schult die Ansteuerung und die Schnellkraft. Dafür steht das X in 2/0/X. Diese Phase kommt Wurf und Paddelschlag am nächsten.','Exzentrisch: Beim Bremsen bist du stärker als beim Heben, du kannst also mehr Gewicht kontrollieren. Das ist ein starker Reiz für Kraft und Muskeln und tut auch Sehnen gut. Der Preis: mehr Muskelkater und eine längere Erholung.','Isometrisch: Du wirst stabil in genau der Position, die du hältst. Im Zweikampf brauchen das vor allem Rumpf und Schulter.']],
+  ['p','Am Anfang genügt es, jede Wiederholung zwei bis drei Sekunden kontrolliert abzulassen und zügig hochzugehen. Betontes exzentrisches Training mit mehr Gewicht, als du heben kannst, ist etwas für Fortgeschrittene. Das gehört nur mit Sicherung und Anleitung ins Programm.']]},
+ {t:'Warum Ausgleichsübungen?',s:'Gesunde Schultern beim Paddeln und Werfen',b:[
+  ['p','Paddeln und Werfen fordern immer dieselben Muskeln: den Latissimus, die Brust und alles, was den Arm nach innen dreht. Die werden stark und mit der Zeit oft auch kurz. Ihre Gegenspieler bekommen im Sport kaum etwas ab. Das sind die Außenrotatoren der Schulter, die hintere Schulter und die Muskeln zwischen den Schulterblättern.'],
+  ['p','Wird der Unterschied zu groß, sitzt der Oberarmkopf schlechter im Gelenk. Viele Schulterprobleme in Wurf- und Paddelsportarten fangen so an.'],
+  ['ul',['Pack in jede Krafteinheit ein bis zwei Ausgleichsübungen, zum Beispiel Facepulls und Außenrotation.','Wenig Gewicht, 12 bis 20 saubere Wiederholungen. Es geht um Kontrolle.','Zieh im Kraftraum ungefähr so viel, wie du drückst.','Trainier den Rumpf in alle Richtungen, auch gegen die Drehung: Pallof Press, Side Plank.']],
+  ['p','Der Plan „Ausgleich · Schulter und Rumpf“ packt das in 20 Minuten.']]},
  {t:'Technik, Aufwärmen, Sicherheit',s:'Damit Training stärker macht und nicht verletzt',b:[
-  ['ul',['Aufwärmen: 5–10 Minuten locker bewegen, dann 1–2 leichte Aufwärmsätze der ersten Übung.','Technik vor Gewicht: Eine neue Übung zuerst mit wenig Last lernen, am besten zeigt sie dir jemand Erfahrenes.','Schwere Sätze beim Bankdrücken und bei Kniebeugen nur mit Sicherung oder in der Ablage.','Anstrengung ist gewollt, Schmerz nicht: Bei stechendem oder plötzlichem Schmerz den Satz abbrechen.','Die App ersetzt keinen Trainer und keinen Arzt. Bei Beschwerden oder nach Verletzungen vorher abklären lassen.']]]},
- {t:'Belastung und Erholung steuern',s:'Anstrengung 1 bis 10, Pausentage und leichte Wochen',b:[
-  ['p','Trag nach jeder Einheit ein, wie anstrengend sie war. 1 ist sehr leicht, 10 ist alles gegeben. Die meisten Krafteinheiten sollten bei 7–8 liegen.'],
-  ['ul',['Dieselbe Muskelgruppe braucht nach einer harten Einheit etwa 48 Stunden.','Polo-Training und Spiele haben Vorrang. Vor einem Turnier das Krafttraining reduzieren, nicht streichen.','Alle 4–6 Wochen eine leichtere Woche einplanen: gleiche Übungen, etwa halb so viele Sätze.','Warnzeichen für zu viel: schlechter Schlaf, anhaltende Müdigkeit, sinkende Leistung, wenig Lust. Dann zwei, drei Tage rausnehmen.']],
-  ['p','In der Statistik siehst du Minuten und Belastung pro Woche. Steigere von Woche zu Woche in kleinen Schritten statt in Sprüngen.']]},
- {t:'Beispielwoche für Einsteiger',s:'So passen Kraft, Wasser und Erholung zusammen',b:[
-  ['ul',['Montag: Ganzkörper A','Dienstag: Wassertraining','Mittwoch: Ausgleich Schulter und Rumpf (20 min) oder frei','Donnerstag: Ganzkörper B','Freitag: Wassertraining','Samstag: locker laufen oder Rad, 30–45 min, oder Spiel','Sonntag: frei']],
-  ['p','Zwei Krafteinheiten pro Woche reichen am Anfang völlig. Wer nach 8–12 Wochen mehr möchte, wechselt auf die Muskelaufbau-Pläne für Ober- und Unterkörper.']]}];
+  ['ul',['Wärm dich 5 bis 10 Minuten auf und mach vor der ersten Übung ein bis zwei leichte Sätze.','Lern eine neue Übung mit wenig Gewicht. Am besten zeigt sie dir jemand, der sie kann.','Schwere Sätze beim Bankdrücken und bei der Kniebeuge nur mit Sicherung oder in der Ablage.','Anstrengend darf es sein. Bei einem stechenden oder plötzlichen Schmerz brichst du den Satz ab.','Die App ersetzt weder Trainer noch Arzt. Bei Beschwerden oder nach einer Verletzung lass das vorher abklären.']]]},
+ {t:'Belastung und Erholung steuern',s:'Anstrengung von 1 bis 10, Pausentage, leichte Wochen',b:[
+  ['p','Trag nach jeder Einheit ein, wie hart sie war. 1 ist sehr leicht, bei 10 ging nichts mehr. Die meisten Krafteinheiten sollten bei 7 bis 8 landen.'],
+  ['ul',['Nach einer harten Einheit braucht derselbe Muskel etwa zwei Tage.','Polo-Training und Spiele gehen vor. Vor einem Turnier machst du weniger Kraft, aber nicht gar keine.','Alle vier bis sechs Wochen eine leichte Woche: dieselben Übungen, ungefähr halb so viele Sätze.','Schlechter Schlaf, ständig müde, schwächer als sonst, keine Lust? Dann war es zu viel. Nimm zwei, drei Tage raus.']],
+  ['p','In der Statistik siehst du Minuten und Belastung pro Woche. Leg lieber jede Woche ein bisschen drauf als einmal einen großen Sprung.']]},
+ {t:'Tipps für die wichtigsten Übungen',s:'Worauf du bei der Ausführung achtest',b:[
+  ['ul',['Bankziehen: Brust bleibt auf der Bank, Füße hängen frei und werden nicht eingeklemmt. Zieh die Stange zum unteren Brustkorb und lass sie ganz ab.','Bankdrücken: Schulterblätter nach hinten unten, Füße fest am Boden. Die Stange kommt kontrolliert zur Brust und geht zügig hoch. Bei schweren Sätzen steht jemand hinter dir.','Klimmzug: Fang mit gestreckten Armen an und zieh das Kinn über die Stange, ohne zu schwingen. Wenn noch keiner geht, nimm den Latzug.','Rudern einarmig: Rücken gerade, der Ellbogen geht eng am Körper nach hinten. Der Oberkörper dreht nicht mit.','Kniebeuge: Füße etwa schulterbreit, Knie zeigen in Richtung der Fußspitzen. Geh so tief, wie der Rücken gerade bleibt.','Toes to Bar und Beinheben: aus dem ruhigen Hang, ohne Schwung zu holen. Lass die Beine langsam wieder ab.','Facepulls: wenig Gewicht, Ellbogen hoch, am Ende die Hände nach hinten drehen.']],
+  ['p','Für alle Übungen gilt: zwei Sekunden ablassen, zügig hoch, und der letzte Satz sieht genauso sauber aus wie der erste. Wenn nicht, war es zu schwer.']]},
+ {t:'Woher die Zahlen kommen',s:'Ein paar Studien zum Nachlesen',b:[
+  ['p','Die Richtwerte hier sind nicht ausgedacht. Wer es genauer wissen will, findet die wichtigsten Punkte in diesen Arbeiten:'],
+  ['ul',['Mehr Sätze pro Woche bringen mehr Muskelwachstum: Schoenfeld, Ogborn und Krieger, Journal of Sports Sciences 2017.','Muskeln wachsen mit leichten wie mit schweren Gewichten, solange der Satz hart ist. Für die Maximalkraft sind schwere Gewichte besser: Schoenfeld, Grgic, Ogborn und Krieger, Journal of Strength and Conditioning Research 2017.','Über etwa 1,6 g Eiweiß pro Kilo Körpergewicht am Tag bringt mehr Eiweiß kaum noch zusätzlichen Muskelaufbau: Morton und Kollegen, British Journal of Sports Medicine 2018.','Krafttraining senkt das Verletzungsrisiko im Sport, und zwar umso mehr, je konsequenter man es macht: Lauersen, Andersen und Andersen, British Journal of Sports Medicine 2018.']],
+  ['p','Studien zeigen Durchschnittswerte. Wie dein Körper reagiert, merkst du im Training. Deshalb lohnt es sich, alles einzutragen.']]},
+ {t:'Beispielwoche für den Einstieg',s:'Wie Kraft, Wasser und Pause zusammenpassen',b:[
+  ['ul',['Montag: Grundlagenplan Einheit 1 oder Ganzkörper A','Dienstag: Wassertraining','Mittwoch: Ausgleich für Schulter und Rumpf (20 min) oder frei','Donnerstag: Grundlagenplan Einheit 2 oder Ganzkörper B','Freitag: Wassertraining','Samstag: 30 bis 45 Minuten locker laufen oder Rad fahren, oder Spiel','Sonntag: frei']],
+  ['p','Zwei Krafteinheiten pro Woche reichen für den Anfang völlig. Wenn das nach zwei, drei Monaten gut läuft, kommt eine dritte dazu.']]}];
+// Kadernormen: [Mindestnorm, Zielvorgabe] je Gruppe. Bankdrücken/Bankziehen in kg pro kg Körpergewicht, sonst Wiederholungen
+const NORM_GROUPS=[['h','Herren'],['hu','Herren U21'],['d','Damen'],['du','Damen U21']];
+const NORMS=[
+ {k:'bench',t:'Bankdrücken',rel:true,ex:'Bench Press',v:{h:[1.05,1.41],hu:[0.93,1.28],d:[0.67,0.95],du:[0.58,0.81]}},
+ {k:'pull',t:'Bankziehen',rel:true,ex:'Bankziehen (Langhantel)',v:{h:[1.03,1.25],hu:[0.93,1.20],d:[0.81,1.01],du:[0.69,0.88]}},
+ {k:'pu',t:'Klimmzüge',rel:false,v:{h:[12,22],hu:[9,18],d:[2,12],du:[1,6]}},
+ {k:'t2b',t:'Toes to Bar',rel:false,v:{h:[4,15],hu:[1,11],d:[2,11],du:[1,3]}}];
+const normGet=()=>{ const n=S.settings.norm=S.settings.norm||{}; n.group=n.group||'hu'; return n; };
 // Kraftrechner: Übungen, für die ein Maximalgewicht sinnvoll ist (Name in der Bibliothek, deutsche Bezeichnung)
 const CALC=[['Bankziehen (Langhantel)','Bankziehen, Langhantel'],['Bench Press','Bankdrücken, Langhantel'],['Dumbbell Row','Rudern einarmig (Gewicht einer Hantel)'],['Dumbbell Chest Press','Bankdrücken, Kurzhantel (Gewicht einer Hantel)'],['Pull-Over (lying on bench)','Überzüge'],['Back Squat','Kniebeuge'],['Box Squat','Box-Kniebeuge'],['Forward Lunge','Ausfallschritte (Zusatzgewicht gesamt)']];
 const est1rm=v=>v&&v.w>0?Math.round(epley(v.w,Math.min(v.r||1,12))*2)/2:null;
@@ -478,7 +506,7 @@ function mkPlans(defs,exercises){
 }
 function guestState(){
   const exercises=seedExercises();
-  return {version:1,seedV:99,gV:2,
+  return {version:1,seedV:99,gV:3,
     settings:{name:'',trainer:'',trainerPhone:'',trainerMail:'',lang:'de',theme:'light',goals:'',restDefault:90},
     exercises, plans:mkPlans(GUEST_PLANS,exercises), guides:[], entries:[], tournaments:[], weekly:{},
     timers:[{id:uid(),name:'Zirkel · 6 Übungen, 40/20, 3 Runden',rounds:3,prep:10,roundRest:120,steps:Array.from({length:6},(_,i)=>mkStep('Übung '+(i+1),40,20))},
@@ -537,11 +565,16 @@ function migrate(){
     for(const t of f.timers) if(!S.timers.some(x=>x.name===t.name)) S.timers.push(t);
     S.gV=1; save();
   }
-  if(PROFILE==='guest'&&S.gV<2){ // DKV-Grundlagenplan nachreichen
+  if(PROFILE==='guest'&&S.gV<2){ // Grundlagenplan nachreichen
     for(const x of f.exercises) if(!S.exercises.some(e=>e.name===x.name)) S.exercises.push(x);
-    const add=f.plans.filter(pl=>/^DKV /.test(pl.name)&&!S.plans.some(x=>x.name===pl.name));
+    const add=f.plans.filter(pl=>/^Grundlagenplan /.test(pl.name)&&!S.plans.some(x=>x.name===pl.name||x.name==='DKV '+pl.name));
     add.forEach(pl=>pl.items.forEach(it=>{ const ex=S.exercises.find(e=>e.name===it.name); if(ex) it.exId=ex.id; }));
     S.plans.unshift(...add); S.gV=2; save();
+  }
+  if(PROFILE==='guest'&&S.gV<3){ // Beispielpläne mit neuen, neutralen Texten auffrischen (Name und eigene Pläne bleiben)
+    for(const pl of f.plans){ const i=S.plans.findIndex(x=>x.name===pl.name||x.name==='DKV '+pl.name); if(i<0) continue;
+      pl.items.forEach(it=>{ const ex=S.exercises.find(e=>e.name===it.name); if(ex) it.exId=ex.id; }); pl.id=S.plans[i].id; S.plans[i]=pl; }
+    S.gV=3; save();
   }
   if(PROFILE!=='owner') return;
   if((S.seedV||1)<2){ // neuer TRX-Zirkel Woche 2: Plan, Timer und Training für den 13.11.

@@ -51,13 +51,15 @@ heute(){
       if(!S.settings.trainer) return '';
       return `<a class="item" style="margin-top:12px;--c:var(--ink)" href="#/feedback/${ws}"><div class="grow"><div class="ttl">Wochen-Feedback${S.settings.trainer?' für '+esc(S.settings.trainer):''}</div><div class="small muted">${n===WF.length?'Ausgefüllt, bereit zum Senden':n?n+' von '+WF.length+' bewertet':'5 Bewertungen von 1 bis 5, als PDF senden'}</div></div>${n===WF.length?`<span class="tick">${ic('check')}</span>`:ic('right')}</a>`; })()}
    ${g?`<div class="sec"><h2>Diese Woche von ${esc(S.settings.trainer)}</h2></div>${guideCard(g)}`:''}
-   ${PROFILE==='guest'&&!S.settings.hideIntro?`<div class="sec"><h2>So startest du</h2><button class="small muted" data-a="hideIntro">Ausblenden</button></div>
+   ${PROFILE==='guest'?`<div class="sec"><h2>Grundlagenpläne</h2><a class="small muted" href="#/inhalte" data-a="ktab" data-v="plaene">Alle ${S.plans.length} Pläne</a></div>
+   <a class="tile pri" href="#/rechner"><span class="ico">${ic('chart')}</span><span class="grow"><b>Plan mit deinen Gewichten</b><span class="small muted">Werte eintragen, die App legt dir 4 bis 8 Wochen in den Kalender</span></span>${ic('right','sm')}</a>
+   <a class="tile" style="margin-top:8px" href="#/normen"><span class="ico">${ic('trophy')}</span><span class="grow"><b>Norm-Check</b><span class="small muted">Deine Kraftwerte im Vergleich zu den Kadernormen</span></span>${ic('right','sm')}</a>
+   <div class="plans">${S.plans.filter(x=>/^(Grundlagenplan|Einsteiger|Ausgleich)/.test(x.name)).slice(0,6).map(x=>`<a class="pcard" href="#/plan/${x.id}"><span class="tiny">${/^Grundlagenplan/.test(x.name)?'Grundlagenplan':/^Einsteiger/.test(x.name)?'Ganz neu im Kraftraum':'Schulter und Rumpf'}</span><b>${esc(x.name.replace(/^(Grundlagenplan|Einsteiger|Ausgleich) · /,''))}</b><span class="small muted">${x.items.length} Übungen</span><span class="pgo">${ic('play','sm')}Ansehen</span></a>`).join('')}</div>
+   ${S.settings.hideIntro?'':`<div class="sec"><h2>Gut zu wissen</h2><button class="small muted" data-a="hideIntro">Ausblenden</button></div>
    <div class="tiles">
-    <a class="tile" href="#/inhalte" data-a="ktab" data-v="plaene"><span class="ico t-kraft">${ic('dumbbell')}</span><span class="grow"><b>Beispielpläne ansehen</b><span class="small muted">${S.plans.length} Pläne: DKV-Grundlagenplan, Einsteiger, Muskelaufbau, Ausgleich, TRX</span></span>${ic('right','sm')}</a>
-    <a class="tile" href="#/rechner"><span class="ico t-kraft">${ic('chart')}</span><span class="grow"><b>Kraftrechner und Grundlagenplan</b><span class="small muted">Gewichte berechnen und einen Plan für 6 Wochen anlegen lassen</span></span>${ic('right','sm')}</a>
-    <a class="tile" href="#/woche/${ws}"><span class="ico">${ic('calendar')}</span><span class="grow"><b>Meine Woche planen</b><span class="small muted">Einheiten anlegen und per Tipp aufs Datum verschieben</span></span>${ic('right','sm')}</a>
-    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen in fünf Minuten</b><span class="small muted">Was wann wichtig ist und warum Ausgleich zählt</span></span>${ic('right','sm')}</a>
-   </div>`:''}
+    <a class="tile" href="#/woche/${ws}"><span class="ico">${ic('calendar')}</span><span class="grow"><b>Meine Woche</b><span class="small muted">Einheiten ansehen und mit einem Tipp aufs Datum verschieben</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen</b><span class="small muted">Warum du was trainierst, kurz erklärt</span></span>${ic('right','sm')}</a>
+   </div>`}`:''}
    ${weekBlock(ws,'Diese Woche')}
    ${S.entries.some(e=>e.date>we&&e.date<=addDays(we,7))?weekBlock(addDays(ws,7),'Nächste Woche'):''}
    ${nt?`<div class="sec"><h2>Nächster Termin</h2><a class="small muted" href="#/turniere">Alle Turniere</a></div>${tournItem(nt)}`:''}`;
@@ -140,8 +142,9 @@ kraft(){
    <div class="sec"><h2>Alles Weitere</h2></div>
    <div class="tiles">
     <a class="tile" href="#/inhalte"><span class="ico">${ic('dumbbell')}</span><span class="grow"><b>Alle Trainingsinhalte</b><span class="small muted">${S.plans.length} Pläne, ${S.exercises.length} Übungen, ${S.timers.length} Timer, Monatsplan</span></span>${ic('right','sm')}</a>
-    <a class="tile" href="#/rechner"><span class="ico t-kraft">${ic('chart')}</span><span class="grow"><b>Kraftrechner</b><span class="small muted">Maximalkraft eintragen, Trainingsgewichte berechnen, Grundlagenplan erstellen</span></span>${ic('right','sm')}</a>
-    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen</b><span class="small muted">Kleine Wissensdatenbank: Muskelaufbau, Kraft, Periodisierung, Ausgleich</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/rechner"><span class="ico t-kraft">${ic('chart')}</span><span class="grow"><b>Kraftrechner</b><span class="small muted">Werte eintragen, Gewichte ausrechnen, Grundlagenplan anlegen lassen</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/normen"><span class="ico">${ic('trophy')}</span><span class="grow"><b>Norm-Check</b><span class="small muted">Deine Kraftwerte im Vergleich zu den Kadernormen</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen</b><span class="small muted">Warum du was trainierst: Muskelaufbau, Kraft, Periodisierung, Ausgleich</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/historie"><span class="ico">${ic('list')}</span><span class="grow"><b>Historie</b><span class="small muted">${hist} absolvierte Einheiten</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/feedback/${ws}"><span class="ico">${ic('check')}</span><span class="grow"><b>Wochen-Feedback</b><span class="small muted">Bewertung 1 bis 5 als PDF${S.settings.trainer?' für '+esc(S.settings.trainer):''}</span></span>${ic('right','sm')}</a>
    </div>`;
@@ -254,26 +257,49 @@ rechner(){
       <div class="cpct">${[50,60,70,80,85,90].map(q=>`<div class="${q===sp?'on':''}"><small>${q} %</small>${fnum(pctWeight(m,q))}</div>`).join('')}</div>`:`<div class="tiny muted" style="margin-top:6px">Noch kein Wert. Ohne Wert trägst du das Gewicht später im Training selbst ein.</div>`}</div>`; }).join('');
   const days=c.perWeek==3?'Montag, Mittwoch, Freitag':'Montag und Donnerstag';
   return `<div class="row" style="margin-bottom:6px"><a class="iconbtn" href="#/kraft" data-a="back" aria-label="Zurück">${ic('back')}</a><h1 class="grow" style="font-size:1.9rem">Kraftrechner</h1></div>
-   <p class="muted" style="margin:0 0 12px">Trag ein, was du schaffst. Die App schätzt daraus deine Maximalkraft, rechnet die Trainingsgewichte aus und legt dir den Grundlagenplan in den Kalender.</p>
+   <p class="muted" style="margin:0 0 12px">Trag ein, was du schaffst. Daraus schätzt die App deine Maximalkraft, rechnet deine Trainingsgewichte aus und legt dir den Grundlagenplan in den Kalender.</p>
    <div class="sec" style="margin-top:8px"><h2>1. Wo stehst du?</h2></div>
    <div class="seg">${[['neu','Neu im Kraftraum'],['erfahren','Schon Erfahrung']].map(([k,l])=>`<button class="${c.level===k?'on':''}" data-a="calcSet" data-k="level" data-v="${k}">${l}</button>`).join('')}</div>
-   <p class="small" style="margin:10px 2px 0">${neu?'Mach keinen Maximaltest. Nimm ein Gewicht, das du etwa 10-mal sauber schaffst, und trag Gewicht und Wiederholungen ein. Lass dir neue Übungen zuerst zeigen. Dein Plan startet bewusst leicht bei 50 %.':'Trag dein bestes Ergebnis ein: entweder dein Maximum (1 Wiederholung) oder ein schweres Gewicht mit der geschafften Wiederholungszahl. Dein Plan startet wie im DKV-Grundlagenplan bei 60 %.'}</p>
+   <p class="small" style="margin:10px 2px 0">${neu?'Einen Maximaltest brauchst du nicht. Nimm ein Gewicht, das du ungefähr 10-mal sauber schaffst, und trag beides ein. Lass dir Übungen, die du nicht kennst, erst zeigen. Dein Plan startet leicht, bei 50 %.':'Trag dein bestes Ergebnis ein. Das kann dein Maximum sein (1 Wiederholung) oder ein schweres Gewicht mit der Zahl an Wiederholungen, die du geschafft hast. Dein Plan startet bei 60 %.'}</p>
    <div class="sec"><h2>2. Deine Werte</h2></div>
    ${rows}
-   <p class="tiny muted" style="margin:8px 2px 0">Geschätzt nach der Epley-Formel (Gewicht × (1 + Wiederholungen ÷ 30)), gerundet auf 2,5 kg. Am genauesten bei 3 bis 10 Wiederholungen. Es ist ein Richtwert, kein Messwert.</p>
+   <p class="tiny muted" style="margin:8px 2px 0">Gerechnet wird mit der Epley-Formel: Gewicht × (1 + Wiederholungen ÷ 30), gerundet auf 2,5 kg. Am besten passt das bei 3 bis 10 Wiederholungen. Nimm die Zahl als Richtwert.</p>
    <div class="sec"><h2>3. Grundlagenplan erstellen</h2></div>
    <div class="card"><label>Einheiten pro Woche</label><div class="seg">${[[2,'2 Einheiten'],[3,'3 Einheiten']].map(([k,l])=>`<button class="${c.perWeek==k?'on':''}" data-a="calcSet" data-k="perWeek" data-v="${k}">${l}</button>`).join('')}</div>
     <div class="grid g2" style="margin-top:10px">${field('Start',`<input type="date" data-bind="${b}/start" data-rr value="${c.start}">`)}${field('Dauer',`<select data-bind="${b}/weeks" data-num data-rr>${[4,6,8].map(n=>`<option value="${n}" ${c.weeks==n?'selected':''}>${n} Wochen</option>`).join('')}</select>`)}</div>
     <p class="small muted" style="margin:0 0 10px">${c.perWeek*c.weeks} Einheiten, jeweils ${days}. Start bei ${sp} % mit 3 × 10, jede Woche 2,5 kg mehr. Die Tage kannst du danach per Tipp aufs Datum verschieben.</p>
     <button class="btn pri lg block" data-a="calcPlan">${ic('calendar','sm')}Plan in den Kalender legen</button></div>
-   <p class="tiny muted" style="margin-top:14px">Grundlage: DKV-Grundlagenplan (Tim Below). Schaffst du die Vorgabe zweimal in Folge nicht, bleib beim Gewicht und geh auf 3 × 8. Details stehen unter Wissen → Periodisierung und Erholung.</p>`;
+   <p class="tiny muted" style="margin-top:14px">Klappt die Vorgabe zweimal hintereinander nicht, bleib beim Gewicht und geh auf 3 × 8. Mehr dazu steht unter Wissen bei „Periodisierung und Erholung“.</p>`;
+},
+normen(){
+  const n=normGet(), b='settings/norm', g=n.group, c=(S.settings.calc||{}).vals||{};
+  const fromCalc=name=>{ const ex=S.exercises.find(e=>e.name===name); return ex?(est1rm(c[ex.id])||ex.orm||null):null; };
+  let hit=0, cnt=0;
+  const cards=NORMS.map(N=>{ const [mn,zl]=N.v[g], own=n[N.k], val=own??(N.ex?fromCalc(N.ex):null), auto=own==null&&val!=null;
+    const need=x=>N.rel?(n.bw?Math.ceil(x*n.bw/2.5)*2.5:null):x, nMin=need(mn), nZiel=need(zl), ok=val!=null&&nMin!=null;
+    const lvl=!ok?-1:val>=nZiel?2:val>=nMin?1:0; if(ok){ cnt++; if(lvl>=1) hit++; }
+    const max=nZiel?nZiel*1.2:1, pos=x=>Math.min(100,x/max*100).toFixed(1), unit=N.rel?'kg':'Wdh.';
+    const txt=lvl===2?'Zielvorgabe erreicht':lvl===1?`Mindestnorm erreicht. Bis zur Zielvorgabe fehlen ${fnum(nZiel-val)} ${unit}`:lvl===0?`Noch ${fnum(nMin-val)} ${unit} bis zur Mindestnorm`:N.rel&&!n.bw?'Trag oben dein Körpergewicht ein':'Trag deinen Wert ein';
+    return `<div class="card norm l${lvl}"><div class="row"><div class="grow"><b>${N.t}</b><div class="small muted">${N.rel?`Mindestnorm ${fnum(mn)} · Ziel ${fnum(zl)} kg pro kg`:`Mindestnorm ${mn} · Ziel ${zl} Wdh.`}</div></div>
+      <div class="unit"><input data-bind="${b}/${N.k}" data-num data-rr inputmode="decimal" value="${esc(fnum(own))}" placeholder="${auto?esc(fnum(val)):'–'}" aria-label="${N.t}"><span>${unit}</span></div></div>
+     ${nMin!=null?`<div class="nbar"><i style="width:${ok?pos(val):0}%"></i><span class="mk" style="left:${pos(nMin)}%"><em>${fnum(nMin)}</em></span><span class="mk z" style="left:${pos(nZiel)}%"><em>${fnum(nZiel)}</em></span></div>`:''}
+     <div class="nstat">${lvl>=1?ic('check','sm'):''}<span>${txt}</span></div>
+     ${auto?`<div class="tiny muted">Wert aus dem Kraftrechner übernommen (geschätzt). Trag hier deinen echten Bestwert ein, wenn du ihn kennst.</div>`:''}</div>`; }).join('');
+  return `<div class="row" style="margin-bottom:6px"><a class="iconbtn" href="#/kraft" data-a="back" aria-label="Zurück">${ic('back')}</a><h1 class="grow" style="font-size:1.9rem">Norm-Check</h1></div>
+   <p class="muted" style="margin:0 0 12px">Trag deine Bestwerte ein und sieh, wo du im Vergleich zu den Kadernormen stehst.</p>
+   <div class="seg">${NORM_GROUPS.map(([k,l])=>`<button class="${g===k?'on':''}" data-a="normSet" data-v="${k}">${l}</button>`).join('')}</div>
+   <div class="card" style="margin-top:10px"><div class="row"><b class="grow">Mein Körpergewicht</b><div class="unit" style="position:relative;width:118px"><input data-bind="${b}/bw" data-num data-rr inputmode="decimal" value="${esc(fnum(n.bw))}" placeholder="–" style="text-align:center;font-weight:700;padding-right:2.2rem" aria-label="Körpergewicht"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.74rem;color:var(--muted)">kg</span></div></div></div>
+   ${cnt?`<div class="nsum ${hit>=3?'ok':''}"><b>${hit} von 4</b><span>Mindestnormen erreicht${hit>=3?'. Damit ist die Voraussetzung für eine Nominierung erfüllt.':'. Für eine Nominierung braucht es 3.'}</span></div>`:''}
+   ${cards}
+   <p class="tiny muted" style="margin-top:14px">Bankdrücken und Bankziehen zählen als Maximalgewicht für eine saubere Wiederholung, geteilt durch dein Körpergewicht. Die Zielgewichte sind auf 2,5 kg aufgerundet. Die Normen gelten bis November 2027 als Orientierung und geben keinen Anspruch auf eine Nominierung. Bist du noch am Anfang, nimm sie als Fernziel.</p>
+   <a class="btn block" style="margin-top:10px" href="#/rechner">${ic('chart','sm')}Zum Kraftrechner</a>`;
 },
 wissen(){
   const el=([k,v])=>k==='p'?`<p>${esc(v)}</p>`:k==='table'?`<div class="tablewrap ktab"><table>${v.map((r,i)=>`<tr>${r.map(c=>i?`<td>${esc(c)}</td>`:`<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</table></div>`:`<${k}>${v.map(x=>`<li>${esc(x)}</li>`).join('')}</${k}>`;
   return `<div class="row" style="margin-bottom:6px"><a class="iconbtn" href="#/kraft" data-a="back" aria-label="Zurück">${ic('back')}</a><h1 class="grow" style="font-size:1.9rem">Wissen</h1></div>
-   <p class="muted" style="margin:0 0 12px">Trainingslehre kurz erklärt, für Kanupolo-Spielerinnen und -Spieler am Anfang ihres Krafttrainings.</p>
+   <p class="muted" style="margin:0 0 12px">Warum du was trainierst. Kurz erklärt, zum Nachschlagen.</p>
    ${WISSEN.map((w,i)=>`<details class="card know" ${i===0&&PROFILE==='guest'&&!S.entries.length?'open':''}><summary><span class="kn">${i+1}</span><span class="grow"><b>${esc(w.t)}</b><span class="small muted">${esc(w.s)}</span></span></summary><div class="kbody">${w.b.map(el).join('')}</div></details>`).join('')}
-   <p class="tiny muted" style="margin-top:16px">Quellen: Vortrag zum DKV-Grundlagenplan (Tim Below, Bundestrainer Nachwuchs, mit Universität Vechta) und gängige Empfehlungen der Trainingslehre. Die Hinweise ersetzen keine persönliche Betreuung durch Trainer, Physiotherapie oder Arzt.</p>
+   <p class="tiny muted" style="margin-top:16px">Die Angaben sind Richtwerte aus der Trainingslehre. Sie ersetzen keine persönliche Betreuung durch Trainer, Physiotherapie oder Arzt.</p>
    <a class="btn pri block" style="margin-top:12px" href="#/inhalte" data-a="ktab" data-v="plaene">${ic('dumbbell','sm')}Zu den Plänen</a>`;
 },
 /* ---------- Turniere ---------- */

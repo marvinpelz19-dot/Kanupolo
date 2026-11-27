@@ -1,5 +1,5 @@
 /* ============ PoloLog – Router, Aktionen, Export/Import ============ */
-const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',wissen:'kraft',rechner:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
+const NAVMAP={feedback:'heute',training:'saison',plan:'kraft',timer:'kraft',wissen:'kraft',rechner:'kraft',normen:'kraft',inhalte:'kraft',woche:'kraft',historie:'kraft',turnier:'turniere',spiel:'turniere'};
 const NAV=[['heute','Heute','home'],['saison','Saison','calendar'],['kraft','Training','dumbbell'],['turniere','Turniere','trophy'],['stats','Statistik','chart']];
 let lastRoute='';
 function route(){ const p=(location.hash||'#/heute').slice(2).split('/'); return views[p[0]]?p:['heute']; }
@@ -332,7 +332,7 @@ function gate(html){ $('#gate').innerHTML=`<div class="gatebox">${crestSvg('gcre
 function gateHome(){
   gate(`<p class="muted">Wer trainiert?</p><div class="tiles">
    <button class="tile pri" data-a="gateOwner"><span class="ico">${ic('lock')}</span><span class="grow"><b>${OWNER_NAME}</b><span class="small muted">Mein Profil mit Plänen, Turnieren und Vorgaben</span></span>${ic('right','sm')}</button>
-   <button class="tile" data-a="gateGuest"><span class="ico">${ic('user')}</span><span class="grow"><b>Eigenes Profil</b><span class="small muted">Eigene Trainings planen, Beispielpläne, Timer und Wissen. Ohne Konto</span></span>${ic('right','sm')}</button></div>
+   <button class="tile" data-a="gateGuest"><span class="ico">${ic('user')}</span><span class="grow"><b>Eigenes Profil</b><span class="small muted">Fertige Grundlagenpläne, Kraftrechner, Timer. Ohne Konto</span></span>${ic('right','sm')}</button></div>
    <p class="small muted" style="margin-top:16px">Alles, was du einträgst, bleibt auf diesem Gerät. Niemand sonst kann es sehen.</p>`);
 }
 function gateLogin(msg){
@@ -359,9 +359,9 @@ function startApp(profile,keepRoute){
   if(profile==='guest'&&!S.settings.onboarded) setTimeout(welcomeSheet,250);
 }
 function welcomeSheet(){
-  sheet('Willkommen bei PoloLog',`<form data-form="welcome"><p style="margin-top:0">Dein Trainingsplaner für Kraft, Wasser und Turniere. Du brauchst kein Konto: Alles bleibt auf diesem Gerät.</p>
+  sheet('Willkommen bei PoloLog',`<form data-form="welcome"><p style="margin-top:0">Hier planst du dein Krafttraining, dein Wassertraining und deine Turniere. Ein Konto brauchst du nicht, alles bleibt auf deinem Handy.</p>
    ${field('Wie heißt du?','<input name="name" autocomplete="given-name" placeholder="Vorname">')}
-   <ul class="small muted" style="padding-left:1.1rem;margin:4px 0 14px"><li>Fertige Beispielpläne für den Einstieg</li><li>Über 200 Übungen, eigene lassen sich ergänzen</li><li>Timer für Sätze, Pausen und Zirkel</li><li>Kurzes Wissen zur Trainingslehre</li></ul>
+   <ul class="small muted" style="padding-left:1.1rem;margin:4px 0 14px"><li>Fertige Grundlagenpläne, auch wenn du noch nie im Kraftraum warst</li><li>Ein Rechner, der dir die passenden Gewichte ausrechnet</li><li>Timer für Sätze, Pausen und Zirkel</li><li>Kurze Erklärungen, warum du was trainierst</li></ul>
    <button class="btn pri lg block" type="submit">Los geht's</button></form>`);
 }
 
@@ -370,19 +370,20 @@ const A={
  closeSheet,
  back(el,ev){ if(UI.depth>0){ ev.preventDefault(); history.back(); } },
  openEx(el){ UI.openEx[el.dataset.it]=true; render(); },
+ normSet(el){ normGet().group=el.dataset.v; save(); render(); },
  calcSet(el){ const c=calcGet(); c[el.dataset.k]=isNaN(+el.dataset.v)?el.dataset.v:+el.dataset.v; save(); render(); },
  calcPlan(){ clearTimeout(saveT); const c=calcGet(), sp=c.level==='neu'?50:60;
   for(const [n] of CALC){ const ex=S.exercises.find(e=>e.name===n), m=ex&&est1rm(c.vals[ex.id]); if(m) ex.orm=m; }
   const old=S.entries.filter(e=>e.gen&&!e.done&&!e.items.some(i=>i.sets.some(x=>x.done)));
   if(old.length&&!confirm(old.length+' noch offene Einheiten aus einem früheren Grundlagenplan werden ersetzt. Fortfahren?')) return;
   S.entries=S.entries.filter(e=>!old.includes(e));
-  const defs=mkPlans(GUEST_PLANS.filter(x=>/^DKV /.test(x.name)),S.exercises), offs=c.perWeek==3?[0,2,4]:[0,3];
+  const defs=mkPlans(GUEST_PLANS.filter(x=>/^Grundlagenplan /.test(x.name)),S.exercises), offs=c.perWeek==3?[0,2,4]:[0,3];
   for(let w=0;w<c.weeks;w++) offs.forEach((o,k)=>{ const items=itemsFromPlan(defs[k]);
     items.forEach(it=>{ const ex=exById(it.exId); if(it.mode==='wr'&&ex&&ex.orm&&CALC.some(([n])=>n===it.name)) it.target.weight=pctWeight(ex.orm,sp)+2.5*w; });
     S.entries.push(newEntry({type:'kraft',gen:true,date:addDays(c.start,7*w+o),title:`Grundlagenplan · Einheit ${k+1} · Woche ${w+1}`,planned:70,items,plan:`Woche ${w+1} von ${c.weeks}. Pflichtübungen: 3 × 10 mit dem vorgeschlagenen Gewicht${w?' (2,5 kg mehr als letzte Woche)':''}. Schaffst du die Vorgabe zweimal in Folge nicht: Gewicht halten, 3 × 8.`})); });
   save(); toast(c.perWeek*c.weeks+' Einheiten angelegt'); go('#/woche/'+weekStart(c.start)); },
  hideIntro(){ S.settings.hideIntro=true; save(); render(); },
- teamLink(){ const url=location.origin+location.pathname+'?team', text='PoloLog: Trainingsplaner für Kraft, Wasser und Turniere. Einfach öffnen, kein Konto nötig, alles bleibt auf deinem Handy.';
+ teamLink(){ const url=location.origin+location.pathname+'?team', text='PoloLog, unser Trainingsplaner mit fertigen Grundlagenplänen fürs Krafttraining. Einfach öffnen, ein Konto brauchst du nicht.';
   if(!location.protocol.startsWith('http')) return toast('Der Link funktioniert nur aus der Online-Version der App');
   navigator.share?navigator.share({title:'PoloLog',text,url}).catch(()=>{}):copyText(text+' '+url); },
  gateOwner(){ gateLogin(); }, gateGuest(){ startApp('guest'); }, gateBack(){ gateHome(); },
