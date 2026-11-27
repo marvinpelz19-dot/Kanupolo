@@ -1,10 +1,12 @@
 /* ============ PoloLog – Ansichten ============ */
-const UI = {month:today().slice(0,7), sel:null, filter:'alle', kraftTab:'plaene', exq:'', range:'12w', statEx:'', openPlayers:{}};
+const UI = {openEx:{}, month:today().slice(0,7), sel:null, filter:'alle', kraftTab:'plaene', exq:'', range:'12w', statEx:'', openPlayers:{}};
 const inp = (path,val,extra='')=>`<input data-bind="${path}" value="${esc(val??'')}" ${extra}>`;
 const numinp = (path,val,extra='')=>`<input data-bind="${path}" data-num inputmode="decimal" value="${esc(fnum(val))}" ${extra}>`;
 const field = (label,html)=>`<div class="field"><label>${label}</label>${html}</div>`;
 const badge = t=>`<span class="badge t-${t}">${ic(TYPES[t].icon,'sm')}${TYPES[t].short}</span>`;
 
+const isTrx=e=>e.type==='kraft'&&/trx/i.test(e.title||'');
+const badgeE=e=>isTrx(e)?`<span class="badge t-kraft">${ic('dumbbell','sm')}TRX</span>`:badge(e.type);
 function entryItem(e){
   const sub=[fdate(e.date)+(e.time?' · '+e.time:'')];
   if(e.minutes) sub.push(e.minutes+' min'); else if(e.planned) sub.push('geplant '+e.planned+' min');
@@ -12,7 +14,7 @@ function entryItem(e){
   if(e.type==='kraft'&&e.items.length) sub.push(e.items.length+' Übungen');
   return `<a class="item t-${e.type} ${e.done?'done':''}" href="#/training/${e.id}">
     <div class="grow"><div class="ttl">${esc(e.title)}</div><div class="small muted">${sub.join(' · ')}</div></div>
-    ${e.done?`<span class="tick">${ic('check')}</span>`:badge(e.type)}</a>`;
+    ${e.done?`<span class="tick">${ic('check')}</span>`:badgeE(e)}</a>`;
 }
 function tournItem(t){
   const rec=record(t);
@@ -44,11 +46,11 @@ heute(){
     <div class="facts"><div><b>${done.length}/${week.length}</b><span>Einheiten diese Woche</span></div>
     <div><b>${hm(sum(done,e=>e.minutes))}</b><span>Trainingszeit</span></div>
     <div><b>${nt?(days<=0?'Jetzt':days):'–'}</b><span>${nt?(days<=0?esc(nt.name):'Tage bis '+esc(nt.name)):'kein Termin geplant'}</span></div></div></section>
-   ${todayE.length?`<div class="sec"><h2>Heute</h2></div>${todayE.map(entryItem).join('')}`:''}
+   ${open.length?`<div class="sec"><h2>Noch offen</h2></div>${open.map(entryItem).join('')}`:''}
    ${(()=>{ const ws=weekStart(t), w=S.weekly[ws], n=w?WF.filter(([k])=>w.scores&&w.scores[k]).length:0;
+      if(!S.settings.trainer) return '';
       return `<a class="item" style="margin-top:12px;--c:var(--ink)" href="#/feedback/${ws}"><div class="grow"><div class="ttl">Wochen-Feedback${S.settings.trainer?' für '+esc(S.settings.trainer):''}</div><div class="small muted">${n===WF.length?'Ausgefüllt, bereit zum Senden':n?n+' von '+WF.length+' bewertet':'5 Bewertungen von 1 bis 5, als PDF senden'}</div></div>${n===WF.length?`<span class="tick">${ic('check')}</span>`:ic('right')}</a>`; })()}
    ${g?`<div class="sec"><h2>Diese Woche von ${esc(S.settings.trainer)}</h2></div>${guideCard(g)}`:''}
-   ${open.length?`<div class="sec"><h2>Noch offen</h2></div>${open.map(entryItem).join('')}`:''}
    ${weekBlock(ws,'Diese Woche')}
    ${S.entries.some(e=>e.date>we&&e.date<=addDays(we,7))?weekBlock(addDays(ws,7),'Nächste Woche'):''}
    ${nt?`<div class="sec"><h2>Nächster Termin</h2><a class="small muted" href="#/turniere">Alle Turniere</a></div>${tournItem(nt)}`:''}`;
@@ -84,15 +86,15 @@ training(id){
   let body='';
   if(e.type==='kraft'){
     const total=sum(e.items,i=>i.sets.length), dn=sum(e.items,i=>i.sets.filter(s=>s.done).length);
-    body=`<div class="sec"><h2>Übungen</h2><span class="small muted">${dn}/${total} Sätze</span></div>
-     ${total?`<div class="progress" style="margin-bottom:12px"><i style="--p:${total?dn/total:0}"></i></div>`:''}
+    body=`${isCircuit(e.items)?`<button class="btn pri lg block" style="margin-top:12px" data-a="runEntry" data-id="${e.id}">${ic('timer','sm')}Ganzen Zirkel mit Timer starten</button>`:''}
+     ${total?`<div class="stick"><div class="grow"><div class="small"><b>${dn} von ${total} Sätzen</b></div><div class="progress"><i style="--p:${total?dn/total:0}"></i></div></div><button class="btn sm ${e.done?'':'pri'}" data-a="toggleDone" data-id="${e.id}">${ic('check','sm')}${e.done?'Erledigt':'Abschließen'}</button></div>`:''}
+     <div class="sec" style="margin-top:14px"><h2>Übungen</h2></div>
      ${e.items.map((it,i)=>exCard(e,it,i)).join('')}
      ${!e.items.length?`<div class="empty">Noch keine Übungen. Lade einen Plan oder füge Übungen einzeln hinzu.</div>`:''}
-     ${isCircuit(e.items)?`<button class="btn pri block" style="margin-top:10px" data-a="runEntry" data-id="${e.id}">${ic('timer','sm')}Ganzen Zirkel mit Timer starten</button>`:''}
      <div class="row" style="margin-top:10px"><button class="btn grow" data-a="pickEx" data-target="entry:${e.id}">${ic('plus','sm')}Übung</button><button class="btn grow" data-a="loadPlan" data-id="${e.id}">${ic('dumbbell','sm')}Plan laden</button></div>`;
   }
   const noteLabel = e.type==='wasser'?'Was habe ich gemacht? (Notizen)':e.type==='kraft'?'Notizen':'Was habe ich gemacht?';
-  return `<div class="row"><a class="iconbtn" href="#/saison">${ic('back')}</a><div class="grow">${badge(e.type)}</div>
+  return `<div class="row"><a class="iconbtn" href="#/saison" data-a="back" aria-label="Zurück">${ic('back')}</a><div class="grow">${badgeE(e)}</div>
      <button class="iconbtn" data-a="pdfEntry" data-id="${e.id}" title="PDF">${ic('pdf')}</button><button class="iconbtn" data-a="dupEntry" data-id="${e.id}" title="Duplizieren">${ic('copy')}</button><button class="iconbtn" data-a="delEntry" data-id="${e.id}" title="Löschen" style="color:var(--danger)">${ic('trash')}</button></div>
    <div class="card" style="margin-top:12px">
      ${inp(p+'/title',e.title,'style="font-size:1.15rem;font-weight:700" placeholder="Titel"')}
@@ -144,7 +146,7 @@ woche(ws){
    <div style="margin-top:14px">${T.map(tournItem).join('')}</div>
    ${E.map(e=>{ const n=e.items.length, sub=[e.done?(e.minutes?e.minutes+' min':'erledigt'):(e.planned?'ca. '+e.planned+' min':''), n?n+' Übungen':'', e.rpe?'RPE '+e.rpe:''].filter(Boolean).join(' · ');
      return `<div class="srow t-${e.type} ${e.done?'done':''} ${e.date===t?'now':''}"><button class="sdate" data-a="moveEntry" data-id="${e.id}" aria-label="Datum ändern"><b>${WD[pdate(e.date).getDay()]}</b><span>${fshort(e.date)}</span></button>
-       <a class="sbody" href="#/training/${e.id}"><span class="grow"><b>${esc(e.title)}</b><span class="small muted">${TYPES[e.type].short}${sub?' · '+sub:''}</span></span>${e.done?`<span class="tick">${ic('check')}</span>`:ic('right','sm')}</a></div>`; }).join('')||`<div class="empty">In dieser Woche ist noch nichts geplant.</div>`}
+       <a class="sbody" href="#/training/${e.id}"><span class="grow"><b>${esc(e.title)}</b><span class="small muted">${isTrx(e)?'TRX':TYPES[e.type].short}${sub?' · '+sub:''}</span></span>${e.done?`<span class="tick">${ic('check')}</span>`:ic('right','sm')}</a></div>`; }).join('')||`<div class="empty">In dieser Woche ist noch nichts geplant.</div>`}
    <p class="tiny muted" style="margin:8px 2px 0">Tipp: Auf das Datum links tippen, um eine Einheit auf einen anderen Tag zu legen.</p>
    <button class="btn block" style="margin-top:10px" data-a="planDay" data-d="${ws>t?ws:(t<=we?t:ws)}">${ic('plus','sm')}Einheit hinzufügen</button>
    ${g?`<div class="sec"><h2>Vorgabe von ${esc(S.settings.trainer||'Trainer')}</h2></div>${guideCard(g)}`:''}
@@ -220,7 +222,7 @@ timer(id){
 feedback(ws){
   ws=ws||weekStart(today()); const we=addDays(ws,6), w=wfGet(ws), sug=wfSuggest(ws), E=wfEntries(ws), b=`weekly/${ws}`;
   const done=WF.filter(([k])=>w.scores[k]).length;
-  return `<div class="row"><a class="iconbtn" href="#/feedback/${addDays(ws,-7)}" aria-label="Woche zurück">${ic('back')}</a><div class="grow center"><h1 style="font-size:1.9rem">Wochen-Feedback</h1><div class="small muted">${fshort(ws)} bis ${fdate(we)}</div></div><a class="iconbtn" href="#/feedback/${addDays(ws,7)}" style="transform:scaleX(-1)" aria-label="Woche vor">${ic('back')}</a></div>
+  return `<a class="backlink" href="#/heute" data-a="back">${ic('back','sm')}Zurück</a><div class="row"><a class="iconbtn" href="#/feedback/${addDays(ws,-7)}" aria-label="Woche zurück">${ic('back')}</a><div class="grow center"><h1 style="font-size:1.9rem">Wochen-Feedback</h1><div class="small muted">${fshort(ws)} bis ${fdate(we)}</div></div><a class="iconbtn" href="#/feedback/${addDays(ws,7)}" style="transform:scaleX(-1)" aria-label="Woche vor">${ic('back')}</a></div>
    <div class="card" style="margin-top:14px">${field('Woche (so steht es auf dem Bogen)',inp(b+'/label',w.label))}
      <p class="small muted" style="margin:0">Pro Zeile eine Zahl antippen. Schwierigkeit: 1 = sehr leicht, 5 = sehr hart. Gesamtform: 1 = sehr müde, 5 = frisch.</p></div>
    ${WF.map(([k,en,de])=>`<div class="card wf"><div class="row"><div class="grow"><b>${en}</b><div class="small muted">${de}${!w.scores[k]&&sug[k]?' · Vorschlag aus deinen Einheiten: '+sug[k]:''}</div></div><span class="wfscore">${w.scores[k]||'–'}<small>/5</small></span></div>
@@ -369,6 +371,7 @@ function exCard(e,it,i){
   const all=it.sets.length&&it.sets.every(s=>s.done);
   const phW = tg.weight ?? (tg.pct&&ex&&ex.orm?pctWeight(ex.orm,tg.pct):null);
   const prev=e.items[i-1]; const hd=it.block&&(!prev||prev.block!==it.block)?`<div class="blockhd">${esc(it.block)}</div>`:'';
+  if(all&&!UI.openEx[it.id]) return hd+`<button class="ex done exmini" data-a="openEx" data-it="${it.id}"><span class="num">${ic('check','sm')}</span><span class="grow"><b>${esc(it.name)}</b><span class="tiny muted">${esc(it.sets.map(x=>fset(x,it.mode)).join(' | '))}</span></span>${ic('down','sm')}</button>`;
   return hd+`<div class="ex ${all?'done':''}"><div class="row"><span class="num">${all?ic('check','sm'):i+1}</span><div class="grow"><b>${esc(it.name)}</b><div class="tiny muted">${esc(ftarget(it))}</div></div>
      <button class="iconbtn sm" data-a="delExItem" data-id="${e.id}" data-i="${i}">${ic('x','sm')}</button></div>
    ${exImg(it.name)}
@@ -380,7 +383,7 @@ function exCard(e,it,i){
      const pc=sc?sc.pct:tg.pct; const f=(k,unit,ph,x='')=>`<div class="unit"><input data-bind="${q}/${k}" data-num inputmode="decimal" value="${esc(fnum(s[k]))}" placeholder="${esc(fnum(ph))}" ${x}><span>${unit}</span></div>`;
      return (sc&&it.sets.length>tg.scheme.length&&j%tg.scheme.length===0?`<div class="tiny muted" style="margin:10px 0 -2px">Runde ${j/tg.scheme.length+1}</div>`:'')+`<div class="set ${it.mode==='wr'?'':'one'} ${sc?'sch':''}"><span class="n">${sc?sc.pct+'%':j+1}</span>${it.mode==='wr'?f('w','kg',sc?(ex&&ex.orm?pctWeight(ex.orm,sc.pct):l.w):phW??l.w,pc&&tg.weight==null?`data-pct="${pc}"`:'')+f('r','Wdh',sc?sc.reps:tg.reps??l.r):it.mode==='r'?f('r','Wdh',tg.reps??l.r):f('t','Sek',tg.time??l.t)}
        <button class="chk ${s.done?'on':''}" data-a="setDone" data-id="${e.id}" data-it="${it.id}" data-j="${j}" aria-label="Satz erledigt">${ic('check')}</button></div>`; }).join('')}
-   <div class="row wrap" style="margin-top:10px"><button class="btn sm pri" data-a="exTimer" data-id="${e.id}" data-it="${it.id}">${ic('timer','sm')}Timer</button>${it.mode!=='wr'?`<button class="btn sm" data-a="exMode" data-id="${e.id}" data-it="${it.id}">${it.mode==='r'?'Auf Sekunden umstellen':'Auf Wiederholungen umstellen'}</button>`:''}<button class="btn sm ghost" data-a="addSet" data-id="${e.id}" data-it="${it.id}">+ Satz</button>${it.sets.length>1?`<button class="btn sm ghost" data-a="rmSet" data-id="${e.id}" data-it="${it.id}">− Satz</button>`:''}</div></div>`;
+   <div class="row wrap" style="margin-top:10px"><button class="btn sm ${it.mode==='wr'?'':'pri'}" data-a="exTimer" data-id="${e.id}" data-it="${it.id}">${ic('timer','sm')}Intervall-Timer</button>${it.mode!=='wr'?`<button class="btn sm" data-a="exMode" data-id="${e.id}" data-it="${it.id}">${it.mode==='r'?'Auf Sekunden umstellen':'Auf Wiederholungen umstellen'}</button>`:''}<button class="btn sm ghost" data-a="addSet" data-id="${e.id}" data-it="${it.id}">+ Satz</button>${it.sets.length>1?`<button class="btn sm ghost" data-a="rmSet" data-id="${e.id}" data-it="${it.id}">− Satz</button>`:''}</div></div>`;
 }
 function playerTotals(ts){
   const m=new Map();
@@ -405,7 +408,7 @@ function barChart(weeks){
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Minuten pro Woche">${h}</svg>`;
 }
 function lineChart(pts,unit){
-  if(!pts.length) return `<div class="muted small">Noch keine Daten.</div>`;
+  if(!pts.length||pts.every(p=>!p.y)) return `<div class="muted small">Noch keine Daten. Sobald du Einheiten abschließt, erscheint hier der Verlauf.</div>`;
   const W=340,H=140,L=30,B=18; const max=Math.max(1,...pts.map(p=>p.y)), min=Math.min(...pts.map(p=>p.y)); const lo=min===max?0:Math.max(0,min-(max-min)*.25), hi=max+(max-lo)*.1||1;
   const X=i=>pts.length===1?(L+W)/2:L+8+(W-L-16)*i/(pts.length-1), Y=v=>H-B-(H-B-10)*(v-lo)/(hi-lo);
   let h='';

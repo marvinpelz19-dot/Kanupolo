@@ -320,7 +320,7 @@ function timerFromItems(name,items){
 function itemTm(it){
   const tg=it.target||{};
   if(it.tm) return it.tm;
-  return it.mode==='t' ? {n:1,work:tg.time||30,rest:0} : {n:tg.reps||6,work:10,rest:5};
+  return it.mode==='t' ? {n:1,work:tg.time||30,rest:0} : it.mode==='wr' ? {n:1,work:30,rest:0} : {n:tg.reps||6,work:10,rest:5};
 }
 /* ---- Wochen-Feedback ---- */
 const wfCat = e => e.type==='wasser'?'kayak':e.type==='sonstiges'?'running':/trx/i.test(e.title||'')?'trx':'strength';
@@ -347,7 +347,7 @@ function freshState(){
     const m=mode||ex.mode;
     return {id:uid(),exId:ex.id,name:ex.name,mode:m,block:block||'',sets,reps:m==='t'?null:reps,time:m==='t'?reps:null,weight:weight||null,pct:pct||null,rest:rest||0,note:note||'',...(scheme?{scheme}:{}),...(tm?{tm}:{})};
   })}));
-  const st={version:1,seedV:9,
+  const st={version:1,seedV:10,
     settings:{name:'Marvin',trainer:'Maxim',trainerPhone:'',trainerMail:'',lang:'en',theme:'light',goals:SEED_GOALS,restDefault:90},
     exercises, plans, guides:[...SEED_GUIDES,...DEC_GUIDES].map(g=>({id:uid(),...g})), timers:seedTimers(), entries:[], tournaments:seedTournaments(), weekly:{}};
   seedW2Entry(st); seedPlanEntry(st,N16,N16DAY,'Kraft – Dynamic','kraft',90); seedW4(st); seedD1(st); return st;
@@ -363,13 +363,13 @@ function seedEntry(st,o){
 }
 function seedD1(st){
   const g=st.guides.find(x=>x.from==='2026-11-30')||{}, w=(g.wasser||'').split('\n');
-  seedPlanEntry(st,D1K,'2026-11-30','Kraft – Exzentrisch 95/85/55 (1 von 3)','kraft',120);
+  seedPlanEntry(st,D1K,'2026-11-30','Kraft 1/3 · Exzentrisch 95/85/55','kraft',120);
   seedEntry(st,{type:'sonstiges',date:'2026-12-01',title:'Laufen / Rad locker',planned:50,plan:g.sonstiges||''});
   seedEntry(st,{type:'wasser',date:'2026-12-02',title:'Boot – Session 1 · Aerobe Power',planned:75,plan:[w[0],w[2]].filter(Boolean).join('\n'),tname:B1T});
-  seedPlanEntry(st,D1K,'2026-12-03','Kraft – Exzentrisch 95/85/55 (2 von 3)','kraft',120);
+  seedPlanEntry(st,D1K,'2026-12-03','Kraft 2/3 · Exzentrisch 95/85/55','kraft',120);
   seedEntry(st,{type:'wasser',date:'2026-12-04',title:'Boot – Session 2 · 70 % HF',planned:75,plan:[w[1],w[2]].filter(Boolean).join('\n'),tname:B2T});
   seedPlanEntry(st,D1T,'2026-12-04','TRX – Dez Woche 1','trx',75);
-  seedPlanEntry(st,D1K,'2026-12-05','Kraft – Exzentrisch 95/85/55 (3 von 3)','kraft',120);
+  seedPlanEntry(st,D1K,'2026-12-05','Kraft 3/3 · Exzentrisch 95/85/55','kraft',120);
 }
 function seedW4(st){
   seedPlanEntry(st,N23,'2026-11-24','Kraft – Exzentrisch 1','kraft',110);
@@ -435,6 +435,10 @@ function migrate(){
   if(S.seedV<9){ // Ausführungstipps für TRX-Übungen ergänzen (eigene Notizen bleiben)
     for(const e of S.exercises) if(TRX_TIPS[e.name]&&!e.note) e.note=TRX_TIPS[e.name];
     S.seedV=9; save();
+  }
+  if(S.seedV<10){ // kürzere, unterscheidbare Titel für die drei Kraft-Einheiten der Woche
+    for(const e of S.entries){ const m=/^Kraft – Exzentrisch 95\/85\/55 \((\d) von 3\)$/.exec(e.title||''); if(m) e.title='Kraft '+m[1]+'/3 · Exzentrisch 95/85/55'; }
+    S.seedV=10; save();
   }
 }
 let saveWarned=false;

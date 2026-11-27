@@ -8,7 +8,7 @@ function render(){
   if(!S) return;
   const r=route(), key=r.join('/'), y=window.scrollY;
   $('#view').innerHTML=views[r[0]](r[1],r[2]);
-  const on=NAVMAP[r[0]]||r[0];
+  const detail=['training','feedback'].includes(r[0]); const on=detail&&UI.lastTab?UI.lastTab:(NAVMAP[r[0]]||r[0]); if(!detail) UI.lastTab=on;
   $$('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav===on));
   const v=$('#view'); v.classList.remove('enter');
   if(key!==lastRoute){ window.scrollTo(0,0); lastRoute=key; void v.offsetWidth; v.classList.add('enter'); } else window.scrollTo(0,y);
@@ -18,8 +18,8 @@ function buildNav(){
   const link=([k,l,i])=>`<a class="nav" data-nav="${k}" href="#/${k}">${ic(i)}<span>${l}</span></a>`;
   $('#tabs').innerHTML=link(NAV[0])+link(NAV[1])+`<button class="go" data-a="start" aria-label="Training starten">${wheelSvg('')}<span>Training starten</span></button>`+link(NAV[2])+link(NAV[3]);
   const brand=`<div class="brand">${crestSvg('crest')}<div>PoloLog<small>Rothe Mühle Essen</small></div></div>`;
-  $('#side').innerHTML=brand+`<button class="btn pri block" data-a="start">${ic('play','sm')}Training starten</button>`+`<button class="btn block" style="margin:0 0 10px" data-a="quickTimer">${ic('timer','sm')}Timer einstellen</button>`+NAV.map(link).join('')+`<a class="nav" data-nav="mehr" href="#/mehr">${ic('gear')}<span>Einstellungen</span></a>`;
-  $('#top').innerHTML=brand+`<span class="sp"></span><button class="clockbtn" data-a="quickTimer" aria-label="Timer einstellen">${ic('timer')}</button><a class="iconbtn plain" href="#/stats" aria-label="Statistik">${ic('chart')}</a><a class="iconbtn plain" href="#/mehr" aria-label="Einstellungen">${ic('gear')}</a>`;
+  $('#side').innerHTML=brand+`<button class="btn pri block" data-a="start">${ic('play','sm')}Training starten</button>`+`<button class="btn block" style="margin:0 0 10px" data-a="quickTimer">${ic('timer','sm')}Freier Timer</button>`+NAV.map(link).join('')+`<a class="nav" data-nav="mehr" href="#/mehr">${ic('gear')}<span>Einstellungen</span></a>`;
+  $('#top').innerHTML=brand+`<span class="sp"></span><button class="clockbtn" data-a="quickTimer" aria-label="Freier Timer">${ic('timer')}</button><a class="iconbtn plain" href="#/stats" aria-label="Statistik">${ic('chart')}</a><a class="iconbtn plain" href="#/mehr" aria-label="Einstellungen">${ic('gear')}</a>`;
   $('#run').innerHTML=`<div class="top"><span id="rinfo"></span><button class="iconbtn plain" style="color:inherit" data-a="trClose" aria-label="Timer beenden">${ic('x')}</button></div>
    <div class="phase" id="rphase"></div><div class="dial">${wheelSvg('')}<div class="time" id="rtime"></div></div><div class="next" id="rnext"></div><div class="bar"><i id="rbar"></i></div>
    <div class="ctl"><button data-a="trPrev" aria-label="Zurück">${ic('prev')}</button><button class="main" data-a="trToggle" id="rtog" aria-label="Pause"></button><button data-a="trSkip" aria-label="Weiter">${ic('skip')}</button></div>`;
@@ -297,7 +297,8 @@ function trDraw(){
   $('#rphase').textContent=ph.label;
   $('#rtime').textContent=s>=60?mmss(s):s;
   $('#rinfo').textContent=ph.k==='prep'?TR.t.name:`Runde ${ph.r}/${ph.R}, Übung ${ph.j}/${ph.n}`;
-  $('#rnext').textContent=nx?`Danach: ${nx.label} (${nx.dur>=60?mmss(nx.dur)+' min':nx.dur+' s'})`:'Letzter Abschnitt';
+  const base=l=>l.replace(/ · .*$| \(Band.*$| \d+\/\d+$/,''), up=ph.k!=='work'&&nx&&nx.k==='work'?EX_IMG[base(nx.label)]:null;
+  $('#rnext').innerHTML=(nx?`Danach: <b>${esc(nx.label)}</b> (${nx.dur>=60?mmss(nx.dur)+' min':nx.dur+' s'})`:'Letzter Abschnitt')+(up?`<img src="${up}" alt="">`:'');
   const before=sum(TR.seq.slice(0,TR.i),x=>x.dur), el=ph.dur-TR.left/1000;
   $('#rbar').style.setProperty('--p',Math.min(1,(before+el)/TR.total));
   $('#run .dial svg').style.transform=`rotate(${(el/ph.dur*360).toFixed(1)}deg)`;
@@ -359,6 +360,8 @@ function startApp(profile){
 /* ---- Aktionen ---- */
 const A={
  closeSheet,
+ back(el,ev){ if(UI.depth>0){ ev.preventDefault(); history.back(); } },
+ openEx(el){ UI.openEx[el.dataset.it]=true; render(); },
  gateOwner(){ gateLogin(); }, gateGuest(){ startApp('guest'); }, gateBack(){ gateHome(); },
  logout(){ clearTimeout(saveT); save(); ls.del(SESSION); stopRest(); S=null; $('#sheet').classList.remove('on'); $('#view').innerHTML=''; gateHome(); },
  pwSheet(){ sheet('Passwort ändern',`<form data-form="newpw">${field('Neues Passwort','<input name="pw1" type="password" autocomplete="new-password" required minlength="4">')}${field('Wiederholen','<input name="pw2" type="password" autocomplete="new-password" required minlength="4">')}<button class="btn pri block" type="submit">Speichern</button></form>`); },
@@ -379,7 +382,7 @@ const A={
  runNamed(el){ const e=entry(el.dataset.id), t=S.timers.find(x=>x.name===e.tname); if(!t) return toast('Timer nicht gefunden'); if(!e.startedAt){ e.startedAt=Date.now(); save(); } runTimer(t); },
  // Schnell-Timer: überall erreichbar, frei einstellbar
  quickTimer(){ const q=UI.quick||{n:8,work:30,rest:15,sets:1,rr:60,name:''}, n=(k,l,v)=>field(l,`<input name="${k}" inputmode="numeric" value="${v}" style="text-align:center;font-weight:700">`);
-  sheet('Timer einstellen',`<div class="grid g3">${n('n','Intervalle',q.n)}${n('work','Belastung (s)',q.work)}${n('rest','Pause (s)',q.rest)}</div>
+  sheet('Freier Timer',`<div class="grid g3">${n('n','Intervalle',q.n)}${n('work','Belastung (s)',q.work)}${n('rest','Pause (s)',q.rest)}</div>
    <div class="grid g2">${n('sets','Runden',q.sets)}${n('rr','Rundenpause (s)',q.rr)}</div>
    ${field('Name (nur zum Speichern)',`<input name="name" value="${esc(q.name)}" placeholder="z. B. Sprints 8 × 30/15">`)}
    <button class="btn pri lg block" data-a="quickGo">${ic('play','sm')}Timer starten</button>
@@ -392,7 +395,7 @@ const A={
  // Timer für eine einzelne Übung im Training
  exTimer(el){ const e=entry(el.dataset.id), it=e.items.find(i=>i.id===el.dataset.it), tm=itemTm(it), tg=it.target||{};
   const open=it.sets.filter(x=>!x.done).length||1, n=(k,l,v)=>field(l,`<input name="${k}" inputmode="numeric" value="${v}" style="text-align:center;font-weight:700">`);
-  sheet('Timer: '+esc(it.name),`<input type="hidden" name="eid" value="${e.id}"><input type="hidden" name="iid" value="${it.id}">
+  sheet('Intervall-Timer: '+esc(it.name),`<input type="hidden" name="eid" value="${e.id}"><input type="hidden" name="iid" value="${it.id}">
    <p class="small muted" style="margin-top:0">Belastung und Pause frei einstellen. Jeder durchlaufene Satz wird im Training abgehakt.</p>
    <div class="grid g3">${n('n','Intervalle pro Satz',tm.n)}${n('work','Belastung (s)',tm.work)}${n('rest','Pause dazwischen (s)',tm.rest)}</div>
    <div class="grid g2">${n('sets','Sätze am Stück',open)}${n('rr','Satzpause (s)',tm.rr??(tg.rest||60))}</div>
@@ -576,7 +579,7 @@ async function readFiles(el){
       S.plans.push(p); save(); $('#sheet').classList.remove('on'); toast('Plan importiert'); go('#/plan/'+p.id); }
   }catch(e){ toast('Datei konnte nicht gelesen werden'); }
 }
-window.addEventListener('hashchange',()=>{ if($('#sheet').classList.contains('on')){ $('#sheet').classList.remove('on'); $('#sheet').innerHTML=''; } render(); });
+window.addEventListener('hashchange',()=>{ UI.depth=(UI.depth||0)+1; if($('#sheet').classList.contains('on')){ $('#sheet').classList.remove('on'); $('#sheet').innerHTML=''; } render(); });
 window.addEventListener('afterprint',()=>{ $('#print').innerHTML=''; });
 { // Start: gemerktes Profil öffnen, sonst Profilauswahl
   const sess=ls.get(SESSION);
