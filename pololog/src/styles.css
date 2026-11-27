@@ -225,6 +225,20 @@ label{display:block;font-size:.8rem;color:var(--muted);margin:0 0 .3rem .1rem}
 .nstat{display:flex;align-items:center;gap:6px;font-weight:600;font-size:.92rem}.norm.l2 .nstat{color:var(--ok)}.norm.l-1 .nstat{color:var(--muted);font-weight:400}
 .nsum{display:flex;align-items:center;gap:14px;margin-top:10px;padding:14px 16px;border-radius:var(--r-card);background:var(--ink);color:var(--paper)}
 .nsum b{font-family:var(--display);font-size:2.2rem;line-height:1;white-space:nowrap}.nsum span{font-size:.9rem}.nsum.ok{background:var(--ok);color:#fff}
+.check{margin-top:12px}
+.cbars{display:grid;gap:6px;margin:12px 0}
+.cbars div{display:grid;grid-template-columns:118px 1fr 26px;align-items:center;gap:8px;font-size:.84rem}
+.cbars i{height:8px;border-radius:99px;background:var(--paper-2);overflow:hidden;display:block}.cbars em{display:block;height:100%;background:var(--ink);border-radius:99px}
+.cbars b{text-align:right;font-variant-numeric:tabular-nums}
+.ctip{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--rule);font-size:.88rem;line-height:1.4}
+.ctip .ic{margin-top:2px;color:var(--muted)}.ctip.l1 .ic{color:var(--red)}.ctip.l2{color:var(--ok);font-weight:600}.ctip.l2 .ic{color:var(--ok)}
+.indiv{margin-top:22px;border:1px solid var(--rule);border-radius:var(--r-card);background:var(--card);padding:0 12px}
+.indiv summary{padding:14px 4px;min-height:64px}.indiv summary b{display:block;font-family:var(--display);font-size:1.3rem;line-height:1.1}
+.indiv summary::after{content:"+";font-family:var(--display);font-size:1.6rem;color:var(--red)}.indiv[open] summary::after{content:"–"}
+.indiv[open]{padding-bottom:14px}
+.how{margin-bottom:14px;padding:14px 16px;border-radius:var(--r-card);background:var(--ink);color:var(--paper)}
+.how b{font-family:var(--display);font-size:1.3rem}.how ol{margin:8px 0 12px;padding-left:1.2rem;font-size:.9rem;line-height:1.45}.how li{margin-bottom:4px}
+.how .btn{color:var(--paper);border-color:var(--paper)}
 /* Anstrengung */
 .rpe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rpe button{min-height:48px;font-family:var(--display);font-size:1.3rem;border-radius:10px;border:1px solid var(--rule);font-weight:600;background:color-mix(in srgb,var(--red) calc(var(--i)*7%),var(--card));transition:transform var(--micro) var(--ease-out)}

@@ -359,10 +359,22 @@ function startApp(profile,keepRoute){
   if(profile==='guest'&&!S.settings.onboarded) setTimeout(welcomeSheet,250);
 }
 function welcomeSheet(){
-  sheet('Willkommen bei PoloLog',`<form data-form="welcome"><p style="margin-top:0">Hier planst du dein Krafttraining, dein Wassertraining und deine Turniere. Ein Konto brauchst du nicht, alles bleibt auf deinem Handy.</p>
+  sheet('Willkommen bei PoloLog',`<p style="margin-top:0">Hier planst du dein Krafttraining, dein Wassertraining und deine Turniere. Ein Konto brauchst du nicht, alles bleibt auf deinem Handy.</p>
    ${field('Wie heißt du?','<input name="name" autocomplete="given-name" placeholder="Vorname">')}
-   <ul class="small muted" style="padding-left:1.1rem;margin:4px 0 14px"><li>Fertige Grundlagenpläne, auch wenn du noch nie im Kraftraum warst</li><li>Ein Rechner, der dir die passenden Gewichte ausrechnet</li><li>Timer für Sätze, Pausen und Zirkel</li><li>Kurze Erklärungen, warum du was trainierst</li></ul>
-   <button class="btn pri lg block" type="submit">Los geht's</button></form>`);
+   <label style="margin-top:14px">Wie möchtest du starten?</label>
+   <div class="tiles">
+    <button class="tile pri" data-a="obMode" data-v="neu"><span class="ico">${ic('play')}</span><span class="grow"><b>Führ mich durch</b><span class="small muted">Ich bin neu im Kraftraum. Gib mir einen fertigen Plan und zeig mir, wie es geht.</span></span></button>
+    <button class="tile" data-a="obMode" data-v="fort"><span class="ico">${ic('gear')}</span><span class="grow"><b>Ich plane selbst</b><span class="small muted">Ich habe Erfahrung. Ich baue meine Pläne selbst und lasse sie von der App prüfen.</span></span></button>
+   </div><p class="tiny muted" style="margin-bottom:0">Das lässt sich später in den Einstellungen ändern.</p>`);
+}
+function guideSheet2(){
+  const o=UI.ob=UI.ob||{ort:'gym',n:2};
+  sheet('Dein Plan in zwei Fragen',`<label>Wo trainierst du?</label>
+   <div class="seg">${[['gym','Im Kraftraum'],['home','Zu Hause, ohne Geräte']].map(([k,l])=>`<button class="${o.ort===k?'on':''}" data-a="obSet" data-k="ort" data-v="${k}">${l}</button>`).join('')}</div>
+   <label style="margin-top:14px">Wie oft pro Woche schaffst du Krafttraining?</label>
+   <div class="seg">${[[2,'2-mal'],[3,'3-mal']].map(([k,l])=>`<button class="${o.n==k?'on':''}" data-a="obSet" data-k="n" data-v="${k}">${l}</button>`).join('')}</div>
+   <p class="small" style="margin:14px 2px">${o.ort==='gym'?`Du bekommst den Grundlagenplan: ${o.n==3?'drei':'zwei'} Einheiten pro Woche mit je fünf Übungen, etwa 70 Minuten. Die Gewichte trägst du beim ersten Mal selbst ein und fängst leicht an.`:`Du bekommst ${o.n==3?'drei':'zwei'} Einheiten pro Woche mit dem eigenen Körpergewicht: Ganzkörper und Core-Zirkel, je 15 bis 30 Minuten.`} Die erste Einheit steht heute im Kalender, geplant sind vier Wochen. Die Tage kannst du jederzeit verschieben.</p>
+   <button class="btn pri lg block" data-a="obPlan">${ic('calendar','sm')}Plan erstellen</button>`);
 }
 
 /* ---- Aktionen ---- */
@@ -370,6 +382,20 @@ const A={
  closeSheet,
  back(el,ev){ if(UI.depth>0){ ev.preventDefault(); history.back(); } },
  openEx(el){ UI.openEx[el.dataset.it]=true; render(); },
+ obMode(el){ S.settings.name=(formVals($('#sheet')).name||'').trim(); S.settings.mode=el.dataset.v; S.settings.onboarded=true; save(); el.dataset.v==='neu'?guideSheet2():closeSheet(); },
+ obGuide(el,ev){ ev&&ev.preventDefault(); guideSheet2(); },
+ obSet(el){ UI.ob[el.dataset.k]=isNaN(+el.dataset.v)?el.dataset.v:+el.dataset.v; guideSheet2(); },
+ obPlan(){ const o=UI.ob, t=today(), exs=S.exercises;
+  const names=o.ort==='gym'?['Grundlagenplan · Einheit 1','Grundlagenplan · Einheit 2','Grundlagenplan · Einheit 3']:['Ganzkörper · ohne Geräte','Core-Zirkel · lang, ohne Geräte (25 min)','Core-Zirkel · kurz, ohne Geräte (12 min)'];
+  const defs=mkPlans(names.slice(0,o.n).map(n=>GUEST_PLANS.find(x=>x.name===n)),exs), offs=o.n==3?[0,2,4]:[0,3];
+  S.entries=S.entries.filter(e=>!(e.gen&&!e.done&&!e.items.some(i=>i.sets.some(x=>x.done))));
+  for(let w=0;w<4;w++) offs.forEach((d,k)=>S.entries.push(newEntry({type:'kraft',gen:true,date:addDays(t,7*w+d),title:defs[k].name.replace(/ \(.*\)$/,''),planned:o.ort==='gym'?70:25,items:itemsFromPlan(defs[k]),plan:defs[k].note})));
+  save(); const first=S.entries.filter(e=>e.gen&&e.date===t)[0];
+  sheet('Dein Plan steht',`<p style="margin-top:0">${o.n*4} Einheiten für die nächsten vier Wochen liegen im Kalender. Die erste ist heute dran.</p>
+   <ol class="small" style="padding-left:1.2rem;margin:0 0 14px"><li style="margin-bottom:6px">Auf der Startseite siehst du immer, was als Nächstes ansteht.</li><li style="margin-bottom:6px">Im Training hakst du jeden Satz ab. Die Pause läuft von allein.</li><li style="margin-bottom:6px">Passt ein Tag nicht, tipp auf das Datum und verschieb die Einheit.</li><li>Alles andere findest du später unter „Individuelle Trainingsgestaltung“.</li></ol>
+   ${first?`<a class="btn pri lg block" href="#/training/${first.id}">${ic('play','sm')}Erstes Training ansehen</a>`:''}<button class="btn ghost block" style="margin-top:6px" data-a="closeSheet">Zur Startseite</button>`); },
+ seenHow(){ S.settings.seenHow=true; save(); render(); },
+ setMode(el){ S.settings.mode=el.dataset.v; save(); render(); toast(el.dataset.v==='neu'?'Geführter Modus':'Freier Modus mit Live-Check'); },
  normSet(el){ normGet().group=el.dataset.v; save(); render(); },
  calcSet(el){ const c=calcGet(); c[el.dataset.k]=isNaN(+el.dataset.v)?el.dataset.v:+el.dataset.v; save(); render(); },
  calcPlan(){ clearTimeout(saveT); const c=calcGet(), sp=c.level==='neu'?50:60;
@@ -494,7 +520,8 @@ const A={
  addEx(el){ const ex=exById(el.dataset.id), [kind,id]=UI.pickTarget.split(':');
   if(kind==='entry') entry(id).items.push({id:uid(),exId:ex.id,name:ex.name,mode:ex.mode,block:'',target:{sets:3},sets:[1,2,3].map(()=>({w:null,r:null,t:null,done:false}))});
   else planById(id).items.push({id:uid(),exId:ex.id,name:ex.name,mode:ex.mode,block:'',sets:3,reps:ex.mode==='t'?null:10,time:ex.mode==='t'?30:null,weight:null,pct:null,rest:90,note:''});
-  save(); toast(ex.name+' hinzugefügt'); },
+  save(); let tip=''; if(kind==='plan'&&PROFILE==='guest'){ const w=planCheck(planById(id).items.map(i=>({name:i.name,exId:i.exId,n:i.sets||1,rest:i.rest,mode:i.mode,time:i.time}))).tips.find(x=>x[0]===1); if(w) tip=' · '+w[1].split('.')[0]; }
+  toast(ex.name+' hinzugefügt'+tip); },
  // Übungen
  editEx(el){ exSheet(el.dataset.id); },
  saveEx(){ const v=formVals($('#sheet')); if(!v.name.trim()) return toast('Bitte Namen eingeben');
@@ -583,12 +610,12 @@ document.addEventListener('change',ev=>{
   const el=ev.target;
   if(el.dataset.bind){ clearTimeout(saveT); save(); if('rr' in el.dataset) render(); }
   if(el.dataset.file) readFiles(el);
+  const pc=$('#pcheck'); if(pc&&el.dataset.bind&&el.dataset.bind.startsWith('plans/')){ const pl=planById(pc.dataset.plan); if(pl) pc.innerHTML=planCheckHtml(pl); }
   if(el.dataset.in==='moveDate'&&el.value){ const e=entry(el.dataset.id); e.date=el.value; save(); closeSheet(); toast('Verschoben auf '+fdate(e.date)); }
 });
 document.addEventListener('submit',async ev=>{
   const f=ev.target; if(!f.dataset.form) return; ev.preventDefault();
   if(f.dataset.form==='login') return doLogin(f);
-  if(f.dataset.form==='welcome'){ S.settings.name=formVals(f).name.trim(); S.settings.onboarded=true; save(); return closeSheet(); }
   if(f.dataset.form==='newpw'){ const v=formVals(f); if(v.pw1.length<4||v.pw1!==v.pw2) return toast('Eingaben prüfen: gleich und mindestens 4 Zeichen'); await lockSet(v.pw1); closeSheet(); toast('Passwort geändert'); }
 });
 window.addEventListener('pagehide',()=>{ clearTimeout(saveT); save(); });

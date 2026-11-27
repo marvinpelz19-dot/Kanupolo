@@ -51,7 +51,8 @@ heute(){
       if(!S.settings.trainer) return '';
       return `<a class="item" style="margin-top:12px;--c:var(--ink)" href="#/feedback/${ws}"><div class="grow"><div class="ttl">Wochen-Feedback${S.settings.trainer?' für '+esc(S.settings.trainer):''}</div><div class="small muted">${n===WF.length?'Ausgefüllt, bereit zum Senden':n?n+' von '+WF.length+' bewertet':'5 Bewertungen von 1 bis 5, als PDF senden'}</div></div>${n===WF.length?`<span class="tick">${ic('check')}</span>`:ic('right')}</a>`; })()}
    ${g?`<div class="sec"><h2>Diese Woche von ${esc(S.settings.trainer)}</h2></div>${guideCard(g)}`:''}
-   ${PROFILE==='guest'?`<div class="sec"><h2>Grundlagenpläne</h2><a class="small muted" href="#/inhalte" data-a="ktab" data-v="plaene">Alle ${S.plans.length} Pläne</a></div>
+   ${isBeg()?`${S.entries.some(e=>!e.done&&e.date>=t)?'':`<a class="tile pri" style="margin-top:12px" href="#" data-a="obGuide"><span class="ico">${ic('calendar')}</span><span class="grow"><b>Meinen Plan erstellen</b><span class="small muted">Zwei Fragen, dann steht dein Training für die nächsten Wochen</span></span>${ic('right','sm')}</a>`}`
+   :PROFILE==='guest'?`<div class="sec"><h2>Grundlagenpläne</h2><a class="small muted" href="#/inhalte" data-a="ktab" data-v="plaene">Alle ${S.plans.length} Pläne</a></div>
    <a class="tile pri" href="#/rechner"><span class="ico">${ic('chart')}</span><span class="grow"><b>Plan mit deinen Gewichten</b><span class="small muted">Werte eintragen, die App legt dir 4 bis 8 Wochen in den Kalender</span></span>${ic('right','sm')}</a>
    <a class="tile" style="margin-top:8px" href="#/normen"><span class="ico">${ic('trophy')}</span><span class="grow"><b>Norm-Check</b><span class="small muted">Deine Kraftwerte im Vergleich zu den Kadernormen</span></span>${ic('right','sm')}</a>
    <div class="plans">${S.plans.filter(x=>/^(Grundlagenplan|Einsteiger|Ausgleich)/.test(x.name)).slice(0,6).map(x=>`<a class="pcard" href="#/plan/${x.id}"><span class="tiny">${/^Grundlagenplan/.test(x.name)?'Grundlagenplan':/^Einsteiger/.test(x.name)?'Ganz neu im Kraftraum':'Schulter und Rumpf'}</span><b>${esc(x.name.replace(/^(Grundlagenplan|Einsteiger|Ausgleich) · /,''))}</b><span class="small muted">${x.items.length} Übungen</span><span class="pgo">${ic('play','sm')}Ansehen</span></a>`).join('')}</div>
@@ -61,6 +62,9 @@ heute(){
     <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen</b><span class="small muted">Warum du was trainierst, kurz erklärt</span></span>${ic('right','sm')}</a>
    </div>`}`:''}
    ${weekBlock(ws,'Diese Woche')}
+   ${isBeg()?`<div class="tiles" style="margin-top:14px">
+    <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Gut zu wissen</b><span class="small muted">Wie viel trainieren, worauf achten, kurz erklärt</span></span>${ic('right','sm')}</a>
+    <a class="tile" href="#/kraft"><span class="ico">${ic('gear')}</span><span class="grow"><b>Individuelle Trainingsgestaltung</b><span class="small muted">Eigene Pläne, Kraftrechner, Norm-Check und mehr</span></span>${ic('right','sm')}</a></div>`:''}
    ${S.entries.some(e=>e.date>we&&e.date<=addDays(we,7))?weekBlock(addDays(ws,7),'Nächste Woche'):''}
    ${nt?`<div class="sec"><h2>Nächster Termin</h2><a class="small muted" href="#/turniere">Alle Turniere</a></div>${tournItem(nt)}`:''}`;
 },
@@ -103,7 +107,7 @@ training(id){
      <div class="row" style="margin-top:10px"><button class="btn grow" data-a="pickEx" data-target="entry:${e.id}">${ic('plus','sm')}Übung</button><button class="btn grow" data-a="loadPlan" data-id="${e.id}">${ic('dumbbell','sm')}Plan laden</button></div>`;
   }
   const noteLabel = e.type==='wasser'?'Was habe ich gemacht? (Notizen)':e.type==='kraft'?'Notizen':'Was habe ich gemacht?';
-  return `<div class="row"><a class="iconbtn" href="#/saison" data-a="back" aria-label="Zurück">${ic('back')}</a><div class="grow">${badgeE(e)}</div>
+  return `${PROFILE==='guest'&&!S.settings.seenHow?`<div class="how"><b>So läuft dein Training</b><ol><li>Mach die Übungen von oben nach unten.</li><li>Tipp nach jedem Satz auf den Haken. Die Pause startet dann von allein.</li><li>Trag ein, was du geschafft hast. Die App merkt es sich fürs nächste Mal.</li><li>Am Ende auf „Abschließen“ und kurz sagen, wie anstrengend es war.</li></ol><button class="btn sm" data-a="seenHow">Verstanden</button></div>`:''}<div class="row"><a class="iconbtn" href="#/saison" data-a="back" aria-label="Zurück">${ic('back')}</a><div class="grow">${badgeE(e)}</div>
      <button class="iconbtn" data-a="pdfEntry" data-id="${e.id}" title="PDF">${ic('pdf')}</button><button class="iconbtn" data-a="dupEntry" data-id="${e.id}" title="Duplizieren">${ic('copy')}</button><button class="iconbtn" data-a="delEntry" data-id="${e.id}" title="Löschen" style="color:var(--danger)">${ic('trash')}</button></div>
    <div class="card" style="margin-top:12px">
      ${inp(p+'/title',e.title,'style="font-size:1.15rem;font-weight:700" placeholder="Titel"')}
@@ -131,7 +135,7 @@ training(id){
 /* ---------- Training: Übersicht mit Wochen-Kachel ---------- */
 kraft(){
   const t=today(), ws=weekStart(t), we=addDays(ws,6), E=wfEntries(ws), g=guideFor(ws), nx=addDays(ws,7), NE=wfEntries(nx);
-  const open=E.filter(e=>!e.done&&e.date>=t)[0], done=E.filter(e=>e.done), hist=S.entries.filter(e=>e.done).length;
+  const open=E.filter(e=>!e.done&&e.date>=t)[0], done=E.filter(e=>e.done), hist=S.entries.filter(e=>e.done).length, beg=isBeg();
   return `<h1 style="margin-bottom:14px">Training</h1>
    <a class="wtile" href="#/woche/${ws}">${wheelSvg('wheel')}<div class="small">Diese Woche${g?' · '+esc(g.title):''}</div>
      <h2>${fshort(ws)} bis ${fshort(we)}${we.slice(0,4)}</h2>
@@ -139,7 +143,7 @@ kraft(){
      <div class="row"><span class="grow">${done.length} von ${E.length} Einheiten erledigt</span>${ic('right')}</div>
      ${open?`<div class="wnext"><span class="tiny">Als Nächstes</span><b>${esc(open.title)}</b><span class="small">${open.date===t?'heute':WD[pdate(open.date).getDay()]+', '+fshort(open.date)}</span></div>`:E.length?`<div class="wnext"><b>Alles erledigt für diese Woche</b></div>`:`<div class="wnext"><b>Noch nichts geplant</b><span class="small">Antippen und Einheiten anlegen</span></div>`}</a>
    ${NE.length?`<a class="tile" style="margin-top:10px" href="#/woche/${nx}"><span class="ico">${ic('calendar')}</span><span class="grow"><b>Nächste Woche</b><span class="small muted">${fshort(nx)} bis ${fshort(addDays(nx,6))} · ${NE.length} Einheiten geplant</span></span>${ic('right','sm')}</a>`:''}
-   <div class="sec"><h2>Alles Weitere</h2></div>
+   ${beg?`<details class="indiv"><summary><span class="grow"><b>Individuelle Trainingsgestaltung</b><span class="small muted">Eigene Pläne bauen, Gewichte berechnen, Normen prüfen</span></span></summary>`:`<div class="sec"><h2>Alles Weitere</h2></div>`}
    <div class="tiles">
     <a class="tile" href="#/inhalte"><span class="ico">${ic('dumbbell')}</span><span class="grow"><b>Alle Trainingsinhalte</b><span class="small muted">${S.plans.length} Pläne, ${S.exercises.length} Übungen, ${S.timers.length} Timer, Monatsplan</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/rechner"><span class="ico t-kraft">${ic('chart')}</span><span class="grow"><b>Kraftrechner</b><span class="small muted">Werte eintragen, Gewichte ausrechnen, Grundlagenplan anlegen lassen</span></span>${ic('right','sm')}</a>
@@ -147,7 +151,7 @@ kraft(){
     <a class="tile" href="#/wissen"><span class="ico">${ic('bolt')}</span><span class="grow"><b>Wissen</b><span class="small muted">Warum du was trainierst: Muskelaufbau, Kraft, Periodisierung, Ausgleich</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/historie"><span class="ico">${ic('list')}</span><span class="grow"><b>Historie</b><span class="small muted">${hist} absolvierte Einheiten</span></span>${ic('right','sm')}</a>
     <a class="tile" href="#/feedback/${ws}"><span class="ico">${ic('check')}</span><span class="grow"><b>Wochen-Feedback</b><span class="small muted">Bewertung 1 bis 5 als PDF${S.settings.trainer?' für '+esc(S.settings.trainer):''}</span></span>${ic('right','sm')}</a>
-   </div>`;
+   </div>${beg?`<p class="small muted" style="margin:12px 2px 0">Du planst lieber alles selbst? In den Einstellungen kannst du auf den freien Modus umstellen.</p></details>`:''}`;
 },
 woche(ws){
   ws=ws||weekStart(today()); const t=today(), we=addDays(ws,6), E=wfEntries(ws), g=guideFor(ws), cur=weekStart(t);
@@ -159,6 +163,7 @@ woche(ws){
    ${E.map(e=>{ const n=e.items.length, sub=[e.done?(e.minutes?e.minutes+' min':'erledigt'):(e.planned?'ca. '+e.planned+' min':''), n?n+' Übungen':'', e.rpe?'RPE '+e.rpe:''].filter(Boolean).join(' · ');
      return `<div class="srow t-${e.type} ${e.done?'done':''} ${e.date===t?'now':''}"><button class="sdate" data-a="moveEntry" data-id="${e.id}" aria-label="Datum ändern"><b>${WD[pdate(e.date).getDay()]}</b><span>${fshort(e.date)}</span></button>
        <a class="sbody" href="#/training/${e.id}"><span class="grow"><b>${esc(e.title)}</b><span class="small muted">${isTrx(e)?'TRX':TYPES[e.type].short}${sub?' · '+sub:''}</span></span>${e.done?`<span class="tick">${ic('check')}</span>`:ic('right','sm')}</a></div>`; }).join('')||`<div class="empty">In dieser Woche ist noch nichts geplant.</div>`}
+   ${PROFILE==='guest'&&!isBeg()&&E.length?checkCard(weekCheck(ws),'Wochen-Check',true):''}
    <p class="tiny muted" style="margin:8px 2px 0">Tipp: Auf das Datum links tippen, um eine Einheit auf einen anderen Tag zu legen.</p>
    <button class="btn block" style="margin-top:10px" data-a="planDay" data-d="${ws>t?ws:(t<=we?t:ws)}">${ic('plus','sm')}Einheit hinzufügen</button>
    ${g?`<div class="sec"><h2>Vorgabe von ${esc(S.settings.trainer||'Trainer')}</h2></div>${guideCard(g)}`:''}
@@ -205,6 +210,7 @@ plan(id){
      <textarea data-bind="${b}/note" style="margin-top:8px;min-height:3.5rem" placeholder="Beschreibung / Hinweise">${esc(p.note)}</textarea></div>
    <button class="btn pri lg block" style="margin-top:12px" data-a="startPlan" data-id="${p.id}">${ic('play','sm')}Jetzt trainieren</button>
    ${isCircuit(p.items)?`<button class="btn block" style="margin-top:8px" data-a="runPlan" data-id="${p.id}">${ic('timer','sm')}Nur den Timer für den Zirkel</button>`:''}
+   ${PROFILE==='guest'?`<div id="pcheck" data-plan="${p.id}">${planCheckHtml(p)}</div>`:''}
    <div class="sec"><h2>Übungen (${p.items.length})</h2></div>
    ${p.items.map((it,i)=>{ const q=`${b}/items/${it.id}`; const hd=it.block&&it.block!==last?`<div class="blockhd">${esc(it.block)}</div>`:''; last=it.block;
      return hd+`<div class="ex"><div class="row"><span class="num">${i+1}</span><b class="grow">${esc(it.name)}</b>
@@ -401,6 +407,7 @@ mehr(){
    <div class="sec"><h2>Profil & Trainer</h2></div>
    <div class="card"><div class="grid g2">${field('Mein Name',inp(b+'/name',s.name))}${field('Trainer',inp(b+'/trainer',s.trainer))}${field('WhatsApp-Nr. Trainer (mit +Land)',inp(b+'/trainerPhone',s.trainerPhone,'placeholder="+33…" inputmode="tel"'))}${field('E-Mail Trainer',inp(b+'/trainerMail',s.trainerMail,'type="email"'))}
      ${field('Sprache für Feedback',`<select data-bind="${b}/lang"><option value="en" ${s.lang==='en'?'selected':''}>English</option><option value="fr" ${s.lang==='fr'?'selected':''}>Français</option><option value="de" ${s.lang==='de'?'selected':''}>Deutsch</option></select>`)}${field('Standard-Pause (Sek.)',numinp(b+'/restDefault',s.restDefault))}</div>
+     ${PROFILE==='guest'?`<div class="row" style="margin:4px 0 10px"><span class="grow small muted">Modus</span><div class="seg" style="width:60%">${[['neu','Geführt'],['fort','Frei']].map(([k,l])=>`<button class="${S.settings.mode===k?'on':''}" data-a="setMode" data-v="${k}">${l}</button>`).join('')}</div></div>`:''}
      <div class="row" style="margin-top:4px"><span class="grow small muted">Design</span><div class="seg" style="width:60%">${[['dark','Dunkel'],['light','Hell']].map(([k,l])=>`<button class="${s.theme===k?'on':''}" data-a="theme" data-v="${k}">${l}</button>`).join('')}</div></div></div>
    <a class="btn block" style="margin-top:10px" href="#/feedback">${ic('check','sm')}Wochen-Feedback (1–5) als PDF</a>
    <button class="btn block" style="margin-top:10px" data-a="weekReport">${ic('share','sm')}Wochenbericht an ${esc(s.trainer||'Trainer')} senden</button>
@@ -427,6 +434,13 @@ function weekBlock(ws,title){
   const E=S.entries.filter(e=>e.date>=ws&&e.date<=addDays(ws,6));
   return `<div class="sec"><h2>${title}</h2><a class="small muted" href="#/woche/${ws}">${E.filter(e=>e.done).length} von ${E.length} erledigt · öffnen</a></div><div class="card week">${h}</div>`;
 }
+function checkCard(c,title,week){
+  const max=Math.max(8,...GRP.map(([k])=>c.g[k]));
+  return `<div class="card check"><div class="row"><b class="grow">${title}</b><span class="small muted">${week?`${c.k}× Kraft, ${c.w}× Wasser`:`${c.total} Sätze, etwa ${c.min} min`}</span></div>
+   <div class="cbars">${GRP.map(([k,l])=>`<div><span>${l}</span><i><em style="width:${(c.g[k]/max*100).toFixed(0)}%"></em></i><b>${c.g[k]}</b></div>`).join('')}</div>
+   ${c.tips.map(([lv,tx])=>`<div class="ctip l${lv}">${ic(lv===2?'check':lv===1?'bolt':'right','sm')}<span>${esc(tx)}</span></div>`).join('')}</div>`;
+}
+const planCheckHtml=p=>checkCard(planCheck(p.items.map(i=>({name:i.name,exId:i.exId,n:i.sets||1,rest:i.rest,mode:i.mode,time:i.time}))),'Live-Check');
 const exImg=n=>PROFILE==='owner'&&EX_IMG[n]?`<img class="eximg ${EX_ILL.includes(n)?'ill':''}" src="${EX_IMG[n]}" alt="${EX_ILL.includes(n)?'Zeichnung':'Start- und Endposition'}: ${esc(n)}" loading="lazy">`:'';
 const exTips=ex=>ex&&ex.note?`<details class="tips"><summary>Tipps zur Ausführung</summary><p>${esc(ex.note)}</p></details>`:'';
 const byDate=(a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''));

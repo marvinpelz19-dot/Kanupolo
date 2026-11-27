@@ -399,6 +399,18 @@ const GUEST_PLANS=[
   ['Bird Dog',3,8,null,30,'8 Wdh. je Seite, Becken bleibt ruhig','Rumpf','r'],
   ['Side Plank',3,30,null,30,'30 s je Seite','Rumpf','t'],
   ['Dead Bug',3,10,null,30,'','Rumpf','r']]},
+ {name:'Core-Zirkel · kurz, ohne Geräte (12 min)', note:'Vier Bauchübungen direkt nacheinander, je 20 Sekunden. Das ist eine Runde. Davon vier, mit 90 Sekunden Pause dazwischen. Du brauchst nur eine Matte. Beweg dich zügig, aber sauber. Mit „Ganzen Zirkel mit Timer starten“ zählt die App für dich.', items:
+  [['Leg Raise (straight)','Beine gestreckt heben und langsam senken, der untere Rücken bleibt am Boden'],['Cross Leg Raise (alternating)','Beine im Wechsel, klein und schnell'],['Crunch','Schultern anheben, Kinn weg von der Brust'],['Bicycle Crunch','Ellbogen zum gegenüberliegenden Knie']].map(([n,c],i,a)=>[n,4,20,null,i===a.length-1?90:0,c,'','t'])},
+ {name:'Core-Zirkel · lang, ohne Geräte (25 min)', note:'Sechs Übungen für Bauch, Seite und Rücken. 40 Sekunden arbeiten, 15 Sekunden wechseln, drei Runden mit 2 Minuten Pause. Geht überall, auch am Steg nach dem Wassertraining.', items:
+  [['Leg Raise (straight)','Langsam senken, Rücken bleibt am Boden'],['Plank','Kopf bis Ferse eine Linie'],['Bicycle Crunch','Ruhig atmen, nicht am Kopf ziehen'],['Side Plank','Jede Runde die Seite wechseln, Hüfte hoch'],['Superman (arms and legs extended)','Arme und Beine knapp über dem Boden halten'],['Mountain Climber','Hüfte tief, Knie im Wechsel zur Brust']].map(([n,c],i,a)=>[n,3,40,null,i===a.length-1?120:15,c,'','t'])},
+ {name:'Ganzkörper · ohne Geräte', note:'Für zu Hause oder wenn der Kraftraum zu ist. Alles mit dem eigenen Körpergewicht. Was fehlt, ist das Ziehen: Wenn du eine Klimmzugstange oder ein Band hast, häng drei Sätze dran.', items:[
+  ['Push-Up',3,10,null,60,'So viele saubere wie möglich, zwei übrig lassen. Zu schwer: Hände erhöht','Kraft','r'],
+  ['Reverse Lunge',3,10,null,60,'10 pro Bein, ohne Gewicht, Oberkörper aufrecht','Kraft','r'],
+  ['Glute Bridge',3,15,null,45,'Oben kurz halten und das Gesäß anspannen','Kraft','r'],
+  ['Squat Jump',3,6,null,60,'Explosiv hoch, leise landen','Kraft','r'],
+  ['Superman (arms and legs extended)',3,30,null,30,'Für den unteren Rücken','Rumpf','t'],
+  ['Dead Bug',3,10,null,30,'Langsam, der Rücken bleibt am Boden','Rumpf','r'],
+  ['Side Plank',2,30,null,30,'30 s je Seite','Rumpf','t']]},
  {name:'TRX · Grundlagen-Zirkel', note:'Sechs Übungen im Kreis: 40 Sekunden arbeiten, 20 Sekunden wechseln, drei Runden mit je 2 Minuten Pause. Je schräger du stehst, desto schwerer wird es. Tipp auf „Ganzen Zirkel mit Timer starten“, dann sagt dir die App, was dran ist.', items:
   [['TRX Squat','Band mittel'],['TRX Row','Band mittel'],['TRX Chest Press','Band lang'],['TRX Hamstring Curl','Band lang, Fersen in den Schlaufen'],['TRX Plank','Band lang, Füße in den Schlaufen'],['TRX Y Raise','Band mittel, wenig Schräglage']].map(([n,c],i,a)=>[n,3,40,null,i===a.length-1?120:20,c,'','t'])},
  {name:'Explosiv · Wurfkraft mit Medizinball', note:'Hier geht es um Tempo. Wenige Würfe, jeder so schnell wie möglich, dazwischen lange Pausen. Mach das nur ausgeruht, am besten direkt nach dem Aufwärmen, mit einem Ball von 2 bis 4 kg. Sobald die Würfe langsamer werden, ist der Satz vorbei.', items:[
@@ -491,6 +503,46 @@ const NORMS=[
  {k:'pu',t:'Klimmzüge',rel:false,v:{h:[12,22],hu:[9,18],d:[2,12],du:[1,6]}},
  {k:'t2b',t:'Toes to Bar',rel:false,v:{h:[4,15],hu:[1,11],d:[2,11],du:[1,3]}}];
 const normGet=()=>{ const n=S.settings.norm=S.settings.norm||{}; n.group=n.group||'hu'; return n; };
+/* ---- Live-Check für Pläne und Wochen ---- */
+const GRP=[['push','Drücken'],['pull','Ziehen'],['legs','Beine'],['core','Rumpf'],['bal','Ausgleich Schulter']];
+function exGroup(name,cat){
+  if(/Face Pull|Rear Delt|Rotator|Rotation|Y Raise|Shoulder Depression/.test(name)) return 'bal';
+  if(/^TRX (Row|Biceps|T Fly)|Bankziehen/.test(name)) return 'pull';
+  if(/^TRX (Push|Chest|Triceps|Atomic)/.test(name)) return 'push';
+  return {Push:'push',Pull:'pull','Klimmzüge':'pull',Schulter:'push',Beine:'legs','TRX Unterkörper':'legs',Core:'core','TRX Core':'core','Swiss Ball':'core','Unterer Rücken':'core','TRX Oberkörper':'pull',Medizinball:'power',Plyometrie:'power'}[cat]||'other';
+}
+// list: [{name,exId,n (Sätze),rest,mode,time}]
+function checkSets(list){
+  const g={push:0,pull:0,legs:0,core:0,bal:0,power:0,other:0}; let sec=0, total=0;
+  for(const it of list){ const ex=exById(it.exId), k=exGroup(it.name,ex?ex.cat:''); g[k]+=it.n; total+=it.n; sec+=it.n*((it.mode==='t'?(it.time||30):40)+(it.rest!=null?it.rest:60)); }
+  return {g,total,min:Math.round(sec/60)};
+}
+function planCheck(list){
+  const c=checkSets(list), g=c.g, t=[];
+  if(!c.total){ t.push([0,'Füg die ersten Übungen hinzu. Der Check zeigt dir dann, ob der Plan ausgeglichen ist.']); return {...c,tips:t}; }
+  if(g.push-g.pull>=3) t.push([1,`Du drückst mehr, als du ziehst (${g.push} zu ${g.pull} Sätze). Im Paddelsport gilt: mindestens so viel ziehen wie drücken.`]);
+  if(g.push+g.pull>0&&!g.bal) t.push([1,'Noch nichts für den Ausgleich. Zwei bis drei Sätze Facepulls oder Außenrotation reichen.']);
+  if(!g.core) t.push([1,'Der Rumpf fehlt. Eine Übung wie Plank oder Beinheben passt immer ans Ende.']);
+  if(g.push+g.pull>0&&!g.legs) t.push([0,'Keine Beinübung dabei. Als reiner Oberkörpertag ist das in Ordnung, sonst nimm eine dazu.']);
+  if(c.min>90) t.push([1,`Etwa ${c.min} Minuten. Das ist lang, 60 bis 80 Minuten sind ein guter Rahmen.`]);
+  if(c.total>30) t.push([1,`${c.total} Sätze in einer Einheit sind viel. Lieber auf zwei Tage verteilen.`]);
+  if(!t.some(x=>x[0])) t.unshift([2,'Passt. Der Plan ist ausgeglichen und hat eine gute Länge.']);
+  return {...c,tips:t};
+}
+function weekCheck(ws){
+  const E=wfEntries(ws), K=E.filter(e=>e.type==='kraft'), W=E.filter(e=>e.type==='wasser');
+  const c=checkSets(K.flatMap(e=>e.items.map(it=>({name:it.name,exId:it.exId,n:it.sets.length,mode:it.mode})))), g=c.g, t=[];
+  if(K.length<2) t.push([1,`${K.length?'Nur eine Krafteinheit':'Keine Krafteinheit'} geplant. Zwei bis drei pro Woche sind ein guter Wert.`]);
+  if(K.length>4) t.push([1,`${K.length} Krafteinheiten sind viel. Denk an die Erholung, vor allem neben dem Wassertraining.`]);
+  for(const [k,l] of GRP.slice(0,3)){ if(K.length&&g[k]<6) t.push([0,`${l}: ${g[k]} Sätze diese Woche. Für Fortschritt dürfen es 10 und mehr sein.`]); if(g[k]>25) t.push([1,`${l}: ${g[k]} Sätze. Mehr als 25 pro Woche bringen selten mehr.`]); }
+  if(g.push-g.pull>=5) t.push([1,`Über die Woche drückst du mehr, als du ziehst (${g.push} zu ${g.pull}).`]);
+  if(K.length&&g.bal<4) t.push([1,'Wenig Ausgleich für die Schulter. Plane ihn in jede Krafteinheit ein oder mach einmal den 20-Minuten-Plan.']);
+  const days=new Set(E.map(e=>e.date)).size; if(days>=7) t.push([1,'Kein freier Tag in dieser Woche. Einer sollte es mindestens sein.']);
+  for(let i=0;i<6;i++){ const d=addDays(ws,i); if(K.some(e=>e.date===d&&!/Core|Ausgleich|TRX/.test(e.title))&&K.some(e=>e.date===addDays(d,1)&&!/Core|Ausgleich|TRX/.test(e.title))){ t.push([0,'Zwei Krafteinheiten an aufeinanderfolgenden Tagen. Das geht, wenn sie verschiedene Muskeln treffen.']); break; } }
+  if(!t.some(x=>x[0])) t.unshift([2,'Die Woche sieht gut aus.']);
+  return {...c,k:K.length,w:W.length,tips:t};
+}
+const isBeg=()=>PROFILE==='guest'&&S.settings.mode==='neu';
 // Kraftrechner: Übungen, für die ein Maximalgewicht sinnvoll ist (Name in der Bibliothek, deutsche Bezeichnung)
 const CALC=[['Bankziehen (Langhantel)','Bankziehen, Langhantel'],['Bench Press','Bankdrücken, Langhantel'],['Dumbbell Row','Rudern einarmig (Gewicht einer Hantel)'],['Dumbbell Chest Press','Bankdrücken, Kurzhantel (Gewicht einer Hantel)'],['Pull-Over (lying on bench)','Überzüge'],['Back Squat','Kniebeuge'],['Box Squat','Box-Kniebeuge'],['Forward Lunge','Ausfallschritte (Zusatzgewicht gesamt)']];
 const est1rm=v=>v&&v.w>0?Math.round(epley(v.w,Math.min(v.r||1,12))*2)/2:null;
@@ -506,7 +558,7 @@ function mkPlans(defs,exercises){
 }
 function guestState(){
   const exercises=seedExercises();
-  return {version:1,seedV:99,gV:3,
+  return {version:1,seedV:99,gV:4,
     settings:{name:'',trainer:'',trainerPhone:'',trainerMail:'',lang:'de',theme:'light',goals:'',restDefault:90},
     exercises, plans:mkPlans(GUEST_PLANS,exercises), guides:[], entries:[], tournaments:[], weekly:{},
     timers:[{id:uid(),name:'Zirkel · 6 Übungen, 40/20, 3 Runden',rounds:3,prep:10,roundRest:120,steps:Array.from({length:6},(_,i)=>mkStep('Übung '+(i+1),40,20))},
@@ -575,6 +627,10 @@ function migrate(){
     for(const pl of f.plans){ const i=S.plans.findIndex(x=>x.name===pl.name||x.name==='DKV '+pl.name); if(i<0) continue;
       pl.items.forEach(it=>{ const ex=S.exercises.find(e=>e.name===it.name); if(ex) it.exId=ex.id; }); pl.id=S.plans[i].id; S.plans[i]=pl; }
     S.gV=3; save();
+  }
+  if(PROFILE==='guest'&&S.gV<4){ // Zirkel ohne Geräte nachreichen; bestehende Profile bleiben im freien Modus
+    for(const pl of f.plans) if(!S.plans.some(x=>x.name===pl.name)){ pl.items.forEach(it=>{ const ex=S.exercises.find(e=>e.name===it.name); if(ex) it.exId=ex.id; }); S.plans.push(pl); }
+    if(!S.settings.mode) S.settings.mode='fort'; S.gV=4; save();
   }
   if(PROFILE!=='owner') return;
   if((S.seedV||1)<2){ // neuer TRX-Zirkel Woche 2: Plan, Timer und Training für den 13.11.
